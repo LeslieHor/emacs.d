@@ -32,3 +32,13 @@ Symlink the ~packages~ directory and the ~init.el~ file to your ~.emacs.d/~ dire
 | nlinum                 | [[http://elpa.gnu.org/packages/nlinum.html][v1.8.1]]                                          |
 | nlinum-relative        | commit [[https://github.com/xcodebuild/nlinum-relative/tree/5b9950c97ba79a6f0683e38b13da23f39e01031c][5b9950c97ba79a6f0683e38b13da23f39e01031c]] |
 | diff-hl                | [[https://github.com/dgutov/diff-hl/releases/tag/1.8.6][v1.8.6]]                                          |
+| hydra                  | [[https://github.com/abo-abo/hydra/releases/tag/0.15.0][v0.15.0]]                                         |
+| transient              | commit [[https://github.com/magit/transient/tree/01a166fcb8bbd9918ba741e9b5428a4b524eab33][01a166fcb8bbd9918ba741e9b5428a4b524eab33]] |
+| with-editor            | commit [[https://github.com/magit/with-editor/tree/ff23166feb857e3cfee96cb1c9ef416a224a7e20][ff23166feb857e3cfee96cb1c9ef416a224a7e20]] |
+| magit                  | commit [[https://github.com/magit/magit/tree/23267cf33a7b690b27dc6760af8ab7f0886239ce][23267cf33a7b690b27dc6760af8ab7f0886239ce]] |
+| evil-magit             | commit [[https://github.com/emacs-evil/evil-magit/tree/ca83cfd246a9e808af3d42ee9bf740b81454fbd8][ca83cfd246a9e808af3d42ee9bf740b81454fbd8]] |
+
+** Magit notes
+hydra, transient and with-editor are deps.
+
+config.mk is required.

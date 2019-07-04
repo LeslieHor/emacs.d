@@ -17,24 +17,24 @@
 (set-face-attribute 'mode-line-buffer-id nil :foreground "white" :background "dark green") ; Set buffer id colour
 
 ;;; which-key
-(add-to-list 'load-path "~/.emacs.d/packages/which-key-3.3.1/")
+(add-to-list 'load-path "~/.emacs.d/packages/which-key-3.3.1")
 (require 'which-key)
 (which-key-mode)
 
 ;;; evil
-(add-to-list 'load-path "~/.emacs.d/packages/evil-1.2.14/")
+(add-to-list 'load-path "~/.emacs.d/packages/evil-1.2.14")
 (require 'evil)
 (evil-mode 1)
 (evil-ex-define-cmd "q" 'kill-this-buffer) ; :q should kill the buffer rather than quiting emacs
 (evil-ex-define-cmd "quit" 'evil-quit) ; :quit to quit emacs
 
 ;;; evil-leader
-(add-to-list 'load-path "~/.emacs.d/packages/evil-leader-0.4.3/")
+(add-to-list 'load-path "~/.emacs.d/packages/evil-leader-0.4.3")
 (require 'evil-leader)
 (global-evil-leader-mode)
 
 ;;; evil-org
-(add-to-list 'load-path "~/.emacs.d/packages/evil-org-mode-b6d652a9163d3430a9e0933a554bdbee5244bbf6/")
+(add-to-list 'load-path "~/.emacs.d/packages/evil-org-mode-b6d652a9163d3430a9e0933a554bdbee5244bbf6")
 (require 'evil-org)
 (add-hook 'org-mode-hook 'evil-org-mode)
 (evil-org-set-key-theme '(navigation insert textobjects additional calendar))
@@ -45,38 +45,38 @@
 (evil-org-agenda-set-keys)
 
 ;;; evil-numbers
-(add-to-list 'load-path "~/.emacs.d/packages/evil-numbers-0.4/")
+(add-to-list 'load-path "~/.emacs.d/packages/evil-numbers-0.4")
 (require 'evil-numbers)
 
 ;;; evil-quickscope
-(add-to-list 'load-path "~/.emacs.d/packages/evil-quickscope-0.1.4/")
+(add-to-list 'load-path "~/.emacs.d/packages/evil-quickscope-0.1.4")
 (require 'evil-quickscope)
 (global-evil-quickscope-mode 1)
 
 ;;; ivy swiper counsel
-(add-to-list 'load-path "~/.emacs.d/packages/swiper-0.11.0/")
+(add-to-list 'load-path "~/.emacs.d/packages/swiper-0.11.0")
 (require 'ivy)
 (require 'swiper)
 (require 'counsel)
 (setq ivy-use-virtual-buffers t)
 
 ;;; projectile
-(add-to-list 'load-path "~/.emacs.d/packages/projectile-2.0.0/")
+(add-to-list 'load-path "~/.emacs.d/packages/projectile-2.0.0")
 (require 'projectile)
 (projectile-mode +1)
 (setq projectile-project-search-path '("~/projects/")) ; where the projects are
 (setq projectile-completion-system 'ivy)
 
 ;;; counsel-projectile
-(add-to-list 'load-path "~/.emacs.d/packages/counsel-projectile-0.3.0/")
+(add-to-list 'load-path "~/.emacs.d/packages/counsel-projectile-0.3.0")
 (require 'counsel-projectile)
 
 ;;; ranger
-(add-to-list 'load-path "~/.emacs.d/packages/ranger.el-0.9.8.5/")
+(add-to-list 'load-path "~/.emacs.d/packages/ranger.el-0.9.8.5")
 (require 'ranger)
 
 ;;; neotree
-(add-to-list 'load-path "~/.emacs.d/packages/emacs-neotree-0.5.2/")
+(add-to-list 'load-path "~/.emacs.d/packages/emacs-neotree-0.5.2")
 (require 'neotree)
 (setq neo-theme 'arrow)
 ; Neotree keybindings conflict with evil-mode
@@ -91,29 +91,29 @@
 (evil-define-key 'normal neotree-mode-map (kbd "H") 'neotree-hidden-file-toggle)
 
 ;;; rainbow-delimiters
-(add-to-list 'load-path "~/.emacs.d/packages/rainbow-delimiters-2.1.3/")
+(add-to-list 'load-path "~/.emacs.d/packages/rainbow-delimiters-2.1.3")
 (require 'rainbow-delimiters)
 
 ;;; beacon
-(add-to-list 'load-path "~/.emacs.d/packages/beacon-1.3.4/")
+(add-to-list 'load-path "~/.emacs.d/packages/beacon-1.3.4")
 (require 'beacon)
 (beacon-mode 1)
 
 ;;; json-mode
-(add-to-list 'load-path "~/.emacs.d/packages/json-snatcher-1.0.0/")
-(add-to-list 'load-path "~/.emacs.d/packages/json-reformat-0.0.6/")
-(add-to-list 'load-path "~/.emacs.d/packages/json-mode-1.7.0/")
+(add-to-list 'load-path "~/.emacs.d/packages/json-snatcher-1.0.0")
+(add-to-list 'load-path "~/.emacs.d/packages/json-reformat-0.0.6")
+(add-to-list 'load-path "~/.emacs.d/packages/json-mode-1.7.0")
 (require 'json-mode)
 
 ;;; eyebrowse
-(add-to-list 'load-path "~/.emacs.d/packages/dash.el-2.16.0/")
-(add-to-list 'load-path "~/.emacs.d/packages/eyebrowse-0.7.7/")
+(add-to-list 'load-path "~/.emacs.d/packages/dash.el-2.16.0")
+(add-to-list 'load-path "~/.emacs.d/packages/eyebrowse-0.7.7")
 (require 'eyebrowse)
 (setq eyebrowse-new-workspace t) ; New workspaces start with scratch buffer
 (eyebrowse-mode) ; enable global eyebrowse mode on start up
 
 ;;; telephone-line
-(add-to-list 'load-path "~/.emacs.d/packages/telephone-line-0.4/")
+(add-to-list 'load-path "~/.emacs.d/packages/telephone-line-0.4")
 (require 'telephone-line)
 (setq telephone-line-lhs
       '((evil   . (telephone-line-evil-tag-segment))
@@ -128,11 +128,11 @@
 (telephone-line-mode 1)
 
 ;;; nlinum
-(add-to-list 'load-path "~/.emacs.d/packages/nlinum-1.8.1/")
+(add-to-list 'load-path "~/.emacs.d/packages/nlinum-1.8.1")
 (require 'nlinum)
 
 ;;; nlinum-relative
-(add-to-list 'load-path "~/.emacs.d/packages/nlinum-relative-5b9950c97ba79a6f0683e38b13da23f39e01031c/")
+(add-to-list 'load-path "~/.emacs.d/packages/nlinum-relative-5b9950c97ba79a6f0683e38b13da23f39e01031c")
 (require 'nlinum-relative)
 (nlinum-relative-setup-evil)
 (global-nlinum-relative-mode)
@@ -147,11 +147,26 @@
           (lambda () (when (bound-and-true-p nlinum-relative-mode) (nlinum-relative-off))))
 
 ;;; diff-hl
-(add-to-list 'load-path "~/.emacs.d/packages/diff-hl-1.8.6/")
+(add-to-list 'load-path "~/.emacs.d/packages/diff-hl-1.8.6")
 (require 'diff-hl)
 (require 'diff-hl-flydiff)
 (global-diff-hl-mode)
 (diff-hl-flydiff-mode)
+
+;;; magit
+(add-to-list 'load-path "~/.emacs.d/packages/transient-01a166fcb8bbd9918ba741e9b5428a4b524eab33/lisp")
+(add-to-list 'load-path "~/.emacs.d/packages/hydra-0.15.0")
+(add-to-list 'load-path "~/.emacs.d/packages/with-editor-ff23166feb857e3cfee96cb1c9ef416a224a7e20")
+(add-to-list 'load-path "~/.emacs.d/packages/magit-23267cf33a7b690b27dc6760af8ab7f0886239ce/lisp")
+(require 'magit)
+(with-eval-after-load 'info
+  (info-initialize)
+  (add-to-list 'Info-directory-list
+               "~/.emacs.d/packages/magit-23267cf33a7b690b27dc6760af8ab7f0886239ce/Documentation/"))
+
+;;; evil-magit
+(add-to-list 'load-path "~/.emacs.d/packages/evil-magit-ca83cfd246a9e808af3d42ee9bf740b81454fbd8")
+(require 'evil-magit)
 
 ;;; general
 (add-to-list 'load-path "~/.emacs.d/packages/general-2d2dd1d532fa75c1ed0c010d50e817ce43e58066/")
