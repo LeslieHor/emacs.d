@@ -19,9 +19,7 @@ Symlink the ~packages~ directory and the ~init.el~ file to your ~.emacs.d/~ dire
 | ivy / swiper / counsel | [[https://github.com/abo-abo/swiper/releases/tag/0.11.0][v0.11.0]]                                         |
 | projectile             | [[https://github.com/bbatsov/projectile/releases/tag/v2.0.0][v2.0.0]]                                          |
 | counsel-projectile     | [[https://github.com/ericdanan/counsel-projectile/releases/tag/0.3.0][v0.3.0]]                                          |
-| back-button            | MAYBE                                           |
 | ranger                 | [[https://github.com/ralesi/ranger.el/releases/tag/v0.9.8.5][v0.9.8.5]]                                        |
-| magit                  | MAYBE                                           |
 | neotree                | [[https://github.com/jaypei/emacs-neotree/releases/tag/0.5.2][v0.5.2]]                                          |
 | rainbow-delimiters     | [[https://github.com/Fanael/rainbow-delimiters/releases/tag/2.1.3][v2.1.3]]                                          |
 | json-snatcher          | [[https://github.com/Sterlingg/json-snatcher/releases/tag/1.0.0][v1.0.0]]                                          |
