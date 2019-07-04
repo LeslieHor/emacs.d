@@ -110,6 +110,7 @@
 (add-to-list 'load-path "~/.emacs.d/packages/eyebrowse-0.7.7/")
 (require 'eyebrowse)
 (setq eyebrowse-new-workspace t) ; New workspaces start with scratch buffer
+(eyebrowse-mode) ; enable global eyebrowse mode on start up
 
 ;;; telephone-line
 (add-to-list 'load-path "~/.emacs.d/packages/telephone-line-0.4/")
