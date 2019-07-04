@@ -3,7 +3,7 @@
 ** Installation
 Clone this repo.
 
-Symlink the ~packages~ directory and the ~init.el~ file to your ~.emacs.d~ directory.
+Symlink the ~packages~ directory and the ~init.el~ file to your ~.emacs.d/~ directory.
 
 ** Packages
 | Package                | Version                                         |
