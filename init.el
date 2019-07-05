@@ -11,10 +11,27 @@
 (toggle-scroll-bar -1)
 (server-start) ; Start emacs server
 
+;; org
+(setq org-html-postamble "<p class=\"created\">Created: %T</p>")
+; Set up languages for running code blocks in org
+(org-babel-do-load-languages
+ 'org-babel-load-languages '(
+                             (python . t)
+                             (sh . t)
+                             )
+ )
+
 ;;;; Mode line customization
 (column-number-mode 1) ; show column number
 (set-face-attribute 'mode-line nil :foreground "black" :background "light blue") ; Set active mode line colour
 (set-face-attribute 'mode-line-buffer-id nil :foreground "white" :background "dark green") ; Set buffer id colour
+
+;;; custom functions
+; Taken from emacswiki.org
+(defun eshell-new()
+  "Open a new instance of eshell."
+  (interactive)
+  (eshell 'N))
 
 ;;; which-key
 (add-to-list 'load-path "~/.emacs.d/packages/which-key-3.3.1")
@@ -79,6 +96,7 @@
 (add-to-list 'load-path "~/.emacs.d/packages/emacs-neotree-0.5.2")
 (require 'neotree)
 (setq neo-theme 'arrow)
+(setq neo-autorefresh nil)
 ; Neotree keybindings conflict with evil-mode
 (evil-define-key 'normal neotree-mode-map (kbd "TAB") 'neotree-enter)
 (evil-define-key 'normal neotree-mode-map (kbd "SPC") 'neotree-quick-look)
@@ -171,22 +189,23 @@
 ;;; general
 (add-to-list 'load-path "~/.emacs.d/packages/general-2d2dd1d532fa75c1ed0c010d50e817ce43e58066/")
 (require 'general)
-
 (general-auto-unbind-keys)
+
 ;;;; p1 bindings
 ;;;;; Normal
 (general-define-key
- "C-M-S-q" 'kill-buffer
- "C-M-S-c" 'delete-window
- "C-M-S-v" 'magit-status
+ "C-M-:" 'counsel-M-x
+ "C-M-?" 'swiper
  "C-M-S-b" 'ivy-switch-buffer
- "C-M-S-p" 'projectile-command-map
+ "C-M-S-c" 'delete-window
  "C-M-S-h" 'windmove-left
  "C-M-S-j" 'windmove-down
  "C-M-S-k" 'windmove-up
  "C-M-S-l" 'windmove-right
- "C-M-:" 'counsel-M-x
- "C-M-?" 'swiper
+ "C-M-S-p" 'projectile-command-map
+ "C-M-S-q" 'kill-buffer
+ "C-M-S-r" 'revert-buffer
+ "C-M-S-v" 'magit-status
  )
 ;;;;; Ranger
 (general-define-key
@@ -315,6 +334,8 @@
 
 ;;;; prog2 bindings
 (general-define-key
+ :states '(normal insert visual operator) ; This is just for demonstration purposes. Just to remind me how to do this.
+ :keymaps 'override ; required to override evil-org's C-S-hjkl mappings
  "C-S-h" 'shrink-window-horizontally
  "C-S-j" 'enlarge-window
  "C-S-k" 'shrink-window
@@ -335,10 +356,10 @@
  "C-M-," 'eyebrowse-prev-window-config
  "C-M-." 'eyebrowse-next-window-config
  "C-M-w" 'eyebrowse-last-window-config
- "C-M-h" 'back-button-global-backward
- "C-M-j" 'back-button-local-backward
- "C-M-k" 'back-button-local-forward
- "C-M-l" 'back-button-global-forward
+ ;; "C-M-h" 'back-button-global-backward
+ "C-M-j" 'evil-jump-backward
+ "C-M-k" 'evil-jump-forward
+ ;; "C-M-l" 'back-button-global-forward
  )
 
 (general-create-definer frames-leader
