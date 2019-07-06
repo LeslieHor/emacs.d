@@ -1,9 +1,10 @@
 * emacs.d
 
 ** Installation
-Clone this repo.
+Clone this repository.
 
-Symlink the ~packages~ directory and the ~init.el~ file to your ~.emacs.d/~ directory.
+Symlink the ~packages~ directory and the ~init.el~ file to your ~.emacs.d/~
+directory.
 
 ** Packages
 | Package                | Version                                         |
@@ -38,7 +39,16 @@ Symlink the ~packages~ directory and the ~init.el~ file to your ~.emacs.d/~ dire
 | magit                  | commit [[https://github.com/magit/magit/tree/23267cf33a7b690b27dc6760af8ab7f0886239ce][23267cf33a7b690b27dc6760af8ab7f0886239ce]] |
 | evil-magit             | commit [[https://github.com/emacs-evil/evil-magit/tree/ca83cfd246a9e808af3d42ee9bf740b81454fbd8][ca83cfd246a9e808af3d42ee9bf740b81454fbd8]] |
 
+** Notes
+Eyebrowse has been modified by commenting out 3 lines. This is to disable the
+mode line view, but keep eyebrowse creating the string. This is done because I
+am displaying the eyebrowse state in the title bar, not in the mode line, in
+order to save mode line space.
+
 ** Magit notes
-hydra, transient and with-editor are deps.
+Dependencies:
+- hydra
+- transient
+- with-editor
 
 config.mk is required.

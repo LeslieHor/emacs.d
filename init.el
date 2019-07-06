@@ -1,7 +1,8 @@
 ;;; Set up
 (setq inhibit-startup-screen t) ; inhibit useless and old-school startup screen
 (setq ring-bell-function 'ignore) ; silent bell when you make a mistake
-(setq-default frame-title-format '("%b [%m] - emacs")) ; set the emacs title. overrides the old "emacs@HOST" title
+(setq-default frame-title-format '("%b - Emacs")) ; set the emacs title.
+                                        ; overrides the old "emacs@HOST" title
 (setq-default indent-tabs-mode nil) ; don't insert tabs
 (setq-default tab-width 4) ; self-documenting
 (setq indent-line-function 'insert-tab)
@@ -11,7 +12,12 @@
 (toggle-scroll-bar -1)
 (server-start) ; Start emacs server
 
-;; org
+;;;; Whitespace
+(require 'whitespace)
+(setq whitespace-style '(face empty tabs lines-tail trailing))
+(global-whitespace-mode t)
+
+;;;; org
 (setq org-html-postamble "<p class=\"created\">Created: %T</p>")
 ; Set up languages for running code blocks in org
 (org-babel-do-load-languages
@@ -23,8 +29,12 @@
 
 ;;;; Mode line customization
 (column-number-mode 1) ; show column number
-(set-face-attribute 'mode-line nil :foreground "black" :background "light blue") ; Set active mode line colour
-(set-face-attribute 'mode-line-buffer-id nil :foreground "white" :background "dark green") ; Set buffer id colour
+(set-face-attribute 'mode-line nil ; Set active mode line colour
+                    :foreground "black"
+                    :background "light blue")
+(set-face-attribute 'mode-line-buffer-id nil ; Set buffer id colour
+                    :foreground "white"
+                    :background "dark green")
 
 ;;; custom functions
 ; Taken from emacswiki.org
@@ -42,7 +52,8 @@
 (add-to-list 'load-path "~/.emacs.d/packages/evil-1.2.14")
 (require 'evil)
 (evil-mode 1)
-(evil-ex-define-cmd "q" 'kill-this-buffer) ; :q should kill the buffer rather than quiting emacs
+(evil-ex-define-cmd "q" 'kill-this-buffer) ; :q should kill the buffer rather
+                                        ; than quiting emacs
 (evil-ex-define-cmd "quit" 'evil-quit) ; :quit to quit emacs
 
 ;;; evil-leader
@@ -51,7 +62,9 @@
 (global-evil-leader-mode)
 
 ;;; evil-org
-(add-to-list 'load-path "~/.emacs.d/packages/evil-org-mode-b6d652a9163d3430a9e0933a554bdbee5244bbf6")
+(add-to-list
+ 'load-path
+ "~/.emacs.d/packages/evil-org-mode-b6d652a9163d3430a9e0933a554bdbee5244bbf6")
 (require 'evil-org)
 (add-hook 'org-mode-hook 'evil-org-mode)
 (evil-org-set-key-theme '(navigation insert textobjects additional calendar))
@@ -130,6 +143,41 @@
 (setq eyebrowse-new-workspace t) ; New workspaces start with scratch buffer
 (eyebrowse-mode) ; enable global eyebrowse mode on start up
 
+(setq eyebrowse-mode-line-left-delimiter "| ")
+(setq eyebrowse-mode-line-right-delimiter " |")
+(setq eyebrowse-mode-line-separator " | ")
+(setq eyebrowse-mode-line-style 'always) ; Will show in title bar instead
+(setq eyebrowse-tagged-slot-format "%s: %t")
+
+;; Show workspaces in title bar
+;; Only recalculate the workspaces string when it actually changes.
+(defvar eyebrowse-workspaces)
+(defun eyebrowse-workspaces-string ()
+    "Get the current workspaces as a string."
+    (let ((workspaces (substring-no-properties
+                       (eyebrowse-mode-line-indicator))))
+      (setq eyebrowse-workspaces
+            (replace-regexp-in-string
+             (format "| \\(%s.*?\\) |.*\\'" (eyebrowse--get 'current-slot))
+             ">\\1<"
+             (substring-no-properties (eyebrowse-mode-line-indicator))
+             nil nil 1))))
+(defun eyebrowse-workspaces-string-rename (arg1 arg2)
+    "Advice for `eyebrowse-rename-window-config'. Requires two
+    arguments ARG1 and ARG2 to work..."
+    (eyebrowse-workspaces-string))
+(eyebrowse-workspaces-string)
+(add-hook 'eyebrowse-post-window-switch-hook 'eyebrowse-workspaces-string)
+(advice-add 'eyebrowse-close-window-config
+            :after #'eyebrowse-workspaces-string)
+(advice-add 'eyebrowse-rename-window-config
+            :after #'eyebrowse-workspaces-string-rename)
+
+;; Append to title list.
+(add-to-list 'frame-title-format
+            '(:eval (when (not (string-empty-p eyebrowse-workspaces))
+                        (format "%s - " eyebrowse-workspaces))))
+
 ;;; telephone-line
 (add-to-list 'load-path "~/.emacs.d/packages/telephone-line-0.4")
 (require 'telephone-line)
@@ -150,19 +198,24 @@
 (require 'nlinum)
 
 ;;; nlinum-relative
-(add-to-list 'load-path "~/.emacs.d/packages/nlinum-relative-5b9950c97ba79a6f0683e38b13da23f39e01031c")
+(add-to-list
+ 'load-path
+ "~/.emacs.d/packages/nlinum-relative-5b9950c97ba79a6f0683e38b13da23f39e01031c")
 (require 'nlinum-relative)
 (nlinum-relative-setup-evil)
 (global-nlinum-relative-mode)
-(setq nlinum-relative-redisplay-delay 0) ;; delay
-(setq nlinum-relative-current-symbol "") ;; "->". or "" for display current line number
-(setq nlinum-relative-offset 0)          ;; 1 if you want 0, 2, 3...
+(setq nlinum-relative-redisplay-delay 0) ; delay
+(setq nlinum-relative-current-symbol "") ; e.g. "->"
+                                        ; "" for display current line number
+(setq nlinum-relative-offset 0)          ; 1 if you want 0, 2, 3...
 
 ; Ensure relative mode remains on when in evil operator mode
 (add-hook 'evil-operator-state-entry-hook
-          (lambda () (when (bound-and-true-p nlinum-relative-mode) (nlinum-relative-on))))
+          (lambda () (when (bound-and-true-p nlinum-relative-mode)
+                       (nlinum-relative-on))))
 (add-hook 'evil-operator-state-exit-hook
-          (lambda () (when (bound-and-true-p nlinum-relative-mode) (nlinum-relative-off))))
+          (lambda () (when (bound-and-true-p nlinum-relative-mode)
+                       (nlinum-relative-off))))
 
 ;;; diff-hl
 (add-to-list 'load-path "~/.emacs.d/packages/diff-hl-1.8.6")
@@ -172,18 +225,31 @@
 (diff-hl-flydiff-mode)
 
 ;;; magit
-(add-to-list 'load-path "~/.emacs.d/packages/transient-01a166fcb8bbd9918ba741e9b5428a4b524eab33/lisp")
-(add-to-list 'load-path "~/.emacs.d/packages/hydra-0.15.0")
-(add-to-list 'load-path "~/.emacs.d/packages/with-editor-ff23166feb857e3cfee96cb1c9ef416a224a7e20")
-(add-to-list 'load-path "~/.emacs.d/packages/magit-23267cf33a7b690b27dc6760af8ab7f0886239ce/lisp")
+(add-to-list
+ 'load-path
+ "~/.emacs.d/packages/transient-01a166fcb8bbd9918ba741e9b5428a4b524eab33/lisp")
+(add-to-list
+ 'load-path
+ "~/.emacs.d/packages/hydra-0.15.0")
+(add-to-list
+ 'load-path
+ "~/.emacs.d/packages/with-editor-ff23166feb857e3cfee96cb1c9ef416a224a7e20")
+(add-to-list
+ 'load-path
+ "~/.emacs.d/packages/magit-23267cf33a7b690b27dc6760af8ab7f0886239ce/lisp")
 (require 'magit)
 (with-eval-after-load 'info
   (info-initialize)
-  (add-to-list 'Info-directory-list
-               "~/.emacs.d/packages/magit-23267cf33a7b690b27dc6760af8ab7f0886239ce/Documentation/"))
+  (add-to-list
+   'Info-directory-list
+   "~/.emacs.d/packages/magit-23267cf33a7b690b27dc6760af8ab7f0886239ce/Documentation/"))
+                                        ; Sorry. Not much choice in the line
+                                        ; length here.
 
 ;;; evil-magit
-(add-to-list 'load-path "~/.emacs.d/packages/evil-magit-ca83cfd246a9e808af3d42ee9bf740b81454fbd8")
+(add-to-list
+ 'load-path
+ "~/.emacs.d/packages/evil-magit-ca83cfd246a9e808af3d42ee9bf740b81454fbd8")
 (require 'evil-magit)
 
 ;;; erlang
@@ -193,7 +259,9 @@
 (require 'erlang-start)
 
 ;;; general
-(add-to-list 'load-path "~/.emacs.d/packages/general-2d2dd1d532fa75c1ed0c010d50e817ce43e58066/")
+(add-to-list
+ 'load-path
+ "~/.emacs.d/packages/general-2d2dd1d532fa75c1ed0c010d50e817ce43e58066/")
 (require 'general)
 (general-auto-unbind-keys)
 
@@ -230,9 +298,11 @@
 ;;;;; Normal
 (files-leader
  "f" '(counsel-find-file :which-key "find file") ; find file using ivy
- "r" '(counsel-recentf :which-key "find recent file") ; find recently edited files
+ "r" '(counsel-recentf :which-key "find recent file") ; find recently edited
+                                        ; files
  "b" '(ivy-switch-buffer :which-key "buffers")
- "p" '(counsel-projectile-find-file :which-key "find project file") ; find file in current project
+ "p" '(counsel-projectile-find-file :which-key "find project file") ; find file
+                                        ; in current project
  "e" 'ranger ; explorer
  "r" '(revert-buffer :which-key "reload from disk")
  )
@@ -305,7 +375,8 @@
   "i" '(org-toggle-inline-images :which-key "toggle images")
   "t" '(:ignore t :which-key "todos / tables")
   "ts" '(org-todo :which-key "cycle todo status")
-  "tr" '(org-table-toggle-coordinate-overlays :which-key "toggle table reference")
+  "tr" '(org-table-toggle-coordinate-overlays
+         :which-key "toggle table reference")
   )
 ;;;;; Ranger
 (toggles-leader
@@ -326,7 +397,8 @@
 (edits-leader
  :keymaps 'org-mode-map
  "t" '(:ignore t :which-key "tables")
- "tc" '(org-table-create-or-convert-from-region :which-key "create / convert table")
+ "tc" '(org-table-create-or-convert-from-region
+        :which-key "create / convert table")
  "td" '(:ignore t :which-key "delete")
  "tdc" '(org-table-delete-column :which-key "delete column")
  "tdr" '(org-table-kill-row :whick-key "delete row")
@@ -361,7 +433,9 @@
 
 ;;;; prog2 bindings
 (general-define-key
- :states '(normal insert visual operator) ; This is just for demonstration purposes. Just to remind me how to do this.
+ :states '(normal insert visual operator) ; This is just for demonstration
+                                        ; purposes. Just to remind me how to do
+                                        ; this.
  :keymaps 'override ; required to override evil-org's C-S-hjkl mappings
  "C-S-h" 'shrink-window-horizontally
  "C-S-j" 'enlarge-window
@@ -383,6 +457,7 @@
  "C-M-," 'eyebrowse-prev-window-config
  "C-M-." 'eyebrowse-next-window-config
  "C-M-w" 'eyebrowse-last-window-config
+ "C-M-e" 'balance-windows
  ;; "C-M-h" 'back-button-global-backward
  "C-M-j" 'evil-jump-backward
  "C-M-k" 'evil-jump-forward
@@ -395,4 +470,10 @@
  "r" '(eyebrowse-rename-window-config :which-key "rename frame")
  "q" '(eyebrowse-close-window-config :which-key "close frame")
  "c" '(eyebrowse-create-window-config :which-key "create frame")
+ )
+
+;;; Help overrides
+(general-define-key
+ "C-h v" 'counsel-describe-variable
+ "C-h f" 'counsel-describe-function
  )

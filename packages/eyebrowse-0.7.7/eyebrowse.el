@@ -645,9 +645,10 @@ behaviour of `ranger`, a file manager."
         ;; emacs and emacsclient
         (eyebrowse-init)
         (add-hook 'after-make-frame-functions 'eyebrowse-init)
-        (unless (assoc 'eyebrowse-mode mode-line-misc-info)
-          (push '(eyebrowse-mode (:eval (eyebrowse-mode-line-indicator)))
-                (cdr (last mode-line-misc-info)))))
+        ;; (unless (assoc 'eyebrowse-mode mode-line-misc-info)
+        ;;   (push '(eyebrowse-mode (:eval (eyebrowse-mode-line-indicator)))
+        ;;         (cdr (last mode-line-misc-info))))
+        )
     (remove-hook 'after-make-frame-functions 'eyebrowse-init)))
 
 (provide 'eyebrowse)
