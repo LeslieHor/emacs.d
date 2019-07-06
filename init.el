@@ -186,6 +186,12 @@
 (add-to-list 'load-path "~/.emacs.d/packages/evil-magit-ca83cfd246a9e808af3d42ee9bf740b81454fbd8")
 (require 'evil-magit)
 
+;;; erlang
+(setq load-path (cons  "~/erl_rel/18.3/lib/tools-2.8.3/emacs" load-path))
+(setq erlang-root-dir "~/erl_rel/18.3")
+(setq exec-path (cons "~/erl_rel/18.3/bin" exec-path))
+(require 'erlang-start)
+
 ;;; general
 (add-to-list 'load-path "~/.emacs.d/packages/general-2d2dd1d532fa75c1ed0c010d50e817ce43e58066/")
 (require 'general)
@@ -204,7 +210,6 @@
  "C-M-S-l" 'windmove-right
  "C-M-S-p" 'projectile-command-map
  "C-M-S-q" 'kill-buffer
- "C-M-S-r" 'revert-buffer
  "C-M-S-v" 'magit-status
  )
 ;;;;; Ranger
@@ -229,6 +234,7 @@
  "b" '(ivy-switch-buffer :which-key "buffers")
  "p" '(counsel-projectile-find-file :which-key "find project file") ; find file in current project
  "e" 'ranger ; explorer
+ "r" '(revert-buffer :which-key "reload from disk")
  )
 ;;;;; Org-mode
 (files-leader
@@ -330,6 +336,27 @@
  "tih" '(org-table-insert-hline :which-key "insert horizontal line")
  "l" '(org-insert-link :which-key "edit link")
  "s" '(org-sort :which-key "sort")
+ )
+
+;;;; Registers
+(general-create-definer registers-leader
+  :prefix "C-M-S-r")
+(registers-leader
+  "p" '(:ignore t :which-key "positions")
+  "py" '(point-to-register :which-key "yank current position to register")
+  "pp" '(jump-to-register :which-key "goto register position")
+  "t" '(:ignore t :which-key "text")
+  "ty" '(copy-to-register :which-key "yank text to register")
+  "tp" '(insert-register :which-key "paste text register")
+  "ta" '(append-to-register :which-key "append text to register")
+  "tb" '(prepend-to-register :which-key "prepend text to register (before)")
+  "r" '(:ignore t :which-key "rectangle")
+  "ry" '(copy-rectangle-to-register :which-key "yank rectangle to register")
+  "rp" '(insert-register :which-key "paste rectangle from register")
+  "n" '(:ignore t :which-key "numbers")
+  "ny" '(number-to-register :which-key "yank number to register")
+  "np" '(insert-register :which-key "paste number from register")
+  "ni" '(increment-register :which-key "increment register with number")
  )
 
 ;;;; prog2 bindings
