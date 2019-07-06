@@ -124,6 +124,16 @@
 ;;; rainbow-delimiters
 (add-to-list 'load-path "~/.emacs.d/packages/rainbow-delimiters-2.1.3")
 (require 'rainbow-delimiters)
+(custom-set-faces
+'(rainbow-delimiters-depth-1-face ((t (:foreground "#e6194B"))))
+'(rainbow-delimiters-depth-2-face ((t (:foreground "#3cb44b"))))
+'(rainbow-delimiters-depth-3-face ((t (:foreground "#ffe119"))))
+'(rainbow-delimiters-depth-4-face ((t (:foreground "#4363d8"))))
+'(rainbow-delimiters-depth-5-face ((t (:foreground "#f58231"))))
+'(rainbow-delimiters-depth-6-face ((t (:foreground "#911eb4"))))
+'(rainbow-delimiters-depth-7-face ((t (:foreground "#42d4f4"))))
+'(rainbow-delimiters-depth-8-face ((t (:foreground "#f032e6"))))
+'(rainbow-delimiters-depth-9-face ((t (:foreground "#bfef45")))))
 
 ;;; beacon
 (add-to-list 'load-path "~/.emacs.d/packages/beacon-1.3.4")
@@ -159,7 +169,7 @@
       (setq eyebrowse-workspaces
             (replace-regexp-in-string
              (format "| \\(%s.*?\\) |.*\\'" (eyebrowse--get 'current-slot))
-             ">\\1<"
+             "> \\1 <"
              (substring-no-properties (eyebrowse-mode-line-indicator))
              nil nil 1))))
 (defun eyebrowse-workspaces-string-rename (arg1 arg2)
@@ -348,6 +358,7 @@
  "h" 'split-window-right
  "z" 'maximize-window
  "o" 'delete-other-windows
+ "e" 'balance-windows
  )
 ;;;;; Neotree
 (windows-leader
@@ -457,7 +468,6 @@
  "C-M-," 'eyebrowse-prev-window-config
  "C-M-." 'eyebrowse-next-window-config
  "C-M-w" 'eyebrowse-last-window-config
- "C-M-e" 'balance-windows
  ;; "C-M-h" 'back-button-global-backward
  "C-M-j" 'evil-jump-backward
  "C-M-k" 'evil-jump-forward
