@@ -11,6 +11,7 @@
 (tool-bar-mode -1)
 (toggle-scroll-bar -1)
 (server-start) ; Start emacs server
+(desktop-save-mode 1)
 
 ;;;; Whitespace
 (require 'whitespace)
@@ -100,6 +101,9 @@
 ;;; counsel-projectile
 (add-to-list 'load-path "~/.emacs.d/packages/counsel-projectile-0.3.0")
 (require 'counsel-projectile)
+(setq counsel-projectile-grep-initial-input '(ivy-thing-at-point))
+                                        ; this required a fix that was taken
+                                        ; from commit a07ddc8
 
 ;;; ranger
 (add-to-list 'load-path "~/.emacs.d/packages/ranger.el-0.9.8.5")
@@ -124,16 +128,15 @@
 ;;; rainbow-delimiters
 (add-to-list 'load-path "~/.emacs.d/packages/rainbow-delimiters-2.1.3")
 (require 'rainbow-delimiters)
-(custom-set-faces
-'(rainbow-delimiters-depth-1-face ((t (:foreground "#e6194B"))))
-'(rainbow-delimiters-depth-2-face ((t (:foreground "#3cb44b"))))
-'(rainbow-delimiters-depth-3-face ((t (:foreground "#ffe119"))))
-'(rainbow-delimiters-depth-4-face ((t (:foreground "#4363d8"))))
-'(rainbow-delimiters-depth-5-face ((t (:foreground "#f58231"))))
-'(rainbow-delimiters-depth-6-face ((t (:foreground "#911eb4"))))
-'(rainbow-delimiters-depth-7-face ((t (:foreground "#42d4f4"))))
-'(rainbow-delimiters-depth-8-face ((t (:foreground "#f032e6"))))
-'(rainbow-delimiters-depth-9-face ((t (:foreground "#bfef45")))))
+(set-face-attribute 'rainbow-delimiters-depth-1-face nil :foreground "#e6194B")
+(set-face-attribute 'rainbow-delimiters-depth-2-face nil :foreground "#3cb44b")
+(set-face-attribute 'rainbow-delimiters-depth-3-face nil :foreground "#ffe119")
+(set-face-attribute 'rainbow-delimiters-depth-4-face nil :foreground "#4363d8")
+(set-face-attribute 'rainbow-delimiters-depth-5-face nil :foreground "#f58231")
+(set-face-attribute 'rainbow-delimiters-depth-6-face nil :foreground "#911eb4")
+(set-face-attribute 'rainbow-delimiters-depth-7-face nil :foreground "#42d4f4")
+(set-face-attribute 'rainbow-delimiters-depth-8-face nil :foreground "#f032e6")
+(set-face-attribute 'rainbow-delimiters-depth-9-face nil :foreground "#bfef45")
 
 ;;; beacon
 (add-to-list 'load-path "~/.emacs.d/packages/beacon-1.3.4")
@@ -286,7 +289,6 @@
  "C-M-S-j" 'windmove-down
  "C-M-S-k" 'windmove-up
  "C-M-S-l" 'windmove-right
- "C-M-S-p" 'projectile-command-map
  "C-M-S-q" 'kill-buffer
  "C-M-S-v" 'magit-status
  )
@@ -468,10 +470,8 @@
  "C-M-," 'eyebrowse-prev-window-config
  "C-M-." 'eyebrowse-next-window-config
  "C-M-w" 'eyebrowse-last-window-config
- ;; "C-M-h" 'back-button-global-backward
- "C-M-j" 'evil-jump-backward
- "C-M-k" 'evil-jump-forward
- ;; "C-M-l" 'back-button-global-forward
+ "C-M-h" 'evil-jump-backward
+ "C-M-l" 'evil-jump-forward
  )
 
 (general-create-definer frames-leader
@@ -480,6 +480,14 @@
  "r" '(eyebrowse-rename-window-config :which-key "rename frame")
  "q" '(eyebrowse-close-window-config :which-key "close frame")
  "c" '(eyebrowse-create-window-config :which-key "create frame")
+ )
+
+(general-create-definer projects-leader
+  :prefix "C-M-S-p")
+(projects-leader
+ "?" '(projectile-command-map :which-key "other")
+ "p" '(counsel-projectile-switch-project :which-key "switch project")
+ "g" '(counsel-projectile-grep :which-key "find instances in project")
  )
 
 ;;; Help overrides

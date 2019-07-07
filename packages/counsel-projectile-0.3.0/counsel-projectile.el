@@ -715,7 +715,7 @@ called with a prefix argument."
               (format counsel-projectile-grep-base-command ignored path))
         (ivy-read (projectile-prepend-project-name "grep: ")
                   #'counsel-projectile-grep-function
-                  :initial-input counsel-projectile-grep-initial-input
+                  :initial-input (eval counsel-projectile-grep-initial-input)
                   :dynamic-collection t
                   :keymap counsel-ag-map
                   :history 'counsel-git-grep-history
