@@ -90,6 +90,7 @@
 (require 'swiper)
 (require 'counsel)
 (setq ivy-use-virtual-buffers t)
+(setq ivy-count-format "(%d/%d) ")
 
 ;;; projectile
 (add-to-list 'load-path "~/.emacs.d/packages/projectile-2.0.0")
@@ -286,6 +287,7 @@
  "C-M-S-b" 'ivy-switch-buffer
  "C-M-S-c" 'delete-window
  "C-M-S-h" 'windmove-left
+ "C-M-S-d" 'evil-goto-definition
  "C-M-S-j" 'windmove-down
  "C-M-S-k" 'windmove-up
  "C-M-S-l" 'windmove-right
@@ -301,7 +303,7 @@
 ;;;;; Org mode
 (general-define-key
  :keymaps 'org-mode-map
- "C-M-S-g" 'org-open-at-point
+ "C-M-S-o" 'org-open-at-point
  )
 
 ;;;; File / directory related
@@ -313,8 +315,6 @@
  "r" '(counsel-recentf :which-key "find recent file") ; find recently edited
                                         ; files
  "b" '(ivy-switch-buffer :which-key "buffers")
- "p" '(counsel-projectile-find-file :which-key "find project file") ; find file
-                                        ; in current project
  "e" 'ranger ; explorer
  "r" '(revert-buffer :which-key "reload from disk")
  )
@@ -456,7 +456,7 @@
  "C-S-l" 'enlarge-window-horizontally
  )
 
-;;;; prog3 bindings
+;;;; eyebrowse bindings
 (general-define-key
  "C-M-1" 'eyebrowse-switch-to-window-config-1
  "C-M-2" 'eyebrowse-switch-to-window-config-2
@@ -467,8 +467,8 @@
  "C-M-7" 'eyebrowse-switch-to-window-config-7
  "C-M-8" 'eyebrowse-switch-to-window-config-8
  "C-M-9" 'eyebrowse-switch-to-window-config-9
- "C-M-," 'eyebrowse-prev-window-config
- "C-M-." 'eyebrowse-next-window-config
+ "C-M-<" 'eyebrowse-prev-window-config
+ "C-M->" 'eyebrowse-next-window-config
  "C-M-w" 'eyebrowse-last-window-config
  "C-M-h" 'evil-jump-backward
  "C-M-l" 'evil-jump-forward
@@ -488,6 +488,10 @@
  "?" '(projectile-command-map :which-key "other")
  "p" '(counsel-projectile-switch-project :which-key "switch project")
  "g" '(counsel-projectile-grep :which-key "find instances in project")
+ "f" '(counsel-projectile-find-file :which-key "find project file") ; find file
+                                        ; in current project
+ "s" '(org-store-link :which-key "copy link")
+ "i" '(org-insert-link :which-key "insert link")
  )
 
 ;;; Help overrides
