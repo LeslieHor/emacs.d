@@ -38,11 +38,51 @@
                     :background "dark green")
 
 ;;; custom functions
-; Taken from emacswiki.org
+;; Taken from emacswiki.org
 (defun eshell-new()
   "Open a new instance of eshell."
   (interactive)
   (eshell 'N))
+
+;; Transpose windows
+(defun transpose-windows (dir &optional arg)
+  "Transpose the buffers in the current window and the target window
+If arg is non-nil, the selected window will change to keep the source buffer
+selected."
+  (let ((target-window (windmove-find-other-window dir))
+        (source-window (selected-window)))
+    (cond ((null target-window)
+           (format "No window found in dir %s" dir))
+          ((and (window-minibuffer-p target-window)
+                (not (minibuffer-window-active-p target-window)))
+           (user-error "Minibuffer is inactive"))
+          (t
+           (let ((target-buffer (window-buffer (windmove-find-other-window dir)))
+                 (source-buffer (window-buffer)))
+             (set-window-buffer target-window source-buffer)
+             (set-window-buffer source-window target-buffer))
+           (if arg
+               (select-window target-window))))))
+
+(defun transpose-windows-left (&optional arg)
+    "Transpose buffers from current window to buffer to the left"
+  (interactive)
+  (transpose-windows 'left arg))
+
+(defun transpose-windows-up (&optional arg)
+    "Transpose buffers from current window to buffer above"
+  (interactive)
+  (transpose-windows 'up arg))
+
+(defun transpose-windows-right (&optional arg)
+    "Transpose buffers from current window to buffer to the right"
+  (interactive)
+  (transpose-windows 'right arg))
+
+(defun transpose-windows-down (&optional arg)
+    "Transpose buffers from current window to buffer below"
+  (interactive)
+  (transpose-windows 'down arg))
 
 ;;; which-key
 (add-to-list 'load-path "~/.emacs.d/packages/which-key-3.3.1")
@@ -256,9 +296,8 @@
   (info-initialize)
   (add-to-list
    'Info-directory-list
-   "~/.emacs.d/packages/magit-23267cf33a7b690b27dc6760af8ab7f0886239ce/Documentation/"))
-                                        ; Sorry. Not much choice in the line
-                                        ; length here.
+   "~/.emacs.d/packages/magit-23267cf33a7b690b27dc6760af8ab7f0886239ce/\
+Documentation/"))
 
 ;;; evil-magit
 (add-to-list
@@ -361,6 +400,15 @@
  "z" 'maximize-window
  "o" 'delete-other-windows
  "e" 'balance-windows
+ "t" '(:ignore t :which-key "transpose windows")
+ "th" '((lambda () (interactive)(transpose-windows-left t)) ; weird syntax is
+        :which-key "transpose windows left")                ; for calling the
+ "tj" '((lambda () (interactive)(transpose-windows-down t)) ; function with
+        :which-key "transpose windows down")                ; arguments
+ "tk" '((lambda () (interactive)(transpose-windows-up t))
+        :which-key "transpose windows up")
+ "tl" '((lambda () (interactive)(transpose-windows-right t))
+        :which-key "transpose windows right")
  )
 ;;;;; Neotree
 (windows-leader
