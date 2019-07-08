@@ -12,6 +12,7 @@
 (toggle-scroll-bar -1)
 (server-start) ; Start emacs server
 (desktop-save-mode 1)
+(load-theme 'wheatgrass)
 
 ;;;; Whitespace
 (require 'whitespace)
@@ -57,7 +58,7 @@ selected."
                 (not (minibuffer-window-active-p target-window)))
            (user-error "Minibuffer is inactive"))
           (t
-           (let ((target-buffer (window-buffer (windmove-find-other-window dir)))
+           (let ((target-buffer (window-buffer target-window))
                  (source-buffer (window-buffer)))
              (set-window-buffer target-window source-buffer)
              (set-window-buffer source-window target-buffer))
