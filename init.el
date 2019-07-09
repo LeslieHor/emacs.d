@@ -346,6 +346,15 @@ Documentation/"))
  "C-M-S-o" 'org-open-at-point
  )
 
+;;;;; Erlang mode
+(general-define-key
+ :keymaps 'erlang-mode-map
+ "C-M-S-d" '((lambda () (interactive)(erlang-find-tag (erlang-find-tag-default)))
+             :which-key "goto erlang definition") ; For some reason, this
+                                        ; property is required this keybinding
+                                        ; to work
+ )
+
 ;;;; File / directory related
 (general-create-definer files-leader
  :prefix "C-M-S-f")
@@ -355,8 +364,6 @@ Documentation/"))
  "r" '(counsel-recentf :which-key "find recent file") ; find recently edited
                                         ; files
  "b" '(ivy-switch-buffer :which-key "buffers")
- "e" 'ranger ; explorer
- "r" '(revert-buffer :which-key "reload from disk")
  )
 ;;;;; Org-mode
 (files-leader
@@ -401,6 +408,7 @@ Documentation/"))
  "z" 'maximize-window
  "o" 'delete-other-windows
  "e" 'balance-windows
+ "r" '(revert-buffer :which-key "reload from disk")
  "t" '(:ignore t :which-key "transpose windows")
  "th" '((lambda () (interactive)(transpose-windows-left t)) ; weird syntax is
         :which-key "transpose windows left")                ; for calling the
@@ -471,6 +479,11 @@ Documentation/"))
  "l" '(org-insert-link :which-key "edit link")
  "s" '(org-sort :which-key "sort")
  )
+(edits-leader
+  :keymaps 'erlang-mode-map
+  "a" '(erlang-align-arrows :which-key "align arrows")
+  "i" '(erlang-indent-region :which-key "indent region")
+  )
 
 ;;;; Registers
 (general-create-definer registers-leader
@@ -491,6 +504,15 @@ Documentation/"))
   "ny" '(number-to-register :which-key "yank number to register")
   "np" '(insert-register :which-key "paste number from register")
   "ni" '(increment-register :which-key "increment register with number")
+ )
+
+;;;; Applications
+(general-create-definer applications-leader
+  :prefix "C-M-S-o")
+(applications-leader
+ "r" '(ranger :which-key "ranger")
+ "s" '(eshell-new :which-key "eshell")
+ "e" '(erlang-shell :which-key "erlang shell")
  )
 
 ;;;; prog2 bindings
