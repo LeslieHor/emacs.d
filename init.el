@@ -515,6 +515,17 @@ Documentation/"))
  "e" '(erlang-shell :which-key "erlang shell")
  )
 
+;;;; Version control
+(general-create-definer version-control-leader
+  :prefix "C-M-S-v")
+(version-control-leader
+ "s" '(magit-status :which-key "status")
+ "b" '(magit-blame :which-key "blame")
+ "d" '(magit-diff :which-key "diff")
+ "m" '(magit-merge :which-key "merge")
+ "b" '(magit-branch :which-key "branch")
+ )
+
 ;;;; prog2 bindings
 (general-define-key
  :states '(normal insert visual operator) ; This is just for demonstration
