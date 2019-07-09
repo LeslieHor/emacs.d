@@ -563,6 +563,7 @@ Documentation/"))
                                         ; in current project
  "s" '(org-store-link :which-key "copy link")
  "i" '(org-insert-link :which-key "insert link")
+ "t" '(projectile-regenerate-tags :which-key "regenerate tags")
  )
 
 ;;; Help overrides
