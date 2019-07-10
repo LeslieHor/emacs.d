@@ -85,6 +85,44 @@ selected."
   (interactive)
   (transpose-windows 'down arg))
 
+;; Cast buffer
+(defun cast-buffer (dir &optional arg)
+  "Casts the current buffer to window in direction dir, and switches current
+window back to last buffer.
+If arg is non-nil, the targetted window is selected."
+  (let ((target-window (windmove-find-other-window dir))
+        (source-buffer (window-buffer)))
+    (cond ((null target-window)
+           (format "No window found in dir %s" dir))
+          ((and (window-minibuffer-p target-window)
+                (not (minibuffer-window-active-p target-window)))
+           (user-error "Minibuffer is inactive"))
+          (t
+           (set-window-buffer target-window source-buffer)
+           (previous-buffer)
+           (if arg
+               (select-window target-window))))))
+
+(defun cast-buffer-left (&optional arg)
+  "Cast current buffer to the left"
+  (interactive)
+  (cast-buffer 'left arg))
+
+(defun cast-buffer-up (&optional arg)
+  "Cast current buffer up"
+  (interactive)
+  (cast-buffer 'up arg))
+
+(defun cast-buffer-right (&optional arg)
+  "Cast current buffer to the right"
+  (interactive)
+  (cast-buffer 'right arg))
+
+(defun cast-buffer-down (&optional arg)
+  "Cast current buffer down"
+  (interactive)
+  (cast-buffer 'down arg))
+
 ;;; which-key
 (add-to-list 'load-path "~/.emacs.d/packages/which-key-3.3.1")
 (require 'which-key)
@@ -417,6 +455,15 @@ Documentation/"))
         :which-key "transpose windows up")
  "tl" '((lambda () (interactive)(transpose-windows-right t))
         :which-key "transpose windows right")
+ "c" '(:ignore t :which-key "cast buffer")
+ "ch" '((lambda () (interactive)(cast-buffer-left t))
+        :which-key "cast buffer left")
+ "cj" '((lambda () (interactive)(cast-bufer-down t))
+        :which-key "cast buffer down")
+ "ck" '((lambda () (interactive)(cast-buffer-up t))
+        :which-key "cast buffer up")
+ "cl" '((lambda () (interactive)(cast-buffer-right t))
+        :which-key "cast buffer right")
  )
 ;;;;; Neotree
 (windows-leader
