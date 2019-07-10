@@ -332,7 +332,6 @@ Documentation/"))
  "C-M-S-k" 'windmove-up
  "C-M-S-l" 'windmove-right
  "C-M-S-q" 'kill-buffer
- "C-M-S-v" 'magit-status
  )
 ;;;;; Ranger
 (general-define-key
