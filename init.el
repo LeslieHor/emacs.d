@@ -398,7 +398,8 @@ Documentation/"))
 ;;;;; Normal
 (general-define-key
  "C-M-:" 'counsel-M-x
- "C-M-?" 'swiper
+ "C-M-?" '((lambda() (interactive)(swiper (ivy-thing-at-point)))
+           :which-key "swiper")
  "C-M-S-b" 'ivy-switch-buffer
  "C-M-S-c" 'delete-window
  "C-M-S-h" 'windmove-left
