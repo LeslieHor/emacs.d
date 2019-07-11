@@ -123,6 +123,43 @@ If arg is non-nil, the targetted window is selected."
   (interactive)
   (cast-buffer 'down arg))
 
+;; Duplicate buffer
+
+(defun duplicate-buffer (dir &optional arg)
+  "Opens the current buffer in the window in the direction dir
+If arg is non-nil, the targeted window is selected"
+  (let ((target-window (windmove-find-other-window dir))
+        (source-buffer (window-buffer)))
+    (cond ((null target-window)
+           (format "No window found in dir %s" dir))
+          ((and (window-minibuffer-p target-window)
+                (not (minibuffer-window-active-p target-window)))
+           (user-error "Minibuffer is inactive"))
+          (t
+           (set-window-buffer target-window source-buffer)
+           (if arg
+               (select-window target-window))))))
+
+(defun duplicate-buffer-left (&optional arg)
+  "Cast current buffer to the left"
+  (interactive)
+  (duplicate-buffer 'left arg))
+
+(defun duplicate-buffer-up (&optional arg)
+  "Cast current buffer up"
+  (interactive)
+  (duplicate-buffer 'up arg))
+
+(defun duplicate-buffer-right (&optional arg)
+  "Cast current buffer to the right"
+  (interactive)
+  (duplicate-buffer 'right arg))
+
+(defun duplicate-buffer-down (&optional arg)
+  "Cast current buffer down"
+  (interactive)
+  (duplicate-buffer 'down arg))
+
 ;;; which-key
 (add-to-list 'load-path "~/.emacs.d/packages/which-key-3.3.1")
 (require 'which-key)
@@ -469,6 +506,23 @@ Documentation/"))
 (windows-leader
  :keymaps 'neotree-mode-map
  "z" '(neotree-stretch-toggle :which-key "maximize tree pane")
+ )
+
+;;;; Buffer related
+(general-create-definer buffer-leader
+  :prefix "C-M-S-b")
+;;;;; Normal
+(buffer-leader
+ "b" '(ivy-switch-buffer :which-key "switch buffers")
+ "d" '(:ignore t :which-key "duplicate buffer")
+ "dh" '((lambda () (interactive)(duplicate-buffer-left t))
+        :which-key "duplicate buffer left")
+ "dj" '((lambda () (interactive)(cast-bufer-down t))
+        :which-key "duplicate buffer down")
+ "dk" '((lambda () (interactive)(duplicate-buffer-up t))
+        :which-key "duplicate buffer up")
+ "dl" '((lambda () (interactive)(duplicate-buffer-right t))
+        :which-key "duplicate buffer right")
  )
 
 ;;;; Toggles
