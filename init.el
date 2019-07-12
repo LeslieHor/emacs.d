@@ -14,6 +14,10 @@
 (desktop-save-mode 1)
 (load-theme 'wheatgrass)
 
+;; Put the backup and autosave files away
+(setq backup-directory-alist '((".*" . "~/.emacs.d/backup")))
+(setq auto-save-file-name-transforms '((".*" "~/.emacs.d/autosave/" t)))
+
 ;;;; Whitespace
 (require 'whitespace)
 (setq whitespace-style '(face empty tabs lines-tail trailing))
@@ -159,6 +163,20 @@ If arg is non-nil, the targeted window is selected"
   "Cast current buffer down"
   (interactive)
   (duplicate-buffer 'down arg))
+
+;; Regenerate tags
+(defun regenerate-tags ()
+  ""
+  (interactive)
+  (let* ((root-dir (projectile-project-root))
+         (find-command-file (concat root-dir ".emacs/find-command"))
+         (find-search (get-string-from-file find-command-file))
+         (find-command (concat "find " root-dir find-search))
+         (tags-file (concat root-dir projectile-tags-file-name))
+         (tag-command (concat "ctags -ef " tags-file " $(" find-command
+                              ") && echo -n \"tags regenerated\""))
+         (result (shell-command-to-string tag-command)))
+    (user-error result)))
 
 ;;; which-key
 (add-to-list 'load-path "~/.emacs.d/packages/which-key-3.3.1")
@@ -674,7 +692,7 @@ Documentation/"))
                                         ; in current project
  "s" '(org-store-link :which-key "copy link")
  "i" '(org-insert-link :which-key "insert link")
- "t" '(projectile-regenerate-tags :which-key "regenerate tags")
+ "t" '(regenerate-tags :which-key "regenerate tags")
  )
 
 ;;; Help overrides
