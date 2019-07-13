@@ -589,7 +589,7 @@ is detected, extra key bindings will be set up with
     (format-spec format-string
                  (format-spec-make ?s slot ?t tag))))
 
-(defun eyebrowse-mode-line-indicator ()
+(defun eyebrowse-mode-line-indicator (&optional frame)
   "Return a string representation of the window configurations."
   (let* ((left-delimiter (propertize eyebrowse-mode-line-left-delimiter
                                      'face 'eyebrowse-mode-line-delimiters))
@@ -597,8 +597,8 @@ is detected, extra key bindings will be set up with
                                       'face 'eyebrowse-mode-line-delimiters))
          (separator (propertize eyebrowse-mode-line-separator
                                 'face 'eyebrowse-mode-line-separator))
-         (current-slot (eyebrowse--get 'current-slot))
-         (window-configs (eyebrowse--get 'window-configs)))
+         (current-slot (eyebrowse--get 'current-slot frame))
+         (window-configs (eyebrowse--get 'window-configs frame)))
     (if (and eyebrowse-mode-line-style
              (not (eq eyebrowse-mode-line-style 'hide))
              (or (and (not (eq eyebrowse-mode-line-style 'smart))

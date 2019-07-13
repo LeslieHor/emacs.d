@@ -6,7 +6,7 @@
 (setq-default indent-tabs-mode nil) ; don't insert tabs
 (setq-default tab-width 4) ; self-documenting
 (setq indent-line-function 'insert-tab)
-(set-frame-font "DejaVu Sans Mono 8" nil t)
+(set-frame-font "DejaVu Sans Mono 6" nil t)
 (menu-bar-mode -1)
 (tool-bar-mode -1)
 (toggle-scroll-bar -1)
@@ -165,6 +165,13 @@ If arg is non-nil, the targeted window is selected"
   (duplicate-buffer 'down arg))
 
 ;; Regenerate tags
+(defun get-string-from-file (filePath)
+  "Return filePath's file content."
+  (with-temp-buffer
+    (insert-file-contents filePath)
+    (buffer-string)))
+;; thanks to “Pascal J Bourguignon” and “TheFlyingDutchman 〔zzbba…@aol.com〕”. 2010-09-02
+
 (defun regenerate-tags ()
   ""
   (interactive)
@@ -177,6 +184,15 @@ If arg is non-nil, the targeted window is selected"
                               ") && echo -n \"tags regenerated\""))
          (result (shell-command-to-string tag-command)))
     (user-error result)))
+
+;; Set frame titles
+(defun set-frame-title ()
+  "Sets the frame's title"
+  (interactive)
+  (let ((custom-title (read-string "Frame title: ")))
+    (set-frame-parameter nil 'custom-title custom-title)
+    (set-frame-titles)
+    (message "Title set to %s" custom-title)))
 
 ;;; which-key
 (add-to-list 'load-path "~/.emacs.d/packages/which-key-3.3.1")
@@ -299,32 +315,34 @@ If arg is non-nil, the targeted window is selected"
 
 ;; Show workspaces in title bar
 ;; Only recalculate the workspaces string when it actually changes.
-(defvar eyebrowse-workspaces)
-(defun eyebrowse-workspaces-string ()
+(defun eyebrowse-workspaces-string (&optional frame)
     "Get the current workspaces as a string."
     (let ((workspaces (substring-no-properties
-                       (eyebrowse-mode-line-indicator))))
-      (setq eyebrowse-workspaces
-            (replace-regexp-in-string
-             (format "| \\(%s.*?\\) |.*\\'" (eyebrowse--get 'current-slot))
-             "> \\1 <"
-             (substring-no-properties (eyebrowse-mode-line-indicator))
-             nil nil 1))))
+                       (eyebrowse-mode-line-indicator frame))))
+      (replace-regexp-in-string
+       (format "| \\(%s.*?\\) |.*\\'" (eyebrowse--get 'current-slot frame))
+       "> \\1 <"
+       workspaces
+       nil nil 1)))
 (defun eyebrowse-workspaces-string-rename (arg1 arg2)
     "Advice for `eyebrowse-rename-window-config'. Requires two
     arguments ARG1 and ARG2 to work..."
-    (eyebrowse-workspaces-string))
-(eyebrowse-workspaces-string)
-(add-hook 'eyebrowse-post-window-switch-hook 'eyebrowse-workspaces-string)
+    (set-frame-titles))
+(defun set-frame-titles ()
+  (dolist (frame (frame-list))
+    (set-frame-parameter frame 'title
+                         (concat
+                          (frame-parameter frame 'custom-title)
+                          " - "
+                          (eyebrowse-workspaces-string frame)))))
+
+(set-frame-titles)
+
+(add-hook 'eyebrowse-post-window-switch-hook 'set-frame-titles)
 (advice-add 'eyebrowse-close-window-config
-            :after #'eyebrowse-workspaces-string)
+            :after #'set-frame-titles)
 (advice-add 'eyebrowse-rename-window-config
             :after #'eyebrowse-workspaces-string-rename)
-
-;; Append to title list.
-(add-to-list 'frame-title-format
-            '(:eval (when (not (string-empty-p eyebrowse-workspaces))
-                        (format "%s - " eyebrowse-workspaces))))
 
 ;;; telephone-line
 (add-to-list 'load-path "~/.emacs.d/packages/telephone-line-0.4")
@@ -677,9 +695,10 @@ Documentation/"))
 (general-create-definer frames-leader
   :prefix "C-M-f")
 (frames-leader
- "r" '(eyebrowse-rename-window-config :which-key "rename frame")
- "q" '(eyebrowse-close-window-config :which-key "close frame")
- "c" '(eyebrowse-create-window-config :which-key "create frame")
+ "r" '(eyebrowse-rename-window-config :which-key "rename config")
+ "q" '(eyebrowse-close-window-config :which-key "close config")
+ "c" '(eyebrowse-create-window-config :which-key "create config")
+ "R" '(set-frame-title :which-key "rename frame")
  )
 
 (general-create-definer projects-leader
