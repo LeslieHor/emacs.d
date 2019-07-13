@@ -49,8 +49,8 @@
   (interactive)
   (eshell 'N))
 
-;; Transpose windows
-(defun transpose-windows (dir &optional arg)
+;; Transpose buffers
+(defun transpose-buffers (dir &optional arg)
   "Transpose the buffers in the current window and the target window
 If arg is non-nil, the selected window will change to keep the source buffer
 selected."
@@ -69,25 +69,25 @@ selected."
            (if arg
                (select-window target-window))))))
 
-(defun transpose-windows-left (&optional arg)
+(defun transpose-buffers-left (&optional arg)
     "Transpose buffers from current window to buffer to the left"
   (interactive)
-  (transpose-windows 'left arg))
+  (transpose-buffers 'left arg))
 
-(defun transpose-windows-up (&optional arg)
+(defun transpose-buffers-up (&optional arg)
     "Transpose buffers from current window to buffer above"
   (interactive)
-  (transpose-windows 'up arg))
+  (transpose-buffers 'up arg))
 
-(defun transpose-windows-right (&optional arg)
+(defun transpose-buffers-right (&optional arg)
     "Transpose buffers from current window to buffer to the right"
   (interactive)
-  (transpose-windows 'right arg))
+  (transpose-buffers 'right arg))
 
-(defun transpose-windows-down (&optional arg)
+(defun transpose-buffers-down (&optional arg)
     "Transpose buffers from current window to buffer below"
   (interactive)
-  (transpose-windows 'down arg))
+  (transpose-buffers 'down arg))
 
 ;; Cast buffer
 (defun cast-buffer (dir &optional arg)
@@ -163,6 +163,14 @@ If arg is non-nil, the targeted window is selected"
   "Cast current buffer down"
   (interactive)
   (duplicate-buffer 'down arg))
+
+;; open buffer in new window config
+(defun open-in-new-config ()
+  "Open current buffer in a new eyebrowse config"
+  (interactive)
+  (let ((current-buffer (window-buffer)))
+    (eyebrowse-create-window-config)
+    (set-window-buffer (selected-window) current-buffer)))
 
 ;; Regenerate tags
 (defun get-string-from-file (filePath)
@@ -333,8 +341,9 @@ If arg is non-nil, the targeted window is selected"
     (set-frame-parameter frame 'title
                          (concat
                           (frame-parameter frame 'custom-title)
-                          " - "
-                          (eyebrowse-workspaces-string frame)))))
+                          " : "
+                          (eyebrowse-workspaces-string frame)
+                          " - Emacs"))))
 
 (set-frame-titles)
 
@@ -519,24 +528,6 @@ Documentation/"))
  "o" 'delete-other-windows
  "e" 'balance-windows
  "r" '(revert-buffer :which-key "reload from disk")
- "t" '(:ignore t :which-key "transpose windows")
- "th" '((lambda () (interactive)(transpose-windows-left t)) ; weird syntax is
-        :which-key "transpose windows left")                ; for calling the
- "tj" '((lambda () (interactive)(transpose-windows-down t)) ; function with
-        :which-key "transpose windows down")                ; arguments
- "tk" '((lambda () (interactive)(transpose-windows-up t))
-        :which-key "transpose windows up")
- "tl" '((lambda () (interactive)(transpose-windows-right t))
-        :which-key "transpose windows right")
- "c" '(:ignore t :which-key "cast buffer")
- "ch" '((lambda () (interactive)(cast-buffer-left t))
-        :which-key "cast buffer left")
- "cj" '((lambda () (interactive)(cast-bufer-down t))
-        :which-key "cast buffer down")
- "ck" '((lambda () (interactive)(cast-buffer-up t))
-        :which-key "cast buffer up")
- "cl" '((lambda () (interactive)(cast-buffer-right t))
-        :which-key "cast buffer right")
  )
 ;;;;; Neotree
 (windows-leader
@@ -550,6 +541,25 @@ Documentation/"))
 ;;;;; Normal
 (buffer-leader
  "b" '(ivy-switch-buffer :which-key "switch buffers")
+ "o" '(open-in-new-config :which-key "open buffer in a new window config")
+ "t" '(:ignore t :which-key "transpose buffers")
+ "th" '((lambda () (interactive)(transpose-buffers-left t)) ; weird syntax is
+        :which-key "transpose windows left")                ; for calling the
+ "tj" '((lambda () (interactive)(transpose-buffers-down t)) ; function with
+        :which-key "transpose windows down")                ; arguments
+ "tk" '((lambda () (interactive)(transpose-buffers-up t))
+        :which-key "transpose windows up")
+ "tl" '((lambda () (interactive)(transpose-buffers-right t))
+        :which-key "transpose windows right")
+ "c" '(:ignore t :which-key "cast buffer")
+ "ch" '((lambda () (interactive)(cast-buffer-left t))
+        :which-key "cast buffer left")
+ "cj" '((lambda () (interactive)(cast-bufer-down t))
+        :which-key "cast buffer down")
+ "ck" '((lambda () (interactive)(cast-buffer-up t))
+        :which-key "cast buffer up")
+ "cl" '((lambda () (interactive)(cast-buffer-right t))
+        :which-key "cast buffer right")
  "d" '(:ignore t :which-key "duplicate buffer")
  "dh" '((lambda () (interactive)(duplicate-buffer-left t))
         :which-key "duplicate buffer left")
