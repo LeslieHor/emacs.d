@@ -459,12 +459,6 @@ Documentation/"))
  "C-M-S-c" 'ranger-disable
  )
 
-;;;;; Org mode
-(general-define-key
- :keymaps 'org-mode-map
- "C-M-S-o" 'org-open-at-point
- )
-
 ;;;;; Erlang mode
 (general-define-key
  :keymaps 'erlang-mode-map
@@ -625,11 +619,17 @@ Documentation/"))
  "l" '(org-insert-link :which-key "edit link")
  "s" '(org-sort :which-key "sort")
  )
+;;;;; Erlang mode
 (edits-leader
   :keymaps 'erlang-mode-map
   "a" '(erlang-align-arrows :which-key "align arrows")
   "i" '(erlang-indent-region :which-key "indent region")
   )
+;;;;; Org mode
+(edits-leader
+  :keymaps 'org-mode-map
+ "o" '(org-open-at-point :which-key "open link")
+ )
 
 ;;;; Registers
 (general-create-definer registers-leader
