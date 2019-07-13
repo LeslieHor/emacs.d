@@ -412,6 +412,10 @@ Documentation/"))
 (require 'general)
 (general-auto-unbind-keys)
 
+;;; ggtags
+(add-to-list 'load-path "~/.emacs.d/packages/ggtags-0.8.13")
+(require 'ggtags)
+
 ;;;; p1 bindings
 ;;;;; Normal
 (general-define-key
