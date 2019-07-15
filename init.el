@@ -209,6 +209,7 @@ If arg is non-nil, the targeted window is selected"
 
 ;;; evil
 (add-to-list 'load-path "~/.emacs.d/packages/evil-1.2.14")
+(add-to-list 'load-path "~/.emacs.d/packages/evil-1.2.14/lib")
 (require 'evil)
 (evil-mode 1)
 (evil-ex-define-cmd "q" 'kill-this-buffer) ; :q should kill the buffer rather
