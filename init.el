@@ -9,7 +9,7 @@
 (set-frame-font "DejaVu Sans Mono 6" nil t)
 (menu-bar-mode -1)
 (tool-bar-mode -1)
-(toggle-scroll-bar -1)
+(scroll-bar-mode -1)
 (server-start) ; Start emacs server
 (desktop-save-mode 1)
 (load-theme 'wheatgrass)
