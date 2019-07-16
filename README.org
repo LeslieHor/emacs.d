@@ -3,8 +3,8 @@
 ** Installation
 Clone this repository.
 
-Symlink the ~packages~ directory and the ~init.el~ file to your ~.emacs.d/~
-directory.
+Symlink the ~packages~ directory and the ~init.el~ and ~configuration.org~ files
+to your ~.emacs.d/~ directory.
 
 ** Packages
 | Package                | Version                                         |
@@ -46,9 +46,18 @@ am displaying the eyebrowse state in the title bar, not in the mode line, in
 order to save mode line space.
 
 ** Magit notes
-Dependencies:
+New dependencies:
 - hydra
 - transient
 - with-editor
 
-config.mk is required.
+~config.mk~ is required. Set the paths for the deps and disable libgit:
+
+#+BEGIN_SRC
+LOAD_PATH  = -L /emacs.d/packages/magit-23267cf33a7b690b27dc6760af8ab7f0886239ce/lisp
+LOAD_PATH += -L /emacs.d/packages/dash.el-2.16.0
+LOAD_PATH += -L /emacs.d/packages/hydra-0.15.0
+LOAD_PATH += -L /emacs.d/packages/transient-01a166fcb8bbd9918ba741e9b5428a4b524eab33/lisp
+LOAD_PATH += -L /emacs.d/packages/with-editor-ff23166feb857e3cfee96cb1c9ef416a224a7e20
+BUILD_MAGIT_LIBGIT ?= false
+#+END_SRC
