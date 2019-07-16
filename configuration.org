@@ -657,6 +657,10 @@ Documentation/"))
  "C-M-S-k" 'windmove-up
  "C-M-S-l" 'windmove-right
  "C-M-S-q" 'kill-buffer
+ "C-M-_" '((lambda () (interactive)(text-scale-adjust -1))
+           :which-key "decrease text size")
+ "C-M-+" '((lambda () (interactive)(text-scale-adjust +1))
+           :which-key "increase text size")
  )
 #+END_SRC
 
@@ -739,7 +743,7 @@ Documentation/"))
  :prefix "C-M-S-m")
 #+END_SRC
 
-**** Org
+**** Org and Emacs Lisp
 
 #+BEGIN_SRC emacs-lisp
 (motions-leader
@@ -748,7 +752,7 @@ Documentation/"))
  "j" '(outline-next-visible-heading :which-key "next heading")
  "h" '(outline-backward-same-level :which-key "prev same level heading")
  "l" '(outline-forward-same-level :which-key "next same level heading")
- "g" '(outline-up-heading :which-key "move up a heading")
+ "u" '(outline-up-heading :which-key "move up a heading")
  )
 #+END_SRC
 
@@ -911,6 +915,8 @@ Documentation/"))
 (edits-leader
   :keymaps 'erlang-mode-map
   "a" '(erlang-align-arrows :which-key "align arrows")
+  "j" '(erlang-generate-new-clause :which-key "new clause")
+  "d" '(erlang-clone-arguments :which-key "duplicate arguments")
   "i" '(erlang-indent-region :which-key "indent region")
   )
 #+END_SRC
