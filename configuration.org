@@ -280,6 +280,23 @@ Set the frame's title in a custom way.
     (message "Title set to %s" custom-title)))
 #+END_SRC
 
+** open-terminal-in-workdir
+
+Opens a konsole in the current project root. If not in project, opens it in the
+current directory.
+
+#+BEGIN_SRC emacs-lisp
+(defun open-terminal-in-workdir ()
+ "Opens a terminal in the project root.
+If not in a project, opens it in the current directory."
+ (interactive)
+ (let ((workdir (if (projectile-project-root)
+                    (projectile-project-root)
+                  default-directory)))
+   (call-process-shell-command
+    (concat "konsole --workdir " workdir) nil 0)))
+#+END_SRC
+
 * Package Specific
 
 ** which-key
@@ -950,6 +967,7 @@ Documentation/"))
  "r" '(ranger :which-key "ranger")
  "s" '(eshell-new :which-key "eshell")
  "e" '(erlang-shell :which-key "erlang shell")
+ "t" '(open-terminal-in-workdir :which-key "terminal")
  )
 #+END_SRC
 
