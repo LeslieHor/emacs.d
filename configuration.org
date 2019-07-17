@@ -297,6 +297,33 @@ If not in a project, opens it in the current directory."
     (concat "konsole --workdir " workdir) nil 0)))
 #+END_SRC
 
+** pop-out-config-to-new-frame
+
+Open a new frame and copy the window config into the newly created frame.
+
+#+BEGIN_SRC emacs-lisp
+(defvar temp-new-frame-config nil
+  "Temporarily stores window config that will be loaded when a new frame is
+created. This variable is cleared after a frame loads the config.")
+
+(defun pop-out-config-to-new-frame ()
+  "Open the current eyebrowse config in a new frame"
+  (interactive)
+  (setq temp-new-frame-config (cadr (assq
+                                     (eyebrowse--get 'current-slot)
+                                     (eyebrowse--get 'window-configs))))
+  (make-frame))
+
+(defun set-frame-initial-config (frame)
+  (when temp-new-frame-config
+    (select-frame frame)
+    (eyebrowse--fixup-window-config temp-new-frame-config)
+    (window-state-put temp-new-frame-config (frame-root-window) 'safe)
+    (setq temp-new-frame-config nil)))
+
+(add-hook 'after-make-frame-functions 'set-frame-initial-config)
+#+END_SRC
+
 * Package Specific
 
 ** which-key
@@ -1073,6 +1100,7 @@ Documentation/"))
  "q" '(eyebrowse-close-window-config :which-key "close config")
  "c" '(eyebrowse-create-window-config :which-key "create config")
  "R" '(set-frame-title :which-key "rename frame")
+ "n" '(pop-out-config-to-new-frame :which-key "pop out to frame")
  )
 #+END_SRC
 
