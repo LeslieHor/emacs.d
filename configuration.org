@@ -575,6 +575,8 @@ Telephone line customization.
 
 nlinum is a dependency.
 
+Delay is kinda required or else files with loads of lines tend to lag.
+
 #+BEGIN_SRC emacs-lisp
 (add-to-list 'load-path "~/.emacs.d/packages/nlinum-1.8.1")
 (require 'nlinum)
@@ -585,7 +587,7 @@ nlinum is a dependency.
 (require 'nlinum-relative)
 (nlinum-relative-setup-evil)
 (global-nlinum-relative-mode)
-(setq nlinum-relative-redisplay-delay 0) ; delay
+(setq nlinum-relative-redisplay-delay 0.2) ; delay
 (setq nlinum-relative-current-symbol "") ; e.g. "->"
                                         ; "" for display current line number
 (setq nlinum-relative-offset 0)          ; 1 if you want 0, 2, 3...
