@@ -64,17 +64,16 @@ Force it on all the time
  )
 #+END_SRC
 
-* TODO Mode Line
-- [ ] Pick a better colour scheme
+* Mode Line
 
 #+BEGIN_SRC emacs-lisp
 (column-number-mode 1) ; show column number
 (set-face-attribute 'mode-line nil ; Set active mode line colour
-                    :foreground "black"
-                    :background "light blue")
+                    :foreground "white"
+                    :background "blue")
 (set-face-attribute 'mode-line-buffer-id nil ; Set buffer id colour
                     :foreground "white"
-                    :background "dark green")
+                    :background "black")
 #+END_SRC
 
 * Custom Functions
