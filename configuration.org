@@ -252,15 +252,11 @@ directory.
 
 #+BEGIN_SRC emacs-lisp
 (defun regenerate-tags ()
-  ""
+  "use the generate-tags script in the project root to generate tags"
   (interactive)
   (let* ((root-dir (projectile-project-root))
-         (find-command-file (concat root-dir ".emacs/find-command"))
-         (find-search (get-string-from-file find-command-file))
-         (find-command (concat "find " root-dir find-search))
-         (tags-file (concat root-dir projectile-tags-file-name))
-         (tag-command (concat "ctags -ef " tags-file " $(" find-command
-                              ") && echo -n \"tags regenerated\""))
+         (generate-tags-script (concat root-dir ".emacs/generate-tags"))
+         (tag-command (concat ". " generate-tags-script " " root-dir))
          (result (shell-command-to-string tag-command)))
     (user-error result)))
 #+END_SRC
