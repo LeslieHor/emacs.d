@@ -1013,7 +1013,7 @@ Documentation/"))
 #+BEGIN_SRC emacs-lisp
 (version-control-leader
  "s" '(magit-status :which-key "status")
- "b" '(magit-blame :which-key "blame")
+ "a" '(magit-blame :which-key "blame / annotate")
  "d" '(magit-diff :which-key "diff")
  "m" '(magit-merge :which-key "merge")
  "b" '(magit-branch :which-key "branch")
