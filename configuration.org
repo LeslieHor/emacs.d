@@ -998,9 +998,14 @@ Documentation/"))
 #+BEGIN_SRC emacs-lisp
 (applications-leader
  "r" '(ranger :which-key "ranger")
- "s" '(eshell-new :which-key "eshell")
- "e" '(erlang-shell :which-key "erlang shell")
- "t" '(open-terminal-in-workdir :which-key "terminal")
+ "t" '(:ignore t :which-key "terminals")
+ "tt" '((lambda() (interactive)(ansi-term "/bin/bash"))
+        :which-key "bash")
+ "te" '(erlang-shell :which-key "erlang-shell")
+ "tc" '((lambda() (interactive)(ansi-term "/usr/bin/clisp"))
+        :which-key "clisp")
+ "tp" '((lambda() (interactive)(ansi-term "/usr/bin/python"))
+        :which-key "python")
  )
 #+END_SRC
 
