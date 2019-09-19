@@ -43,11 +43,17 @@
 
 * Whitespace
 
-Force it on all the time
+Force it on all the time.
+
+Highlights:
+- face visualisation
+- empty lines at beginning of end of buffer
+- tabs
+- tailing blanks
 
 #+BEGIN_SRC emacs-lisp
 (require 'whitespace)
-(setq whitespace-style '(face empty tabs lines-tail trailing))
+(setq whitespace-style '(face empty tabs trailing))
 (global-whitespace-mode t)
 #+END_SRC
 
@@ -322,6 +328,44 @@ created. This variable is cleared after a frame loads the config.")
 (add-hook 'after-make-frame-functions 'set-frame-initial-config)
 #+END_SRC
 
+** whitespace-mode
+
+Toggle on and off whitespace trailing mode
+
+#+BEGIN_SRC emacs-lisp
+(defun toggle-whitespace-full ()
+  "toggle display of more whitespace"
+  (interactive)
+  (whitespace-toggle-options '(lines-tail newline-mark)))
+#+END_SRC
+
+** alignment functions
+
+#+BEGIN_SRC emacs-lisp
+(defun align-once-head (start end regexp)
+  "Align by regex once, adding spaces to the head of the regexp"
+  (interactive "r\nsAlign once head regexp: ")
+  (align-regexp start end
+                (concat "\\(\\s-*\\)" regexp) 1 1 nil))
+
+(defun align-once-tail (start end regexp)
+  "Align by regex once, adding spaces to the tail of the regexp"
+  (interactive "r\nsAlign once tail regexp: ")
+  (align-regexp start end
+                (concat regexp "\\(\\s-*\\)") 1 1 nil))
+
+(defun align-repeat-head (start end regexp)
+  "Align by regex repeatedly, adding spaces to the head of the regexp"
+  (interactive "r\nsAlign repeat head regexp: ")
+  (align-regexp start end
+                (concat "\\(\\s-*\\)" regexp) 1 1 t))
+
+(defun align-repeat-tail (start end regexp)
+  "Align by regex repeatedly, adding spaces to the tail of the regexp"
+  (interactive "r\nsAlign repeat tail regexp: ")
+  (align-regexp start end
+                (concat regexp "\\(\\s-*\\)") 1 1 t))
+#+END_SRC
 * Package Specific
 
 ** which-key
@@ -470,6 +514,10 @@ Set the colours to be as distinct as possible.
 (set-face-attribute 'rainbow-delimiters-depth-7-face nil :foreground "#42d4f4")
 (set-face-attribute 'rainbow-delimiters-depth-8-face nil :foreground "#f032e6")
 (set-face-attribute 'rainbow-delimiters-depth-9-face nil :foreground "#bfef45")
+(set-face-attribute 'rainbow-delimiters-depth-9-face nil :foreground "#bfef45")
+(set-face-attribute 'rainbow-delimiters-unmatched-face nil
+                    :background "#ff0000"
+                    :foreground "#ffffff")
 #+END_SRC
 
 ** beacon
@@ -654,6 +702,32 @@ Documentation/"))
 (require 'erlang-start)
 #+END_SRC
 
+** term mode
+Set colours to be more readable
+
+#+BEGIN_SRC emacs-lisp
+(set-face-attribute 'term-color-blue    nil :foreground "#5555ff")
+(set-face-attribute 'term-color-green   nil :foreground "#55ff55")
+(set-face-attribute 'term-color-red     nil :foreground "#ff5555")
+(set-face-attribute 'term-color-magenta nil :foreground "#ff55ff")
+(set-face-attribute 'term-color-cyan    nil :foreground "#ff55ff")
+(set-face-attribute 'term-color-yellow  nil :foreground "#ffff55")
+#+END_SRC
+
+Disable line number mode for term mode.
+Requires this hacky double add hook thing because the
+global-nlinum-relative-mode hook is run after the term-mode-hook
+
+#+BEGIN_SRC emacs-lisp
+(defun setup-term-mode ()
+  "Counteract global nlinum mode"
+  (add-hook 'after-change-major-mode-hook
+            (lambda () (nlinum-mode 0))
+            :append :local))
+
+(add-hook 'term-mode-hook 'setup-term-mode)
+#+END_SRC
+
 ** general
 
 #+BEGIN_SRC emacs-lisp
@@ -683,7 +757,7 @@ Documentation/"))
  "C-M-S-j" 'windmove-down
  "C-M-S-k" 'windmove-up
  "C-M-S-l" 'windmove-right
- "C-M-S-q" 'kill-buffer
+ "C-M-S-q" 'kill-this-buffer
  "C-M-_" '((lambda () (interactive)(text-scale-adjust -1))
            :which-key "decrease text size")
  "C-M-+" '((lambda () (interactive)(text-scale-adjust +1))
@@ -867,6 +941,7 @@ Documentation/"))
 #+BEGIN_SRC emacs-lisp
 (toggles-leader
  "w" '(whitespace-mode :which-key "toggle whitespace display")
+ "W" '(toggle-whitespace-full :which-key "toggle whitespace full")
  "n" '(neotree-toggle :which-key "toggle neotree")
  "p" '(projectile-mode :which-key "toggle projectile mode")
  "f" '(font-lock-mode :which-key "toggle auto font formatting")
@@ -916,6 +991,16 @@ Documentation/"))
   :prefix "C-M-S-e")
 #+END_SRC
 
+**** Normal
+#+BEGIN_SRC emacs-lisp
+(edits-leader
+ "ah" '(align-once-head :which-key "regex ahead of match")
+ "aH" '(align-repeat-head :which-key "regex ahead of match repeatedly")
+ "at" '(align-once-tail :which-key "regex to tail of match")
+ "aT" '(align-once-head :which-key "regex to tail of match repeatedly")
+ )
+#+END_SRC
+
 **** Org
 
 #+BEGIN_SRC emacs-lisp
@@ -941,7 +1026,7 @@ Documentation/"))
 #+BEGIN_SRC emacs-lisp
 (edits-leader
   :keymaps 'erlang-mode-map
-  "a" '(erlang-align-arrows :which-key "align arrows")
+  "aa" '(erlang-align-arrows :which-key "align arrows")
   "j" '(erlang-generate-new-clause :which-key "new clause")
   "d" '(erlang-clone-arguments :which-key "duplicate arguments")
   "i" '(erlang-indent-region :which-key "indent region")
@@ -1105,7 +1190,7 @@ Documentation/"))
  "q" '(eyebrowse-close-window-config :which-key "close config")
  "c" '(eyebrowse-create-window-config :which-key "create config")
  "R" '(set-frame-title :which-key "rename frame")
- "n" '(pop-out-config-to-new-frame :which-key "pop out to frame")
+ "o" '(pop-out-config-to-new-frame :which-key "pop out to frame")
  )
 #+END_SRC
 
