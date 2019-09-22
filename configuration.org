@@ -263,11 +263,14 @@ directory.
 (defun regenerate-tags ()
   "use the generate-tags script in the project root to generate tags"
   (interactive)
-  (let* ((root-dir (projectile-project-root))
-         (generate-tags-script (concat root-dir ".emacs/generate-tags"))
-         (tag-command (concat ". " generate-tags-script " " root-dir))
-         (result (shell-command-to-string tag-command)))
-    (user-error result)))
+  (cond ((projectile-project-root)
+         (let* ((root-dir (projectile-project-root))
+                (generate-tags-script (concat root-dir ".emacs/generate-tags"))
+                (tag-command (concat ". " generate-tags-script " " root-dir))
+                (result (shell-command-to-string tag-command)))
+           (message result)))
+        (t
+         (user-error "Not in a project!"))))
 #+END_SRC
 
 ** set-frame-title
@@ -366,6 +369,78 @@ Toggle on and off whitespace trailing mode
   (align-regexp start end
                 (concat regexp "\\(\\s-*\\)") 1 1 t))
 #+END_SRC
+** file opener functions
+Some extra functions to aid in opening files
+
+#+BEGIN_SRC emacs-lisp
+(defun find-file-line (filename linenum)
+  "invoke function find-file and goto-line"
+  (find-file filename)
+  (goto-line linenum))
+#+END_SRC
+
+The =find-file-line= function expects two args. We just therefore parse any
+FILENAME:LINENUMBER string that it uses.
+
+#+BEGIN_SRC emacs-lisp
+(defun parse-file-special-syntax (file-string)
+  "parses the format FILENAME:LINENUMBER"
+  (let* ((file-list (split-string file-string ":"))
+         (filename (car file-list))
+         (line-number (string-to-number(cadr file-list))))
+    (list filename line-number)))
+#+END_SRC
+
+We also want the ability to parse dirty file paths.
+
+#+BEGIN_SRC emacs-lisp
+(defun clean-file-path (file-string)
+  "cleans the file path"
+  (replace-regexp-in-string
+   "^.*:[0-9]*\\(.*\\)$"
+   ""
+   file-string
+   nil nil 1))
+#+END_SRC
+
+Plus we need a function to tie it all together.
+
+#+BEGIN_SRC emacs-lisp
+(defun find-file-special-syntax (file-string)
+  "opens special syntax"
+  (apply 'find-file-line
+         (parse-file-special-syntax
+          (clean-file-path file-string))))
+#+END_SRC
+
+** project compilation
+
+Compile / check the project and send results to ivy-read.
+
+Expects results in the format:
+
+#+BEGIN_EXAMPLE
+FILENAME:100 explanation
+FILENAME:200 explanation
+FILENAME:40can also be dirty
+#+END_EXAMPLE
+
+#+BEGIN_SRC emacs-lisp
+(defun check-project ()
+  "run .emacs/check-project and put results in ivy-read"
+  (interactive)
+  (cond ((projectile-project-root)
+         (let* ((root-dir (projectile-project-root))
+                (script (concat root-dir ".emacs/check-project"))
+                (command (concat ". " script " " root-dir))
+                (result (shell-command-to-string command)))
+           (ivy-read "Check project results: "
+                     (split-string result "\n")
+                     :action 'find-file-special-syntax)))
+        (t
+         (user-error "Not in a project!"))))
+#+END_SRC
+
 * Package Specific
 
 ** which-key
@@ -1132,6 +1207,7 @@ global-nlinum-relative-mode hook is run after the term-mode-hook
  "s" '(org-store-link :which-key "copy link")
  "i" '(org-insert-link :which-key "insert link")
  "t" '(regenerate-tags :which-key "regenerate tags")
+ "c" '(check-project :whick-key "check / compile project")
  )
 #+END_SRC
 
