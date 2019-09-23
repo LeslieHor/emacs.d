@@ -751,6 +751,7 @@ I want relative numbers to display when in evil operator mode.
 (setq erlang-root-dir "~/erl_rel/18.3")
 (setq exec-path (cons "~/erl_rel/18.3/bin" exec-path))
 (require 'erlang-start)
+(require 'erlang-flymake)
 #+END_SRC
 
 ** term mode
