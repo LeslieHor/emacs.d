@@ -33,31 +33,9 @@ to your ~.emacs.d/~ directory.
 | nlinum                 | [[http://elpa.gnu.org/packages/nlinum.html][v1.8.1]]                                          |
 | nlinum-relative        | commit [[https://github.com/xcodebuild/nlinum-relative/tree/5b9950c97ba79a6f0683e38b13da23f39e01031c][5b9950c97ba79a6f0683e38b13da23f39e01031c]] |
 | diff-hl                | [[https://github.com/dgutov/diff-hl/releases/tag/1.8.6][v1.8.6]]                                          |
-| hydra                  | [[https://github.com/abo-abo/hydra/releases/tag/0.15.0][v0.15.0]]                                         |
-| transient              | commit [[https://github.com/magit/transient/tree/01a166fcb8bbd9918ba741e9b5428a4b524eab33][01a166fcb8bbd9918ba741e9b5428a4b524eab33]] |
-| with-editor            | commit [[https://github.com/magit/with-editor/tree/ff23166feb857e3cfee96cb1c9ef416a224a7e20][ff23166feb857e3cfee96cb1c9ef416a224a7e20]] |
-| magit                  | commit [[https://github.com/magit/magit/tree/23267cf33a7b690b27dc6760af8ab7f0886239ce][23267cf33a7b690b27dc6760af8ab7f0886239ce]] |
-| evil-magit             | commit [[https://github.com/emacs-evil/evil-magit/tree/ca83cfd246a9e808af3d42ee9bf740b81454fbd8][ca83cfd246a9e808af3d42ee9bf740b81454fbd8]] |
 
 ** Notes
 Eyebrowse has been modified by commenting out 3 lines. This is to disable the
 mode line view, but keep eyebrowse creating the string. This is done because I
 am displaying the eyebrowse state in the title bar, not in the mode line, in
 order to save mode line space.
-
-** Magit notes
-New dependencies:
-- hydra
-- transient
-- with-editor
-
-~config.mk~ is required. Set the paths for the deps and disable libgit:
-
-#+BEGIN_SRC
-LOAD_PATH  = -L /emacs.d/packages/magit-23267cf33a7b690b27dc6760af8ab7f0886239ce/lisp
-LOAD_PATH += -L /emacs.d/packages/dash.el-2.16.0
-LOAD_PATH += -L /emacs.d/packages/hydra-0.15.0
-LOAD_PATH += -L /emacs.d/packages/transient-01a166fcb8bbd9918ba741e9b5428a4b524eab33/lisp
-LOAD_PATH += -L /emacs.d/packages/with-editor-ff23166feb857e3cfee96cb1c9ef416a224a7e20
-BUILD_MAGIT_LIBGIT ?= false
-#+END_SRC
