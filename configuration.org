@@ -434,9 +434,12 @@ FILENAME:40can also be dirty
                 (script (concat root-dir ".emacs/check-project"))
                 (command (concat ". " script " " root-dir))
                 (result (shell-command-to-string command)))
-           (ivy-read "Check project results: "
-                     (split-string result "\n")
-                     :action 'find-file-special-syntax)))
+           (cond ((> (length result) 0)
+                  (ivy-read "Check project results: "
+                            (split-string result "\n")
+                            :action 'find-file-special-syntax))
+                 (t
+                  (user-error "Check complete")))))
         (t
          (user-error "Not in a project!"))))
 #+END_SRC
@@ -733,39 +736,6 @@ I want relative numbers to display when in evil operator mode.
 (require 'diff-hl-flydiff)
 (global-diff-hl-mode)
 (diff-hl-flydiff-mode) ; Don't wait for save to calcualte diff
-#+END_SRC
-
-** magit
-
-#+BEGIN_SRC emacs-lisp
-(add-to-list
- 'load-path
- "~/.emacs.d/packages/transient-01a166fcb8bbd9918ba741e9b5428a4b524eab33/lisp")
-(add-to-list
- 'load-path
- "~/.emacs.d/packages/hydra-0.15.0")
-(add-to-list
- 'load-path
- "~/.emacs.d/packages/with-editor-ff23166feb857e3cfee96cb1c9ef416a224a7e20")
-(add-to-list
- 'load-path
- "~/.emacs.d/packages/magit-23267cf33a7b690b27dc6760af8ab7f0886239ce/lisp")
-(require 'magit)
-(with-eval-after-load 'info
-  (info-initialize)
-  (add-to-list
-   'Info-directory-list
-   "~/.emacs.d/packages/magit-23267cf33a7b690b27dc6760af8ab7f0886239ce/\
-Documentation/"))
-#+END_SRC
-
-** evil-magit
-
-#+BEGIN_SRC emacs-lisp
-(add-to-list
- 'load-path
- "~/.emacs.d/packages/evil-magit-ca83cfd246a9e808af3d42ee9bf740b81454fbd8")
-(require 'evil-magit)
 #+END_SRC
 
 ** erlang
@@ -1180,11 +1150,11 @@ global-nlinum-relative-mode hook is run after the term-mode-hook
 
 #+BEGIN_SRC emacs-lisp
 (version-control-leader
- "s" '(magit-status :which-key "status")
- "a" '(magit-blame :which-key "blame / annotate")
- "d" '(magit-diff :which-key "diff")
- "m" '(magit-merge :which-key "merge")
- "b" '(magit-branch :which-key "branch")
+;"s" '(magit-status :which-key "status")
+ "a" '(vc-annotate :which-key "annotate")
+;"d" '(magit-diff :which-key "diff")
+;"m" '(magit-merge :which-key "merge")
+;"b" '(magit-branch :which-key "branch")
  )
 #+END_SRC
 
