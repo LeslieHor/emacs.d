@@ -41,6 +41,12 @@
 (setq auto-save-file-name-transforms '((".*" "~/.emacs.d/autosave/" t)))
 #+END_SRC
 
+** Default major mode
+
+#+BEGIN_SRC emacs-lisp
+(setq-default major-mode 'text-mode)
+#+END_SRC
+
 * Whitespace
 
 Force it on all the time.
