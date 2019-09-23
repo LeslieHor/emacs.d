@@ -751,12 +751,13 @@ I want relative numbers to display when in evil operator mode.
 Set colours to be more readable
 
 #+BEGIN_SRC emacs-lisp
-(set-face-attribute 'term-color-blue    nil :foreground "#5555ff")
-(set-face-attribute 'term-color-green   nil :foreground "#55ff55")
-(set-face-attribute 'term-color-red     nil :foreground "#ff5555")
-(set-face-attribute 'term-color-magenta nil :foreground "#ff55ff")
-(set-face-attribute 'term-color-cyan    nil :foreground "#ff55ff")
-(set-face-attribute 'term-color-yellow  nil :foreground "#ffff55")
+(with-eval-after-load 'term
+  (set-face-attribute 'term-color-green   nil :foreground "#55ff55")
+  (set-face-attribute 'term-color-blue    nil :foreground "#5555ff")
+  (set-face-attribute 'term-color-red     nil :foreground "#ff5555")
+  (set-face-attribute 'term-color-magenta nil :foreground "#ff55ff")
+  (set-face-attribute 'term-color-cyan    nil :foreground "#ff55ff")
+  (set-face-attribute 'term-color-yellow  nil :foreground "#ffff55"))
 #+END_SRC
 
 Disable line number mode for term mode.
@@ -1042,7 +1043,7 @@ global-nlinum-relative-mode hook is run after the term-mode-hook
  "ah" '(align-once-head :which-key "regex ahead of match")
  "aH" '(align-repeat-head :which-key "regex ahead of match repeatedly")
  "at" '(align-once-tail :which-key "regex to tail of match")
- "aT" '(align-once-head :which-key "regex to tail of match repeatedly")
+ "aT" '(align-repeat-tail :which-key "regex to tail of match repeatedly")
  )
 #+END_SRC
 
@@ -1063,6 +1064,7 @@ global-nlinum-relative-mode hook is run after the term-mode-hook
  "tih" '(org-table-insert-hline :which-key "insert horizontal line")
  "l" '(org-insert-link :which-key "edit link")
  "s" '(org-sort :which-key "sort")
+ "o" '(org-open-at-point :which-key "open link")
  )
 #+END_SRC
 
@@ -1076,15 +1078,6 @@ global-nlinum-relative-mode hook is run after the term-mode-hook
   "d" '(erlang-clone-arguments :which-key "duplicate arguments")
   "i" '(erlang-indent-region :which-key "indent region")
   )
-#+END_SRC
-
-**** Org
-
-#+BEGIN_SRC emacs-lisp
-(edits-leader
-  :keymaps 'org-mode-map
- "o" '(org-open-at-point :which-key "open link")
- )
 #+END_SRC
 
 *** Registers
