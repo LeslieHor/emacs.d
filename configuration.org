@@ -1143,11 +1143,9 @@ global-nlinum-relative-mode hook is run after the term-mode-hook
 
 #+BEGIN_SRC emacs-lisp
 (version-control-leader
-;"s" '(magit-status :which-key "status")
  "a" '(vc-annotate :which-key "annotate")
-;"d" '(magit-diff :which-key "diff")
-;"m" '(magit-merge :which-key "merge")
-;"b" '(magit-branch :which-key "branch")
+ "d" '(vc-diff :which-key "diff") ; Change to vc-ediff if you want
+ "b" '(vc-retrieve-tag :which-key "change branch")
  )
 #+END_SRC
 
