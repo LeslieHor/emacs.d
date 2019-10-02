@@ -495,7 +495,16 @@ Rebind the ~q~ and ~quit~ commands to make more sense.
 #+BEGIN_SRC emacs-lisp
 (evil-ex-define-cmd "q" 'kill-this-buffer) ; :q should kill the buffer rather
                                         ; than quiting emacs
-(evil-ex-define-cmd "quit" 'evil-quit) ; :quit to quit emacs
+(evil-ex-define-cmd "quit" 'evil-quit-all) ; :quit to quit emacs
+
+(evil-define-command evil-save-and-kill-buffer (file &optional bang)
+  "Save current buffer and close buffer.
+Override for :wq"
+  :repeat nil
+  (interactive "<f><!>")
+  (evil-write nil nil nil file bang)
+  (kill-this-buffer))
+(evil-ex-define-cmd "wq" 'evil-save-and-kill-buffer)
 #+END_SRC
 
 ** evil-leader
@@ -971,6 +980,7 @@ global-nlinum-relative-mode hook is run after the term-mode-hook
 (buffer-leader
  "b" '(ivy-switch-buffer :which-key "switch buffers")
  "o" '(open-in-new-config :which-key "open buffer in a new window config")
+ "r" '(rename-buffer :which-key "rename buffer")
  "t" '(:ignore t :which-key "transpose buffers")
  "th" '((lambda () (interactive)(transpose-buffers-left t)) ; weird syntax is
         :which-key "transpose windows left")                ; for calling the
