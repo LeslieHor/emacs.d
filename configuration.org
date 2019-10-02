@@ -419,7 +419,26 @@ Plus we need a function to tie it all together.
           (clean-file-path file-string))))
 #+END_SRC
 
-** project compilation
+** open-in-intellij
+Helpful function to open the current buffer and line in intellij.
+
+The complimentary command for intellij is:
+#+BEGIN_SRC sh
+emacsclient -n +$LINENUMBER$:$COLUMN$ $FILE$
+#+END_SRC
+
+#+BEGIN_SRC emacs-lisp
+  (defun open-in-intellij ()
+    "Open the current file + line in intellij"
+    (interactive)
+    (let* ((file (buffer-file-name))
+           (line-num (number-to-string (line-number-at-pos)))
+           (command (concat "idea " file ":" line-num)))
+      (shell-command command)
+      (message "file opened in intellij")))
+#+END_SRC
+
+** check-project
 
 Compile / check the project and send results to ivy-read.
 
@@ -1136,6 +1155,7 @@ global-nlinum-relative-mode hook is run after the term-mode-hook
         :which-key "clisp")
  "tp" '((lambda() (interactive)(ansi-term "/usr/bin/python"))
         :which-key "python")
+ "i" '(open-in-intellij :which-key "open in intellij")
  )
 #+END_SRC
 
