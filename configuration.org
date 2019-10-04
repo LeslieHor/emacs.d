@@ -655,8 +655,28 @@ Set the colours to be as distinct as possible.
 (add-to-list 'load-path "~/.emacs.d/packages/dash.el-2.16.0")
 (add-to-list 'load-path "~/.emacs.d/packages/eyebrowse-0.7.7")
 (require 'eyebrowse)
-(setq eyebrowse-new-workspace t) ; New workspaces start with scratch buffer
 (eyebrowse-mode) ; enable global eyebrowse mode on start up
+#+END_SRC
+
+I want eyebrowse to open the current buffer in new configs.
+
+It uses the fact that eyebrowse will open a buffer if the variable
+=eyebrowse-new-workspace= is a string referencing a buffer name.
+
+I previously attempted to use the =funcall= ability of eyebrowse, however
+because eyebrowse does =delete-other-windows= before running the function, there
+is no way to reference the buffer I was current on.
+
+So I am using a hacky way of doing, by setting the =eyebrowse-new-workspace=
+variable to the current buffer name on the =eyebrowse-pre-window-switch-hook=,
+thereby making eyebrowse open the buffer.
+
+#+BEGIN_SRC emacs-lisp
+(setq eyebrowse-new-workspace t) ; set a default first of all
+(defun eyebrowse-store-current-buffer-to-open ()
+  (setq eyebrowse-new-workspace (buffer-name)))
+(add-hook 'eyebrowse-pre-window-switch-hook
+          'eyebrowse-store-current-buffer-to-open)
 #+END_SRC
 
 Set the format of the status line.
@@ -672,7 +692,7 @@ Set the format of the status line.
 Eyebrowse mode line takes up too much space. Show it in the title bar instead.
 
 Slight alteration is required of the eyebrowse package to force it to calculate
-the mode line, even when I don't want to show it.
+the mode line, even when I don't want to show it in the mode line.
 
 #+BEGIN_SRC emacs-lisp
 (defun eyebrowse-workspaces-string (&optional frame)
