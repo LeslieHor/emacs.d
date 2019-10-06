@@ -345,7 +345,7 @@ Toggle on and off whitespace trailing mode
 (defun toggle-whitespace-full ()
   "toggle display of more whitespace"
   (interactive)
-  (whitespace-toggle-options '(lines-tail newline-mark)))
+  (whitespace-toggle-options '(lines-tail)))
 #+END_SRC
 
 ** alignment functions
@@ -467,6 +467,18 @@ FILENAME:40can also be dirty
                   (user-error "Check complete")))))
         (t
          (user-error "Not in a project!"))))
+#+END_SRC
+
+** show-file-path
+Show the full file path as a message
+
+#+BEGIN_SRC emacs-lisp
+(defun show-file-path ()
+  "Show full file path as a message"
+  (interactive)
+  (if buffer-file-name
+      (message buffer-file-name)
+    (message "No valid file path")))
 #+END_SRC
 
 * Package Specific
@@ -1028,6 +1040,7 @@ global-nlinum-relative-mode hook is run after the term-mode-hook
         :which-key "duplicate buffer up")
  "dl" '((lambda () (interactive)(duplicate-buffer-right t))
         :which-key "duplicate buffer right")
+ "f" '(show-file-path :which-key "show file path")
  )
 #+END_SRC
 
@@ -1226,6 +1239,7 @@ global-nlinum-relative-mode hook is run after the term-mode-hook
  "i" '(org-insert-link :which-key "insert link")
  "t" '(regenerate-tags :which-key "regenerate tags")
  "c" '(check-project :whick-key "check / compile project")
+ "b" '(projectile-switch-to-buffer :which-key "switch project buffer")
  )
 #+END_SRC
 
