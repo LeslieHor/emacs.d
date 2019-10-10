@@ -823,7 +823,7 @@ Set colours to be more readable
   (set-face-attribute 'term-color-blue    nil :foreground "#5555ff")
   (set-face-attribute 'term-color-red     nil :foreground "#ff5555")
   (set-face-attribute 'term-color-magenta nil :foreground "#ff55ff")
-  (set-face-attribute 'term-color-cyan    nil :foreground "#ff55ff")
+  (set-face-attribute 'term-color-cyan    nil :foreground "#55ffff")
   (set-face-attribute 'term-color-yellow  nil :foreground "#ffff55"))
 #+END_SRC
 
