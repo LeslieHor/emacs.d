@@ -16,7 +16,7 @@
 (setq ring-bell-function 'ignore) ; silent bell when you make a mistake
 (setq-default frame-title-format '("%b - Emacs")) ; set the emacs title.
                                         ; overrides the old "emacs@HOST" title
-(set-frame-font "DejaVu Sans Mono 6" nil t)
+(set-frame-font "Liberation Mono 7" t t)
 (menu-bar-mode -1)
 (tool-bar-mode -1)
 (scroll-bar-mode -1)
