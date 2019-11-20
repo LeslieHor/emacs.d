@@ -71,12 +71,51 @@ Highlights:
 (setq org-src-tab-acts-natively t)
 ;; Set up languages for running code blocks in org
 (org-babel-do-load-languages
- 'org-babel-load-languages '(
-                             (python . t)
+ 'org-babel-load-languages '((python . t)
                              (sh . t)
-                             (emacs-lisp . t)
-                             )
- )
+                             (emacs-lisp . t)))
+#+END_SRC
+
+Line wrap mode
+
+#+BEGIN_SRC emacs-lisp
+(defun org-mode-startup-functions ()
+  (toggle-word-wrap 1)
+  (toggle-truncate-lines -1))
+
+(add-hook 'org-mode-hook 'org-mode-startup-functions)
+#+END_SRC
+
+** Beautifying org-mode
+
+Credits:
+zzamboni - https://zzamboni.org/post/beautifying-org-mode-in-emacs/#step-4-configure-faces-for-specific-org-elements
+
+Hide the markup for various emphasis'
+
+#+BEGIN_SRC emacs-lisp
+(setq org-hide-emphasis-markers t)
+#+END_SRC
+
+Set up nice fonts
+
+#+BEGIN_SRC emacs-lisp
+(let* ((base-font-color  (face-foreground 'default nil 'default))
+       (headline        `(:inherit    default
+                          :weight     bold
+                          :foreground ,base-font-color)))
+
+  (custom-theme-set-faces
+   'user
+   `(org-level-8        ((t (,@headline :height 1.20))))
+   `(org-level-7        ((t (,@headline :height 1.20))))
+   `(org-level-6        ((t (,@headline :height 1.30))))
+   `(org-level-5        ((t (,@headline :height 1.25))))
+   `(org-level-4        ((t (,@headline :height 1.50))))
+   `(org-level-3        ((t (,@headline :height 1.65))))
+   `(org-level-2        ((t (,@headline :height 2.00))))
+   `(org-level-1        ((t (,@headline :height 2.25))))
+   `(org-document-title ((t (,@headline :height 2.50 :underline t))))))
 #+END_SRC
 
 * Mode Line
@@ -481,6 +520,46 @@ Show the full file path as a message
     (message "No valid file path")))
 #+END_SRC
 
+** ivy-switch-config
+Switch eyebrowse configs via the ivy-buffer.
+
+#+BEGIN_SRC emacs-lisp
+(defun ivy-eyebrowse-switch-config ()
+  "Switch eyebrowse config with ivy"
+  (interactive)
+  (let ((config-list (seq-filter
+                      (lambda(x) x)
+                      (mapcar
+                       (lambda (window-config)
+                         (let* ((slot (car window-config)))
+                           (unless (= slot (eyebrowse--get 'current-slot))
+                             (eyebrowse-format-slot window-config))))
+                       (eyebrowse--get 'window-configs)))))
+    (cond ((> (length config-list) 0)
+           (ivy-read "Switch config: "
+                     config-list
+                     :action (lambda(config)
+                               (eyebrowse-switch-to-window-config
+                                (string-to-number
+                                 (replace-regexp-in-string
+                                  "^\\([0-9]*\\).*"
+                                  "\\1"
+                                  config))))))
+          (t
+           (user-error "No other configs to switch to")))))
+#+END_SRC
+** smart-clear-buffer
+Clear the buffer, but with special cases for certain major modes.
+
+#+BEGIN_SRC emacs-lisp
+(defun smart-clear-buffer ()
+  "Clear the current buffer. term-mode requires different command to clear."
+  (interactive)
+  (case major-mode
+    ('term-mode (comint-clear-buffer))
+    (otherwise (erase-buffer))))
+#+END_SRC
+
 * Package Specific
 
 ** which-key
@@ -841,6 +920,41 @@ global-nlinum-relative-mode hook is run after the term-mode-hook
 (add-hook 'term-mode-hook 'setup-term-mode)
 #+END_SRC
 
+Set normal / visual / operator mode to be line mode.
+Set insert mode to be char mode.
+
+=ignore-errors= added because this crashes term-mode from starting up.
+I don't know why.
+
+#+BEGIN_SRC emacs-lisp
+(defun term-mode-normal-visual-operator-switch ()
+  (when (equal major-mode 'term-mode) (ignore-errors (term-line-mode))))
+(defun term-mode-insert-switch ()
+  (when (equal major-mode 'term-mode) (ignore-errors (term-char-mode))))
+
+(add-hook 'evil-normal-state-entry-hook 'term-mode-normal-visual-operator-switch)
+(add-hook 'evil-visual-state-entry-hook 'term-mode-normal-visual-operator-switch)
+(add-hook 'evil-operator-state-entry-hook 'term-mode-normal-visual-operator-switch)
+(add-hook 'evil-insert-state-entry-hook 'term-mode-insert-switch)
+#+END_SRC
+
+Have the term buffer close automatically when the process has finished.
+
+Source: https://oremacs.com/2015/01/01/three-ansi-term-tips/
+
+#+BEGIN_SRC emacs-lisp
+(defun auto-exit-term-exec-hook ()
+  (let* ((buff (current-buffer))
+         (proc (get-buffer-process buff)))
+    (set-process-sentinel
+     proc
+     `(lambda (process event)
+        (if (string= event "finished\n")
+            (kill-buffer ,buff))))))
+
+(add-hook 'term-exec-hook 'auto-exit-term-exec-hook)
+#+END_SRC
+
 ** general
 
 #+BEGIN_SRC emacs-lisp
@@ -875,6 +989,17 @@ global-nlinum-relative-mode hook is run after the term-mode-hook
            :which-key "decrease text size")
  "C-M-+" '((lambda () (interactive)(text-scale-adjust +1))
            :which-key "increase text size")
+ "C-M-!" 'eyebrowse-switch-to-window-config-1
+ "C-M-\"" 'eyebrowse-switch-to-window-config-2
+ "C-M-£" 'eyebrowse-switch-to-window-config-3
+ "C-M-$" 'eyebrowse-switch-to-window-config-4
+ "C-M-%" 'eyebrowse-switch-to-window-config-5
+ "C-M-^" 'eyebrowse-switch-to-window-config-6
+ "C-M-&" 'eyebrowse-switch-to-window-config-7
+ "C-M-*" 'eyebrowse-switch-to-window-config-8
+ "C-M-(" 'eyebrowse-switch-to-window-config-9
+ "C-M-<" 'previous-buffer
+ "C-M->" 'next-buffer
  )
 #+END_SRC
 
@@ -1014,6 +1139,7 @@ global-nlinum-relative-mode hook is run after the term-mode-hook
  "o" '(open-in-new-config :which-key "open buffer in a new window config")
  "r" '(rename-buffer :which-key "rename buffer")
  "t" '(:ignore t :which-key "transpose buffers")
+ "x" '(smart-clear-buffer :which-key "clear buffer")
  "th" '((lambda () (interactive)(transpose-buffers-left t)) ; weird syntax is
         :which-key "transpose windows left")                ; for calling the
  "tj" '((lambda () (interactive)(transpose-buffers-down t)) ; function with
@@ -1266,20 +1392,11 @@ global-nlinum-relative-mode hook is run after the term-mode-hook
 
 #+BEGIN_SRC emacs-lisp
 (general-define-key
- "C-M-1" 'eyebrowse-switch-to-window-config-1
- "C-M-2" 'eyebrowse-switch-to-window-config-2
- "C-M-3" 'eyebrowse-switch-to-window-config-3
- "C-M-4" 'eyebrowse-switch-to-window-config-4
- "C-M-5" 'eyebrowse-switch-to-window-config-5
- "C-M-6" 'eyebrowse-switch-to-window-config-6
- "C-M-7" 'eyebrowse-switch-to-window-config-7
- "C-M-8" 'eyebrowse-switch-to-window-config-8
- "C-M-9" 'eyebrowse-switch-to-window-config-9
- "C-M-<" 'eyebrowse-prev-window-config
- "C-M->" 'eyebrowse-next-window-config
  "C-M-w" 'eyebrowse-last-window-config
  "C-M-h" 'evil-jump-backward
  "C-M-l" 'evil-jump-forward
+ "C-M-p" 'eyebrowse-prev-window-config
+ "C-M-n" 'eyebrowse-next-window-config
  )
 #+END_SRC
 
@@ -1299,6 +1416,7 @@ global-nlinum-relative-mode hook is run after the term-mode-hook
  "c" '(eyebrowse-create-window-config :which-key "create config")
  "R" '(set-frame-title :which-key "rename frame")
  "o" '(pop-out-config-to-new-frame :which-key "pop out to frame")
+ "b" '(ivy-eyebrowse-switch-config :which-key "switch config")
  )
 #+END_SRC
 
