@@ -69,6 +69,10 @@ Highlights:
 (setq org-html-postamble "<p class=\"created\">Created: %T</p>")
 (setq org-src-fontify-natively t)
 (setq org-src-tab-acts-natively t)
+(setq org-startup-folded nil) ; Start org mode expanded
+(setq org-startup-with-inline-images t) ; Show images by default
+(setq org-startup-indented nil)
+(setq org-hide-leading-stars t)
 ;; Set up languages for running code blocks in org
 (org-babel-do-load-languages
  'org-babel-load-languages '((python . t)
@@ -97,6 +101,16 @@ Hide the markup for various emphasis'
 (setq org-hide-emphasis-markers t)
 #+END_SRC
 
+
+Replace list bullet point with nice unicode
+
+#+BEGIN_SRC emacs-lisp
+(font-lock-add-keywords
+  'org-mode
+  '(("^ *\\([-]\\) "
+     (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))))
+#+END_SRC
+
 Set up nice fonts
 
 #+BEGIN_SRC emacs-lisp
@@ -107,15 +121,20 @@ Set up nice fonts
 
   (custom-theme-set-faces
    'user
-   `(org-level-8        ((t (,@headline :height 1.20))))
-   `(org-level-7        ((t (,@headline :height 1.20))))
-   `(org-level-6        ((t (,@headline :height 1.30))))
-   `(org-level-5        ((t (,@headline :height 1.25))))
-   `(org-level-4        ((t (,@headline :height 1.50))))
-   `(org-level-3        ((t (,@headline :height 1.65))))
-   `(org-level-2        ((t (,@headline :height 2.00))))
-   `(org-level-1        ((t (,@headline :height 2.25))))
-   `(org-document-title ((t (,@headline :height 2.50 :underline t))))))
+   `(org-document-title   ((t (,@headline :height 2.50 :underline t))))
+   `(org-level-1          ((t (,@headline :height 2.25 :foreground "#e6194b"))))
+   `(org-level-2          ((t (,@headline :height 2.00 :foreground "#3cb44b"))))
+   `(org-level-3          ((t (,@headline :height 1.75 :foreground "#ffe119"))))
+   `(org-level-4          ((t (,@headline :height 1.70 :foreground "#4363d8"))))
+   `(org-level-5          ((t (,@headline :height 1.35 :foreground "#f58231"))))
+   `(org-level-6          ((t (,@headline :height 1.00 :foreground "#911eb4"))))
+   `(org-level-7          ((t (,@headline :height 1.00 :foreground "#42d4f4"))))
+   `(org-level-8          ((t (,@headline :height 1.00 :foreground "#f032e6"))))
+   `(org-block-background ((t (:height 1.00 :background "#222222"))))
+   `(org-block            ((t (:height 1.00 :background "#222222"))))
+   `(org-block-begin-line ((t (:height 1.00 :foreground "#222222" :background "#070707"))))
+   `(org-block-end-line   ((t (:height 1.00 :foreground "#222222" :background "#070707"))))
+))
 #+END_SRC
 
 * Mode Line
@@ -614,7 +633,7 @@ Override for :wq"
  "~/.emacs.d/packages/evil-org-mode-b6d652a9163d3430a9e0933a554bdbee5244bbf6")
 (require 'evil-org)
 (add-hook 'org-mode-hook 'evil-org-mode)
-(evil-org-set-key-theme '(navigation insert textobjects additional calendar))
+(evil-org-set-key-theme '(navigation insert textobjects additional calendar shift todo heading))
 (add-hook 'org-mode-hook
           (lambda ()
           (setq evil-auto-indent nil)))
@@ -708,7 +727,7 @@ Neotree keybindings conflict with evil-moe, so rebind them.
 Set the colours to be as distinct as possible.
 
 #+BEGIN_SRC emacs-lisp
-(set-face-attribute 'rainbow-delimiters-depth-1-face nil :foreground "#e6194B")
+(set-face-attribute 'rainbow-delimiters-depth-1-face nil :foreground "#e6194b")
 (set-face-attribute 'rainbow-delimiters-depth-2-face nil :foreground "#3cb44b")
 (set-face-attribute 'rainbow-delimiters-depth-3-face nil :foreground "#ffe119")
 (set-face-attribute 'rainbow-delimiters-depth-4-face nil :foreground "#4363d8")
@@ -716,7 +735,6 @@ Set the colours to be as distinct as possible.
 (set-face-attribute 'rainbow-delimiters-depth-6-face nil :foreground "#911eb4")
 (set-face-attribute 'rainbow-delimiters-depth-7-face nil :foreground "#42d4f4")
 (set-face-attribute 'rainbow-delimiters-depth-8-face nil :foreground "#f032e6")
-(set-face-attribute 'rainbow-delimiters-depth-9-face nil :foreground "#bfef45")
 (set-face-attribute 'rainbow-delimiters-depth-9-face nil :foreground "#bfef45")
 (set-face-attribute 'rainbow-delimiters-unmatched-face nil
                     :background "#ff0000"
@@ -1235,6 +1253,7 @@ Source: https://oremacs.com/2015/01/01/three-ansi-term-tips/
 **** Normal
 #+BEGIN_SRC emacs-lisp
 (edits-leader
+ "a" '(:ignore t :which-key "align")
  "ah" '(align-once-head :which-key "regex ahead of match")
  "aH" '(align-repeat-head :which-key "regex ahead of match repeatedly")
  "at" '(align-once-tail :which-key "regex to tail of match")
@@ -1260,6 +1279,14 @@ Source: https://oremacs.com/2015/01/01/three-ansi-term-tips/
  "l" '(org-insert-link :which-key "edit link")
  "s" '(org-sort :which-key "sort")
  "o" '(org-open-at-point :which-key "open link")
+ "ah" 'ignore ; unbind 'normal' keybinds these so they don't show up in org mode
+ "aH" 'ignore
+ "at" 'ignore
+ "aT" 'ignore
+ "a" '(:ignore t :which-key "agenda")
+ "aa" '(org-agenda :which-key "agenda")
+ "as" '(org-schedule :which-key "schedule")
+ "ad" '(org-deadline :which-key "deadline")
  )
 #+END_SRC
 

@@ -33,6 +33,7 @@ to your ~.emacs.d/~ directory.
 | nlinum                 | [[http://elpa.gnu.org/packages/nlinum.html][v1.8.1]]                                          |
 | nlinum-relative        | commit [[https://github.com/xcodebuild/nlinum-relative/tree/5b9950c97ba79a6f0683e38b13da23f39e01031c][5b9950c97ba79a6f0683e38b13da23f39e01031c]] |
 | diff-hl                | [[https://github.com/dgutov/diff-hl/releases/tag/1.8.6][v1.8.6]]                                          |
+| org-bullets            | commit [[https://github.com/sabof/org-bullets/tree/b70ac2ec805bcb626a6e39ea696354577c681b36][b70ac2ec805bcb626a6e39ea696354577c681b36]] |
 
 ** Notes
 Eyebrowse has been modified by commenting out 3 lines. This is to disable the
