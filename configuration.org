@@ -6,7 +6,7 @@
 
 #+BEGIN_SRC emacs-lisp
 (server-start) ; Start emacs server
-(desktop-save-mode 1) ; Save session and restore on next launch
+;(desktop-save-mode 1) ; Save session and restore on next launch
 #+END_SRC
 
 ** UI
