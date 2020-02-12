@@ -154,7 +154,6 @@ Set up nice fonts
 #+END_SRC
 
 * Custom Functions
-
 ** eshell-new
 
 Interative function to create a new instance of eshell.
@@ -1059,376 +1058,293 @@ To keep the code nice and clean.
 (defun leslie/alias-org-force-publish () (interactive) (org-publish-current-project t))
 #+END_SRC
 
-** Leaders
+** Helper Functions
 #+BEGIN_SRC emacs-lisp
-;; -----------------------------------------------------------------------------
-;; P1
-;; -----------------------------------------------------------------------------
-(general-create-definer files-leader           :prefix "C-M-S-f")
-(general-create-definer buffer-leader          :prefix "C-M-S-b")
-(general-create-definer windows-leader         :prefix "C-M-S-w")
-(general-create-definer toggles-leader         :prefix "C-M-S-t")
-(general-create-definer edits-leader           :prefix "C-M-S-e")
-(general-create-definer registers-leader       :prefix "C-M-S-r")
-(general-create-definer applications-leader    :prefix "C-M-S-o")
-(general-create-definer version-control-leader :prefix "C-M-S-v")
-(general-create-definer projects-leader        :prefix "C-M-S-p")
+(setq leslie/p1-prefix-normal   "C-M-S-")
+(setq leslie/p1-prefix-special  "C-M-")
+(setq leslie/p1-prefix-standard "M-f")
 
-;; -----------------------------------------------------------------------------
-;; P3
-;; -----------------------------------------------------------------------------
-(general-create-definer frames-leader          :prefix "C-M-f")
+(setq leslie/p2-prefix-normal   "C-S-")
+(setq leslie/p2-prefix-special  "C-")
+(setq leslie/p2-prefix-standard "M-d")
+
+(setq leslie/p3-prefix-normal   "C-M-")
+(setq leslie/p3-prefix-special  "C-M-")
+(setq leslie/p3-prefix-standard "M-s")
+
+(setq leslie/p4-prefix-normal   "M-")
+(setq leslie/p4-prefix-special  "M-")
+(setq leslie/p4-prefix-standard "M-a")
+
+(defun leslie/p1 (key command description &optional keymap)
+  (let* ((prefix-normal   leslie/p1-prefix-normal)
+         (prefix-special  leslie/p1-prefix-special)
+         (standard-prefix leslie/p1-prefix-standard)
+         (prefix-key (cond ((string= key ";") (concat prefix-special ":"))
+                           ((string= key "-") (concat prefix-special "_"))
+                           ((string= key "=") (concat prefix-special "+"))
+                           ((string= key ",") (concat prefix-special "<"))
+                           ((string= key ".") (concat prefix-special ">"))
+                           ((string= key "/") (concat prefix-special "?"))
+                           (t (concat prefix-normal key))))
+         (standard-prefix-key (concat standard-prefix " " key)))
+    (leslie/set-keys prefix-key standard-prefix-key command description keymap)))
+
+(defun leslie/p2 (key command description &optional keymap)
+  (let* ((prefix-normal   leslie/p2-prefix-normal)
+         (prefix-special  leslie/p2-prefix-special)
+         (standard-prefix leslie/p2-prefix-standard)
+         (prefix-key (cond (t (concat prefix-normal key))))
+         (standard-prefix-key (concat standard-prefix " " key)))
+    (leslie/set-keys prefix-key standard-prefix-key command description keymap)))
+
+(defun leslie/p3 (key command description &optional keymap)
+  (let* ((prefix-normal   leslie/p3-prefix-normal)
+         (prefix-special  leslie/p3-prefix-special)
+         (standard-prefix leslie/p3-prefix-standard)
+         (prefix-key (cond (t (concat prefix-normal key))))
+         (standard-prefix-key (concat standard-prefix " " key)))
+    (leslie/set-keys prefix-key standard-prefix-key command description keymap)))
+
+(defun leslie/p4 (key command description &optional keymap)
+  (let* ((prefix-normal   leslie/p4-prefix-normal)
+         (prefix-special  leslie/p4-prefix-special)
+         (standard-prefix leslie/p4-prefix-standard)
+         (prefix-key (cond (t (concat prefix-normal (upcase (substring key 0 1)) (substring key 1)))))
+         (standard-prefix-key (concat standard-prefix " " key)))
+    (leslie/set-keys prefix-key standard-prefix-key command description keymap)))
+
+(defun leslie/set-keys (prefix-key standard-prefix-key command description &optional keymap)
+  (cond (command
+         (leslie/set-key prefix-key command description keymap)
+         (leslie/set-key standard-prefix-key command description keymap))
+        (t
+         (leslie/set-prefix prefix-key description keymap)
+         (leslie/set-prefix standard-prefix-key description keymap))))
+
+(defun leslie/set-prefix (key description &optional keymap)
+  (cond (keymap
+         (general-define-key
+           :keymaps keymap
+           :states '(normal insert visual operator motion emacs)
+           key (list :ignore t :which-key description)))
+        (t
+         (general-define-key
+           :states '(normal insert visual operator motion emacs)
+           key (list :ignore t :which-key description)))))
+
+(defun leslie/set-key (key command description &optional keymap)
+  (cond (keymap
+         (general-define-key
+          :keymaps keymap
+          :states '(normal insert visual operator motion emacs)
+          key (list command :which-key description)))
+        (t
+         (general-define-key 
+          :states '(normal insert visual operator motion emacs)
+          key (list command :which-key description)))))
 #+END_SRC
 
-*** Files Leader
+** Unbinding Keys
+
 #+BEGIN_SRC emacs-lisp
-(files-leader
-  "f" '(counsel-find-file :which-key "find file")
-  "r" '(counsel-recentf   :which-key "find recent file")
-  "b" '(ivy-switch-buffer :which-key "buffers")
-)
+;(general-unbind 
+;  '(normal insert visual operator)
+;  '(global-map org-mode-map evil-org-mode-map)
+  ;"C-S-h"
+  ;"C-S-j"
+  ;"C-S-k"
+  ;"C-S-l"
+  ;"C-M-S-d"
+;)
+
+(global-unset-key (kbd "M-s ESC"))
+(global-unset-key (kbd "M-s ."))
+(global-unset-key (kbd "M-s _"))
+(global-unset-key (kbd "M-s o"))
+(global-unset-key (kbd "M-s w"))
 #+END_SRC
 
-*** Windows Leader
+** P1
 #+BEGIN_SRC emacs-lisp
-(windows-leader
-  "v" '(split-window-below   :which-key "split vertical")
-  "h" '(split-window-right   :which-key "split horizontal")
-  "z" '(maximize-window      :which-key "maximize")
-  "o" '(delete-other-windows :which-key "delete other windows")
-  "e" '(balance-windows      :which-key "balance windows")
-  "r" '(revert-buffer        :which-key "reload from disk")
-)
+;;FUN      KEY    FUNCTION                              DESCRIPTION                           MODE
+(leslie/p1 ";"    'counsel-M-x                          "M-x")
+(leslie/p1 "q"    'kill-this-buffer                     "kill buffer")
+(leslie/p1 "d"    'evil-goto-definition                 "goto definition")
+(leslie/p1 "d"    'leslie/alias-erlang-find-tag         "goto definition"                     'erlang-mode-map)
+(leslie/p1 "d"    'org-open-at-point                    "open link"                           'org-mode-map)
+(leslie/p1 "c"    'delete-window                        "close window")
+(leslie/p1 "c"    'ranger-disable                       "close ranger"                        'ranger-mode-map)
+(leslie/p1 "h"    'windmove-left                        "win left")
+(leslie/p1 "j"    'windmove-down                        "win down")
+(leslie/p1 "k"    'windmove-up                          "win up")
+(leslie/p1 "l"    'windmove-right                       "wind right")
+(leslie/p1 "-"    'leslie/alias-text-scale-down         "text scale down")
+(leslie/p1 "="    'leslie/alias-text-scale-up           "text scale up")
+(leslie/p1 ","    'previous-buffer                      "prev buffer")
+(leslie/p1 "."    'next-buffer                          "next buffer")
+(leslie/p1 "/"    'leslie/alias-search-buffer           "search buffer")
+(leslie/p1 "f"    'nil                                  "files")
+(leslie/p1 "f f"  'counsel-find-file                    "find file")
+(leslie/p1 "f r"  'counsel-recentf                      "find recent file")
+(leslie/p1 "f b"  'ivy-switch-buffer                    "buffers")
+(leslie/p1 "f h"  'org-html-export-to-html              "export to html"                      'org-mode-map)
+(leslie/p1 "f d"  'dired-create-directory               "create directory"                    'ranger-mode-map)
+(leslie/p1 "n"    'neotree-create-node                  "create directory / file"             'neotree-mode-map)
+(leslie/p1 "d"    'neotree-delete-node                  "delete directory / file"             'neotree-mode-map)
+(leslie/p1 "r"    'neotree-rename-node                  "rename directory / file"             'neotree-mode-map)
+(leslie/p1 "t"    'neotree-change-root                  "change root directory"               'neotree-mode-map)
+(leslie/p1 "c"    'neotree-copy-node                    "copy directory / file"               'neotree-mode-map)
+(leslie/p1 "w"    'nil                                  "windows")
+(leslie/p1 "w v"  'split-window-below                   "split vertical")
+(leslie/p1 "w h"  'split-window-right                   "split horizontal")
+(leslie/p1 "w z"  'maximize-window                      "maximize")
+(leslie/p1 "w z"  'neotree-stretch-toggle               "maximize tree pane"                  'neotree-mode-map)
+(leslie/p1 "w o"  'delete-other-windows                 "delete other windows")
+(leslie/p1 "w e"  'balance-windows                      "balance windows")
+(leslie/p1 "w r"  'revert-buffer                        "reload from disk")
+(leslie/p1 "b"    'nil                                  "buffers")
+(leslie/p1 "b b"  'ivy-switch-buffer                    "switch buffers")
+(leslie/p1 "b o"  'open-in-new-config                   "open buffer in a new window config")
+(leslie/p1 "b r"  'rename-buffer                        "rename buffer")
+(leslie/p1 "b x"  'smart-clear-buffer                   "clear buffer")
+(leslie/p1 "b f"  'show-file-path                       "show file path")
+(leslie/p1 "b t"  'nil                                  "transpose buffers")
+(leslie/p1 "b th" 'leslie/alias-transpose-buffer-left   "transpose windows left")
+(leslie/p1 "b tj" 'leslie/alias-transpose-buffer-down   "transpose windows down")
+(leslie/p1 "b tk" 'leslie/alias-transpose-buffer-up     "transpose windows up")
+(leslie/p1 "b tl" 'leslie/alias-transpose-buffer-right  "transpose windows right")
+(leslie/p1 "b c"  'nil                                  "cast buffers")
+(leslie/p1 "b ch" 'leslie/alias-cast-buffer-left        "cast buffer left")
+(leslie/p1 "b cj" 'leslie/alias-cast-buffer-down        "cast buffer down")
+(leslie/p1 "b ck" 'leslie/alias-cast-buffer-up          "cast buffer up")
+(leslie/p1 "b cl" 'leslie/alias-cast-buffer-right       "cast buffer right")
+(leslie/p1 "b d"  'nil                                  "duplicate buffers")
+(leslie/p1 "b dh" 'leslie/alias-duplicate-buffer-left   "duplicate buffer left")
+(leslie/p1 "b dj" 'leslie/alias-duplicate-buffer-down   "duplicate buffer down")
+(leslie/p1 "b dk" 'leslie/alias-duplicate-buffer-up     "duplicate buffer up")
+(leslie/p1 "b dl" 'leslie/alias-duplicate-buffer-right  "duplicate buffer right")
+(leslie/p1 "t"    'nil                                  "toggles")
+(leslie/p1 "t w"  'whitespace-mode                      "toggle whitespace display")
+(leslie/p1 "t W"  'toggle-whitespace-full               "toggle whitespace full")
+(leslie/p1 "t n"  'neotree-toggle                       "toggle neotree")
+(leslie/p1 "t p"  'projectile-mode                      "toggle projectile mode")
+(leslie/p1 "t f"  'font-lock-mode                       "toggle auto font formatting")
+(leslie/p1 "t c"  'comment-line                         "comment line")
+(leslie/p1 "t r"  'rainbow-delimiters-mode              "rainbow delimiters")
+(leslie/p1 "t l"  'nlinum-mode                          "toggle relative line numbers")
+(leslie/p1 "t i"  'org-toggle-inline-images             "toggle images"                       'org-mode-map)
+(leslie/p1 "t t"  'nil                                  "todo / tables"                       'org-mode-map)
+(leslie/p1 "t ts" 'org-todo                             "cycle todo"                          'org-mode-map)
+(leslie/p1 "t tr" 'org-table-toggle-coordinate-overlay  "toggle images"                       'org-mode-map)
+(leslie/p1 "t h"  'ranger-toggle-dotfiles               "toggle hidden"                       'ranger-mode-map)
+(leslie/p1 "t c"  'neotree-collapse-all                 "collapse all"                        'neotree-mode-map)
+(leslie/p1 "t h"  'neotree-hdden-file-toggle            "toggle hidden"                       'neotree-mode-map)
+(leslie/p1 "e"    'nil                                  "edits")
+(leslie/p1 "e f"  'nil                                  "fill")
+(leslie/p1 "e fr" 'fill-region                          "fill region")
+(leslie/p1 "e fp" 'fill-paragraph                       "fill paragraph")
+(leslie/p1 "e a"  'nil                                  "align")
+(leslie/p1 "e ah" 'align-once-head                      "regex ahead of match")
+(leslie/p1 "e aH" 'align-repeat-head                    "regex ahead of match repeatedly")
+(leslie/p1 "e at" 'align-once-tail                      "regex to tail of match")
+(leslie/p1 "e aT" 'align-repeat-tail                    "regex to tail of match repeatedly")
+(leslie/p1 "e l"  'org-insert-link                      "edit link"                           'org-mode-map)
+(leslie/p1 "e s"  'org-sort                             "sort"                                'org-mode-map)
+(leslie/p1 "e aa" 'erlang-align-arrows                  "align arrows"                        'erlang-mode-map)
+(leslie/p1 "e j"  'erlang-generate-new-clause           "new clause"                          'erlang-mode-map)
+(leslie/p1 "e d"  'erlang-clone-arguments               "duplicate arguments"                 'erlang-mode-map)
+(leslie/p1 "e i"  'erlang-indent-region                 "indent region"                       'erlang-mode-map)
+(leslie/p1 "r"    'nil                                  "registers")
+(leslie/p1 "r p"  'nil                                  "positions")
+(leslie/p1 "r py" 'point-to-register                    "yank current position to register")
+(leslie/p1 "r pp" 'jump-to-register                     "goto register position")
+(leslie/p1 "r t"  'nil                                  "text")
+(leslie/p1 "r ty" 'copy-to-register                     "yank text to register")
+(leslie/p1 "r tp" 'insert-register                      "paste text register")
+(leslie/p1 "r ta" 'append-to-register                   "append text to register")
+(leslie/p1 "r tb" 'prepend-to-register                  "prepend text to register (before)")
+(leslie/p1 "r r"  'nil                                  "rectangle")
+(leslie/p1 "r ry" 'copy-rectangle-to-register           "yank rectangle to register")
+(leslie/p1 "r rp" 'insert-register                      "paste rectangle from register")
+(leslie/p1 "r n"  'nil                                  "numbers")
+(leslie/p1 "r ny" 'number-to-register                   "yank number to register")
+(leslie/p1 "r np" 'insert-register                      "paste number from register")
+(leslie/p1 "r ni" 'increment-register                   "increment register with number")
+(leslie/p1 "o"    'nil                                  "applications")
+(leslie/p1 "o r"  'ranger                               "ranger")
+(leslie/p1 "o i"  'open-in-intellij                     "open in intellij")
+(leslie/p1 "a t"  'nil                                  "terminals")
+(leslie/p1 "o tt" 'leslie/alias-bash-shell              "bash")
+(leslie/p1 "o te" 'erlang-shell                         "erlang")
+(leslie/p1 "o tc" 'leslie/alias-clisp-shell             "clisp")
+(leslie/p1 "o tp" 'leslie/alias-python-shell            "python")
+(leslie/p1 "v"    'nil                                  "version control")
+(leslie/p1 "v a"  'vc-annotate                          "annotate")
+(leslie/p1 "v d"  'vc-diff                              "diff")
+(leslie/p1 "v b"  'vc-retrieve-tag                      "change branch")
+(leslie/p1 "p"    'nil                                  "projects")
+(leslie/p1 "p ?"  'projectile-command-map               "other")
+(leslie/p1 "p p"  'counsel-projectile-switch-project    "switch project")
+(leslie/p1 "p g"  'counsel-projectile-grep              "find instances in project")
+(leslie/p1 "p f"  'counsel-projectile-find-file         "find project file")
+(leslie/p1 "p s"  'org-store-link                       "copy link")
+(leslie/p1 "p i"  'org-insert-link                      "insert link")
+(leslie/p1 "p t"  'regenerate-tags                      "regenerate tags")
+(leslie/p1 "p c"  'check-project                        "check / compile project")
+(leslie/p1 "p b"  'projectile-switch-to-buffer          "switch project buffer")
+(leslie/p1 "p o"  'org-publish-current-project          "org publish project"                 'org-mode-map)
+(leslie/p1 "p O"  'leslie/alias-org-force-publish       "force org publish project"           'org-mode-map)
 #+END_SRC
 
-*** Buffers Leader
+** P2
 #+BEGIN_SRC emacs-lisp
-(buffer-leader
-  "b"  '(ivy-switch-buffer  :which-key "switch buffers")
-  "o"  '(open-in-new-config :which-key "open buffer in a new window config")
-  "r"  '(rename-buffer      :which-key "rename buffer")
-  "x"  '(smart-clear-buffer :which-key "clear buffer")
-  "f"  '(show-file-path     :which-key "show file path")
- 
-  "t"  '(:ignore t :which-key "transpose buffers")
-  "th" '(leslie/alias-transpose-buffer-left  :which-key "transpose windows left")
-  "tj" '(leslie/alias-transpose-buffer-down  :which-key "transpose windows down")
-  "tk" '(leslie/alias-transpose-buffer-up    :which-key "transpose windows up")
-  "tl" '(leslie/alias-transpose-buffer-right :which-key "transpose windows right")
- 
-  "c"  '(:ignore t :which-key "cast buffer")
-  "ch" '(leslie/alias-cast-buffer-left  :which-key "cast buffer left")
-  "cj" '(leslie/alias-cast-buffer-down  :which-key "cast buffer down")
-  "ck" '(leslie/alias-cast-buffer-up    :which-key "cast buffer up")
-  "cl" '(leslie/alias-cast-buffer-right :which-key "cast buffer right")
- 
-  "d"  '(:ignore t :which-key "duplicate buffer")
-  "dh" '(leslie/alias-duplicate-buffer-left  :which-key "duplicate buffer left")
-  "dj" '(leslie/alias-duplicate-buffer-down  :which-key "duplicate buffer down")
-  "dk" '(leslie/alias-duplicate-buffer-up    :which-key "duplicate buffer up")
-  "dl" '(leslie/alias-duplicate-buffer-right :which-key "duplicate buffer right")
-)
+;;         KEY    FUNCTION                              DESCRIPTION                           MODE
+(leslie/p2 "h"    'shrink-window-horizontally           "shrink horz"                         'override)
+(leslie/p2 "j"    'enlarge-window                       "enlarge vert"                        'override)
+(leslie/p2 "k"    'shrink-window                        "shrink vert"                         'override)
+(leslie/p2 "l"    'enlarge-window-horizontally          "enlarge horz"                        'override)
 #+END_SRC
 
-*** Toggles Leader
+** P3
 #+BEGIN_SRC emacs-lisp
-(toggles-leader
-  "w" '(whitespace-mode         :which-key "toggle whitespace display")
-  "W" '(toggle-whitespace-full  :which-key "toggle whitespace full")
-  "n" '(neotree-toggle          :which-key "toggle neotree")
-  "p" '(projectile-mode         :which-key "toggle projectile mode")
-  "f" '(font-lock-mode          :which-key "toggle auto font formatting")
-  "c" '(comment-line            :which-key "comment line")
-  "r" '(rainbow-delimiters-mode :which-key "rainbow delimiters")
-  "l" '(nlinum-mode             :which-key "toggle relative line numbers")
-)
+;;         KEY    FUNCTION                              DESCRIPTION                           MODE
+(leslie/p3 "h"    'evil-jump-backward                   "jump back")
+(leslie/p3 "l"    'evil-jump-forward                    "jump forward")
+(leslie/p3 "f"    'nil                                  "frames")
+(leslie/p3 "f R"  'set-frame-title                      "rename frame")
+(leslie/p3 "f o"  'pop-out-config-to-new-frame          "pop out to frame")
+(leslie/p3 "f b"  'ivy-eyebrowse-switch-config          "switch config")
+(leslie/p3 "f c"  'make-frame                           "create new frame")
 #+END_SRC
 
-*** Edits Leader
+** P4
 #+BEGIN_SRC emacs-lisp
-(edits-leader
-  "a"  '(:ignore t :which-key "align")
-  "ah" '(align-once-head   :which-key "regex ahead of match")
-  "aH" '(align-repeat-head :which-key "regex ahead of match repeatedly")
-  "at" '(align-once-tail   :which-key "regex to tail of match")
-  "aT" '(align-repeat-tail :which-key "regex to tail of match repeatedly")
- 
-  "f"  '(:ignore t :which-key "fill")
-  "fr" '(fill-region    :which-key "fill region")
-  "fp" '(fill-paragraph :which-key "fill paragraph")
-)
-#+END_SRC
+;;         KEY    FUNCTION                              DESCRIPTION                           MODE
+(leslie/p4 "k"    'outline-previous-visible-heading     "prev visible heading")
+(leslie/p4 "j"    'outline-next-visible-heading         "next visible heading")
+(leslie/p4 "h"    'outline-backward-same-level          "back same level")
+(leslie/p4 "l"    'outline-forward-same-level           "forward same level")
+(leslie/p4 "u"    'outline-up-heading                   "up heading")
+(leslie/p4 "x"    'nil                                  "none")
+(leslie/p4 "x"    'org-toggle-checkbox                  "toggle checkbox"                     'org-mode-map)
+(leslie/p4 "a"    'org-agenda                           "agenda"                              'org-mode-map)
+(leslie/p4 "s"    'org-schedule                         "schedule"                            'org-mode-map)
+(leslie/p4 "d"    'org-deadline                         "deadline"                            'org-mode-map)
+(leslie/p4 "c"    'org-columns                          "columns"                             'org-mode-map)
+(leslie/p4 "t"    'nil                                  "tables"                              'org-mode-map)
+(leslie/p4 "t c"  'org-table-create-or-convert-from-region "create / convert table"           'org-mode-map)
+(leslie/p4 "t d"  'nil                                  "delete"                              'org-mode-map)
+(leslie/p4 "t dc" 'org-table-delete-column              "delete column"                       'org-mode-map)
+(leslie/p4 "t dr" 'org-table-kill-row                   "delete row"                          'org-mode-map)
+(leslie/p4 "t i"  'nil                                  "insert"                              'org-mode-map)
+(leslie/p4 "t ic" 'org-table-insert-column              "insert column"                       'org-mode-map)
+(leslie/p4 "t ir" 'org-table-insert-row                 "insert row"                          'org-mode-map)
+(leslie/p4 "t ih" 'org-table-insert-hline               "insert horizontal line"              'org-mode-map)
+(leslie/p4 "i"    'org-clock-in                         "clock in"                            'org-mode-map)
+(leslie/p4 "o"    'org-clock-out                        "clock out"                           'org-mode-map)
 
-*** Registers Leader
-#+BEGIN_SRC emacs-lisp
-(registers-leader
-  "p"  '(:ignore t :which-key "positions")
-  "py" '(point-to-register :which-key "yank current position to register")
-  "pp" '(jump-to-register  :which-key "goto register position")
 
-  "t"  '(:ignore t :which-key "text")
-  "ty" '(copy-to-register    :which-key "yank text to register")
-  "tp" '(insert-register     :which-key "paste text register")
-  "ta" '(append-to-register  :which-key "append text to register")
-  "tb" '(prepend-to-register :which-key "prepend text to register (before)")
-
-  "r"  '(:ignore t :which-key "rectangle")
-  "ry" '(copy-rectangle-to-register :which-key "yank rectangle to register")
-  "rp" '(insert-register            :which-key "paste rectangle from register")
-
-  "n"  '(:ignore t :which-key "numbers")
-  "ny" '(number-to-register :which-key "yank number to register")
-  "np" '(insert-register    :which-key "paste number from register")
-  "ni" '(increment-register :which-key "increment register with number")
- )
-#+END_SRC
-
-*** Applications Leader
-#+BEGIN_SRC emacs-lisp
-(applications-leader
- "r"  '(ranger           :which-key "ranger")
- "i"  '(open-in-intellij :which-key "open in intellij")
-
- "t"  '(:ignore t :which-key "terminals")
- "tt" '(leslie/alias-bash-shell   :which-key "bash")
- "te" '(erlang-shell              :which-key "erlang-shell")
- "tc" '(leslie/alias-clisp-shell  :which-key "clisp")
- "tp" '(leslie/alias-python-shell :which-key "python")
- )
-#+END_SRC
-
-*** Version Control Leader
-#+BEGIN_SRC emacs-lisp
-(version-control-leader
-  "a" '(vc-annotate     :which-key "annotate")
-  "d" '(vc-diff         :which-key "diff")
-  "b" '(vc-retrieve-tag :which-key "change branch")
-)
-#+END_SRC
-
-*** Projects Leader
-#+BEGIN_SRC emacs-lisp
-(projects-leader
-  "?" '(projectile-command-map            :which-key "other")
-  "p" '(counsel-projectile-switch-project :which-key "switch project")
-  "g" '(counsel-projectile-grep           :which-key "find instances in project")
-  "f" '(counsel-projectile-find-file      :which-key "find project file")
-  "s" '(org-store-link                    :which-key "copy link")
-  "i" '(org-insert-link                   :which-key "insert link")
-  "t" '(regenerate-tags                   :which-key "regenerate tags")
-  "c" '(check-project                     :which-key "check / compile project")
-  "b" '(projectile-switch-to-buffer       :which-key "switch project buffer")
-)
-#+END_SRC
-
-*** Frames Leader
-#+BEGIN_SRC emacs-lisp
-(frames-leader
-  "R" '(set-frame-title             :which-key "rename frame")
-  "o" '(pop-out-config-to-new-frame :which-key "pop out to frame")
-  "b" '(ivy-eyebrowse-switch-config :which-key "switch config")
-  "c" '(make-frame                  :which-key "create new frame")
-)
-#+END_SRC
-
-** General Bindings
-#+BEGIN_SRC emacs-lisp
-(general-define-key
- ; This is just for demonstration purposes to remind me how to do this.
- :states '(normal insert visual operator)
- ; required to override evil-org's C-S-hjkl mappings
- :keymaps 'override
-
-  ;; ---------------------------------------------------------------------------
-  ;; P1
-  ;; ---------------------------------------------------------------------------
-  "C-M-S-q" 'kill-this-buffer
-  "C-M-S-d" 'evil-goto-definition
-  "C-M-S-f" '(:ignore t :which-key "test")
-  "C-M-S-f f" '(counsel-find-file :which-key "find file")
-  "C-M-S-f x" '(counsel-find-file :which-key "test")
-  "C-M-S-c" 'delete-window
-  "C-M-:"   'counsel-M-x
-  "C-M-S-h" 'windmove-left
-  "C-M-S-j" 'windmove-down
-  "C-M-S-k" 'windmove-up
-  "C-M-S-l" 'windmove-right
-  "C-M-_"   'leslie/alias-text-scale-down
-  "C-M-+"   'leslie/alias-text-scale-up
-  "C-M-<"   'previous-buffer
-  "C-M->"   'next-buffer
-  "C-M-?"   'leslie/alias-search-buffer
-  "C-M-A"   'org-open-at-point
-
-  ;; ---------------------------------------------------------------------------
-  ;; P2
-  ;; ---------------------------------------------------------------------------
-  "C-S-h"   'shrink-window-horizontally
-  "C-S-j"   'enlarge-window
-  "C-S-k"   'shrink-window
-  "C-S-l"   'enlarge-window-horizontally
-  
-  ;; ---------------------------------------------------------------------------
-  ;; P3
-  ;; ---------------------------------------------------------------------------
-  "C-M-h"   'evil-jump-backward
-  "C-M-l"   'evil-jump-forward
-
-  ;; ---------------------------------------------------------------------------
-  ;; P4 - M-S
-  ;; ---------------------------------------------------------------------------
-  "M-K"     'outline-previous-visible-heading
-  "M-J"     'outline-next-visible-heading
-  "M-H"     'outline-backward-same-level
-  "M-L"     'outline-forward-same-level
-  "M-U"     'outline-up-heading
-)
-#+END_SRC
-
-** Org
-*** General
-#+BEGIN_SRC emacs-lisp
-(general-define-key :keymaps '(override org-mode-map)
-  ;; ---------------------------------------------------------------------------
-  ;; P1
-  ;; ---------------------------------------------------------------------------
-  "C-M-S-d" 'org-open-at-point
-
-  ;; ---------------------------------------------------------------------------
-  ;; P4
-  ;; ---------------------------------------------------------------------------
-  "M-X" 'org-toggle-checkbox
-)
-#+END_SRC
-
-*** Files Leader
-#+BEGIN_SRC emacs-lisp
-(files-leader :keymaps 'org-mode-map
-  "h" '(org-html-export-to-html :which-key "export to html file")
-)
-#+END_SRC
-
-*** Toggles Leader
-#+BEGIN_SRC emacs-lisp
-(toggles-leader :keymaps 'org-mode-map
-  "i"  '(org-toggle-inline-images :which-key "toggle images")
-
-  "t"  '(:ignore t :which-key "todos / tables")
-  "ts" '(org-todo                             :which-key "cycle todo status")
-  "tr" '(org-table-toggle-coordinate-overlays :which-key "toggle table reference")
-  )
-#+END_SRC
-
-*** Edits Leader
-#+BEGIN_SRC emacs-lisp
-(edits-leader :keymaps 'org-mode-map
-  "t"  '(:ignore t :which-key "tables")
-  "tc" '(org-table-create-or-convert-from-region :which-key "create / convert table")
- 
-  "td"  '(:ignore t :which-key "delete")
-  "tdc" '(org-table-delete-column :which-key "delete column")
-  "tdr" '(org-table-kill-row      :whick-key "delete row")
- 
-  "ti"  '(:ignore t :which-key "insert")
-  "tic" '(org-table-insert-column :which-key "insert column")
-  "tir" '(org-table-insert-row    :which-key "insert row")
-  "tih" '(org-table-insert-hline  :which-key "insert horizontal line")
- 
-  "l" '(org-insert-link   :which-key "edit link")
-  "s" '(org-sort          :which-key "sort")
-  "o" '(org-open-at-point :which-key "open link")
- 
-  "a" '(:ignore t :which-key "agenda")
-  "ah" 'ignore
-  "aH" 'ignore
-  "at" 'ignore
-  "aT" 'ignore
-  "aa" '(org-agenda   :which-key "agenda")
-  "as" '(org-schedule :which-key "schedule")
-  "ad" '(org-deadline :which-key "deadline")
-  "ac" '(org-columns  :which-key "columns")
- 
-  "c" '(:ignore t :which-key "clock")
-  "ci" '(org-clock-in  :which-key "clock in")
-  "co" '(org-clock-out :which-key "clock out")
-)
-#+END_SRC
-
-*** Projects Leader
-#+BEGIN_SRC emacs-lisp
-(projects-leader :keymaps 'org-mode-map
-  "o" '(org-publish-current-project    :which-key "org publish project")
-  "O" '(leslie/alias-org-force-publish :which-key "force org publish project")
-)
-#+END_SRC
-
-** Erlang
-*** General
-#+BEGIN_SRC emacs-lisp
-(general-define-key :keymaps 'erlang-mode-map
-  "C-M-S-d" '(leslie/alias-erlang-find-tag :which-key "goto erlang definition")
- )
-#+END_SRC
-
-*** Edits Leader
-#+BEGIN_SRC emacs-lisp
-(edits-leader :keymaps 'erlang-mode-map
-  "aa" '(erlang-align-arrows        :which-key "align arrows")
-  "j"  '(erlang-generate-new-clause :which-key "new clause")
-  "d"  '(erlang-clone-arguments     :which-key "duplicate arguments")
-  "i"  '(erlang-indent-region       :which-key "indent region")
-  )
-#+END_SRC
-
-** Ranger
-*** General
-#+BEGIN_SRC emacs-lisp
-(general-define-key :keymaps 'ranger-mode-map
-  "C-M-S-c" 'ranger-disable
-)
-#+END_SRC
-
-*** Files Leader
-#+BEGIN_SRC emacs-lisp
-(files-leader :keymaps 'ranger-mode-map
-  "d" '(dired-create-directory :which-key "create directory")
-)
-#+END_SRC
-*** Toggles Leader
-#+BEGIN_SRC emacs-lisp
-(toggles-leader :keymaps 'ranger-mode-map
-  "h" '(ranger-toggle-dotfiles :which-key "toggle hidden")
-)
-#+END_SRC
-** Neotree
-*** Files Leader
-#+BEGIN_SRC emacs-lisp
-(files-leader :keymaps 'neotree-mode-map
-  "n" '(neotree-create-node :which-key "create directory / file")
-  "d" '(neotree-delete-node :which-key "delete directory / file")
-  "r" '(neotree-rename-node :which-key "rename directory / file")
-  "t" '(neotree-change-root :which-key "change root directory")
-  "c" '(neotree-copy-node   :which-key "copy directory / file")
-)
-#+END_SRC
-
-*** Windows Leader
-#+BEGIN_SRC emacs-lisp
-(windows-leader :keymaps 'neotree-mode-map
-  "z" '(neotree-stretch-toggle :which-key "maximize tree pane")
-)
-#+END_SRC
-
-*** Toggles Leader
-#+BEGIN_SRC emacs-lisp
-(toggles-leader :keymaps 'neotree-mode-map
-  "c" '(neotree-collapse-all       :which-key "collapse all")
-  "h" '(neotree-hidden-file-toggle :which-key "toggle hidden")
-)
-#+END_SRC
-** Emacs-Lisp
-*** Motions Leader
-#+BEGIN_SRC emacs-lisp
 #+END_SRC
 
 ** Help
