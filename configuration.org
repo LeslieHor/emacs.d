@@ -581,7 +581,21 @@ Clear the buffer, but with special cases for certain major modes.
     ('term-mode (comint-clear-buffer))
     (otherwise (erase-buffer))))
 #+END_SRC
+** Revert project buffers
+Revert all the buffers in the current project.
 
+#+BEGIN_SRC emacs-lisp
+(defun leslie/revert-project-buffers ()
+  (interactive)
+  (let* ((project (projectile-ensure-project (projectile-project-root)))
+         (project-buffers (projectile-project-buffers project))
+         (buffers (remove-if-not 'buffer-file-name project-buffers)))
+    (dolist (buffer buffers)
+      (with-current-buffer buffer
+        (revert-buffer nil t)
+        (message "Reverted: %s" buffer)))
+    (message "Project buffers reverted")))
+#+END_SRC
 * Package Specific
 ** which-key
 
@@ -1291,6 +1305,7 @@ To keep the code nice and clean.
 (leslie/p1 "p s"  'org-store-link                       "copy link")
 (leslie/p1 "p i"  'org-insert-link                      "insert link")
 (leslie/p1 "p t"  'regenerate-tags                      "regenerate tags")
+(leslie/p1 "p r"  'leslie/revert-project-buffers        "revert project buffers")
 (leslie/p1 "p c"  'check-project                        "check / compile project")
 (leslie/p1 "p b"  'projectile-switch-to-buffer          "switch project buffer")
 (leslie/p1 "p o"  'org-publish-current-project          "org publish project"                 'org-mode-map)
