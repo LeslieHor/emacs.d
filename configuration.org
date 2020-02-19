@@ -919,11 +919,11 @@ I want relative numbers to display when in evil operator mode.
 ** erlang
 
 #+BEGIN_SRC emacs-lisp
-(setq load-path (cons  "~/erl_rel/18.3/lib/tools-2.8.3/emacs" load-path))
-(setq erlang-root-dir "~/erl_rel/18.3")
-(setq exec-path (cons "~/erl_rel/18.3/bin" exec-path))
-(require 'erlang-start)
-(require 'erlang-flymake)
+;(setq load-path (cons  "~/erl_rel/18.3/lib/tools-2.8.3/emacs" load-path))
+;(setq erlang-root-dir "~/erl_rel/18.3")
+;(setq exec-path (cons "~/erl_rel/18.3/bin" exec-path))
+;(require 'erlang-start)
+;(require 'erlang-flymake)
 #+END_SRC
 
 ** term mode
@@ -1244,12 +1244,12 @@ To keep the code nice and clean.
 (leslie/p1 "t n"  'neotree-toggle                       "toggle neotree")
 (leslie/p1 "t p"  'projectile-mode                      "toggle projectile mode")
 (leslie/p1 "t f"  'font-lock-mode                       "toggle auto font formatting")
-(leslie/p1 "t c"  'comment-line                         "comment line")
-(leslie/p1 "t r"  'rainbow-delimiters-mode              "rainbow delimiters")
+(leslie/p1 "t c"  'comment-line                         "toggle comment line")
+(leslie/p1 "t r"  'rainbow-delimiters-mode              "toggle rainbow delimiters")
+(leslie/p1 "t R"  'auto-revert-mode                     "toggle auto revert mode")
 (leslie/p1 "t l"  'nlinum-mode                          "toggle relative line numbers")
 (leslie/p1 "t i"  'org-toggle-inline-images             "toggle images"                       'org-mode-map)
-(leslie/p1 "t t"  'nil                                  "todo / tables"                       'org-mode-map)
-(leslie/p1 "t ts" 'org-todo                             "cycle todo"                          'org-mode-map)
+(leslie/p1 "t t"  'nil                                  "tables"                              'org-mode-map)
 (leslie/p1 "t tr" 'org-table-toggle-coordinate-overlay  "toggle images"                       'org-mode-map)
 (leslie/p1 "t h"  'ranger-toggle-dotfiles               "toggle hidden"                       'ranger-mode-map)
 (leslie/p1 "t c"  'neotree-collapse-all                 "collapse all"                        'neotree-mode-map)
@@ -1358,11 +1358,15 @@ To keep the code nice and clean.
 (leslie/p4 "t ih" 'org-table-insert-hline               "insert horizontal line"              'org-mode-map)
 (leslie/p4 "i"    'org-clock-in                         "clock in"                            'org-mode-map)
 (leslie/p4 "o"    'org-clock-out                        "clock out"                           'org-mode-map)
-
-
+(leslie/p4 "m"    'org-archive-subtree-default          "archive"                             'org-mode-map)
 #+END_SRC
 
-** Help
+** Other
+*** Non-P Bindings
+#+BEGIN_SRC emacs-lisp
+
+#+END_SRC
+*** Help
 #+BEGIN_SRC emacs-lisp
 (general-define-key
   "C-h v" 'counsel-describe-variable
