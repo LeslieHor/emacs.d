@@ -919,11 +919,12 @@ I want relative numbers to display when in evil operator mode.
 ** erlang
 
 #+BEGIN_SRC emacs-lisp
-;(setq load-path (cons  "~/erl_rel/18.3/lib/tools-2.8.3/emacs" load-path))
-;(setq erlang-root-dir "~/erl_rel/18.3")
-;(setq exec-path (cons "~/erl_rel/18.3/bin" exec-path))
-;(require 'erlang-start)
-;(require 'erlang-flymake)
+(when leslie/enable-erlang
+  (setq load-path (cons  "~/erl_rel/18.3/lib/tools-2.8.3/emacs" load-path))
+  (setq erlang-root-dir "~/erl_rel/18.3")
+  (setq exec-path (cons "~/erl_rel/18.3/bin" exec-path))
+  (require 'erlang-start)
+  (require 'erlang-flymake))
 #+END_SRC
 
 ** term mode
