@@ -1358,8 +1358,7 @@ To keep the code nice and clean.
 (leslie/p4 "t ih" 'org-table-insert-hline               "insert horizontal line"              'org-mode-map)
 (leslie/p4 "i"    'org-clock-in                         "clock in"                            'org-mode-map)
 (leslie/p4 "o"    'org-clock-out                        "clock out"                           'org-mode-map)
-
-
+(leslie/p4 "m"    'org-archive-subtree-default          "archive"                             'org-mode-map)
 #+END_SRC
 
 ** Help
