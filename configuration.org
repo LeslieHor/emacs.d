@@ -3,7 +3,6 @@
 
 * Better defaults
 ** Start Up
-
 #+BEGIN_SRC emacs-lisp
 (server-start) ; Start emacs server
 ;(desktop-save-mode 1) ; Save session and restore on next launch
@@ -25,27 +24,26 @@
 (setq split-height-threshold 100)
 (setq-default fill-column 80)
 #+END_SRC
+
 ** Tab Behaviour
 #+BEGIN_SRC emacs-lisp
 (setq-default indent-tabs-mode nil) ; don't insert tabs
 (setq-default tab-width 4) ; self-documenting
 (setq indent-line-function 'insert-tab)
 #+END_SRC
-** Backup and autosave locations
 
+** Backup and autosave locations
 #+BEGIN_SRC emacs-lisp
 (setq backup-directory-alist '((".*" . "~/.emacs.d/backup")))
 (setq auto-save-file-name-transforms '((".*" "~/.emacs.d/autosave/" t)))
 #+END_SRC
 
 ** Default major mode
-
 #+BEGIN_SRC emacs-lisp
 (setq-default major-mode 'text-mode)
 #+END_SRC
 
 * Whitespace
-
 Force it on all the time.
 
 Highlights:
@@ -85,7 +83,6 @@ Highlights:
 #+END_SRC
 
 Line wrap mode
-
 #+BEGIN_SRC emacs-lisp
 (defun org-mode-startup-functions ()
   (toggle-word-wrap 1)
@@ -95,19 +92,15 @@ Line wrap mode
 #+END_SRC
 
 ** Beautifying org-mode
-
 Credits:
 zzamboni - https://zzamboni.org/post/beautifying-org-mode-in-emacs/#step-4-configure-faces-for-specific-org-elements
 
 Hide the markup for various emphasis'
-
 #+BEGIN_SRC emacs-lisp
 (setq org-hide-emphasis-markers t)
 #+END_SRC
 
-
 Replace list bullet point with nice unicode
-
 #+BEGIN_SRC emacs-lisp
 (font-lock-add-keywords
   'org-mode
@@ -116,7 +109,6 @@ Replace list bullet point with nice unicode
 #+END_SRC
 
 Set up nice fonts
-
 #+BEGIN_SRC emacs-lisp
 (let* ((base-font-color  (face-foreground 'default nil 'default))
        (headline        `(:inherit    default
@@ -142,7 +134,6 @@ Set up nice fonts
 #+END_SRC
 
 * Mode Line
-
 #+BEGIN_SRC emacs-lisp
 (column-number-mode 1) ; show column number
 (set-face-attribute 'mode-line nil ; Set active mode line colour
@@ -155,7 +146,6 @@ Set up nice fonts
 
 * Custom Functions
 ** eshell-new
-
 Interative function to create a new instance of eshell.
 
 #+BEGIN_SRC emacs-lisp
@@ -166,7 +156,6 @@ Interative function to create a new instance of eshell.
 #+END_SRC
 
 ** transpose-buffers
-
 Transpose two buffers.
 
 #+BEGIN_SRC emacs-lisp
@@ -211,7 +200,6 @@ selected."
 #+END_SRC
 
 ** cast-buffer
-
 Send a buffer to another window.
 
 #+BEGIN_SRC emacs-lisp
@@ -254,7 +242,6 @@ If arg is non-nil, the targetted window is selected."
 #+END_SRC
 
 ** duplicate-buffer
-
 Open buffer in another window.
 
 #+BEGIN_SRC emacs-lisp
@@ -294,21 +281,7 @@ If arg is non-nil, the targeted window is selected"
   (duplicate-buffer 'down arg))
 #+END_SRC
 
-** open-in-new-config
-
-Open a buffer in a new eyebrowse window config
-
-#+BEGIN_SRC emacs-lisp
-(defun open-in-new-config ()
-  "Open current buffer in a new eyebrowse config"
-  (interactive)
-  (let ((current-buffer (window-buffer)))
-    (eyebrowse-create-window-config)
-    (set-window-buffer (selected-window) current-buffer)))
-#+END_SRC
-
 ** get-string-from-file
-
 Read a file in as a string.
 
 #+BEGIN_SRC emacs-lisp
@@ -322,7 +295,6 @@ Read a file in as a string.
 [[http://ergoemacs.org/emacs/elisp_read_file_content.html][Credits to “Pascal J Bourguignon” and “TheFlyingDutchman"]]
 
 ** regenerate-tags
-
 Regenerate tags using a command defined in the project root under the =.emacs=
 directory.
 
@@ -340,22 +312,7 @@ directory.
          (user-error "Not in a project!"))))
 #+END_SRC
 
-** set-frame-title
-
-Set the frame's title in a custom way.
-
-#+BEGIN_SRC emacs-lisp
-(defun set-frame-title ()
-  "Sets the frame's title"
-  (interactive)
-  (let ((custom-title (read-string "Frame title: ")))
-    (set-frame-parameter nil 'custom-title custom-title)
-    (set-frame-titles)
-    (message "Title set to %s" custom-title)))
-#+END_SRC
-
 ** open-terminal-in-workdir
-
 Opens a konsole in the current project root. If not in project, opens it in the
 current directory.
 
@@ -371,35 +328,7 @@ If not in a project, opens it in the current directory."
     (concat "konsole --workdir " workdir) nil 0)))
 #+END_SRC
 
-** pop-out-config-to-new-frame
-
-Open a new frame and copy the window config into the newly created frame.
-
-#+BEGIN_SRC emacs-lisp
-(defvar temp-new-frame-config nil
-  "Temporarily stores window config that will be loaded when a new frame is
-created. This variable is cleared after a frame loads the config.")
-
-(defun pop-out-config-to-new-frame ()
-  "Open the current eyebrowse config in a new frame"
-  (interactive)
-  (setq temp-new-frame-config (cadr (assq
-                                     (eyebrowse--get 'current-slot)
-                                     (eyebrowse--get 'window-configs))))
-  (make-frame))
-
-(defun set-frame-initial-config (frame)
-  (when temp-new-frame-config
-    (select-frame frame)
-    (eyebrowse--fixup-window-config temp-new-frame-config)
-    (window-state-put temp-new-frame-config (frame-root-window) 'safe)
-    (setq temp-new-frame-config nil)))
-
-(add-hook 'after-make-frame-functions 'set-frame-initial-config)
-#+END_SRC
-
 ** whitespace-mode
-
 Toggle on and off whitespace trailing mode
 
 #+BEGIN_SRC emacs-lisp
@@ -410,7 +339,6 @@ Toggle on and off whitespace trailing mode
 #+END_SRC
 
 ** alignment functions
-
 #+BEGIN_SRC emacs-lisp
 (defun align-once-head (start end regexp)
   "Align by regex once, adding spaces to the head of the regexp"
@@ -436,6 +364,7 @@ Toggle on and off whitespace trailing mode
   (align-regexp start end
                 (concat regexp "\\(\\s-*\\)") 1 1 t))
 #+END_SRC
+
 ** file opener functions
 Some extra functions to aid in opening files
 
@@ -500,7 +429,6 @@ emacsclient -n +$LINENUMBER$:$COLUMN$ $FILE$
 #+END_SRC
 
 ** check-project
-
 Compile / check the project and send results to ivy-read.
 
 Expects results in the format:
@@ -542,34 +470,6 @@ Show the full file path as a message
     (message "No valid file path")))
 #+END_SRC
 
-** ivy-switch-config
-Switch eyebrowse configs via the ivy-buffer.
-
-#+BEGIN_SRC emacs-lisp
-(defun ivy-eyebrowse-switch-config ()
-  "Switch eyebrowse config with ivy"
-  (interactive)
-  (let ((config-list (seq-filter
-                      (lambda(x) x)
-                      (mapcar
-                       (lambda (window-config)
-                         (let* ((slot (car window-config)))
-                           (unless (= slot (eyebrowse--get 'current-slot))
-                             (eyebrowse-format-slot window-config))))
-                       (eyebrowse--get 'window-configs)))))
-    (cond ((> (length config-list) 0)
-           (ivy-read "Switch config: "
-                     config-list
-                     :action (lambda(config)
-                               (eyebrowse-switch-to-window-config
-                                (string-to-number
-                                 (replace-regexp-in-string
-                                  "^\\([0-9]*\\).*"
-                                  "\\1"
-                                  config))))))
-          (t
-           (user-error "No other configs to switch to")))))
-#+END_SRC
 ** smart-clear-buffer
 Clear the buffer, but with special cases for certain major modes.
 
@@ -581,6 +481,7 @@ Clear the buffer, but with special cases for certain major modes.
     ('term-mode (comint-clear-buffer))
     (otherwise (erase-buffer))))
 #+END_SRC
+
 ** Revert project buffers
 Revert all the buffers in the current project.
 
@@ -596,9 +497,9 @@ Revert all the buffers in the current project.
         (message "Reverted: %s" buffer)))
     (message "Project buffers reverted")))
 #+END_SRC
+
 * Package Specific
 ** which-key
-
 #+BEGIN_SRC emacs-lisp
 (add-to-list 'load-path "~/.emacs.d/packages/which-key-3.3.1")
 (require 'which-key)
@@ -606,7 +507,6 @@ Revert all the buffers in the current project.
 #+END_SRC
 
 ** evil
-
 Load evil, and its dependencies in it comes with.
 
 #+BEGIN_SRC emacs-lisp
@@ -634,7 +534,6 @@ Override for :wq"
 #+END_SRC
 
 ** evil-leader
-
 #+BEGIN_SRC emacs-lisp
 (add-to-list 'load-path "~/.emacs.d/packages/evil-leader-0.4.3")
 (require 'evil-leader)
@@ -657,14 +556,12 @@ Override for :wq"
 #+END_SRC
 
 ** evil-numbers
-
 #+BEGIN_SRC emacs-lisp
 (add-to-list 'load-path "~/.emacs.d/packages/evil-numbers-0.4")
 (require 'evil-numbers)
 #+END_SRC
 
 ** evil-quickscope
-
 #+BEGIN_SRC emacs-lisp
 (add-to-list 'load-path "~/.emacs.d/packages/evil-quickscope-0.1.4")
 (require 'evil-quickscope)
@@ -672,7 +569,6 @@ Override for :wq"
 #+END_SRC
 
 ** ivy / swiper / counsel
-
 #+BEGIN_SRC emacs-lisp
 (add-to-list 'load-path "~/.emacs.d/packages/swiper-0.11.0")
 (require 'ivy)
@@ -683,7 +579,6 @@ Override for :wq"
 #+END_SRC
 
 ** projectile
-
 #+BEGIN_SRC emacs-lisp
 (add-to-list 'load-path "~/.emacs.d/packages/projectile-2.0.0")
 (require 'projectile)
@@ -693,7 +588,6 @@ Override for :wq"
 #+END_SRC
 
 ** counsel-projectile
-
 #+BEGIN_SRC emacs-lisp
 (add-to-list 'load-path "~/.emacs.d/packages/counsel-projectile-0.3.0")
 (require 'counsel-projectile)
@@ -703,14 +597,12 @@ Override for :wq"
 #+END_SRC
 
 ** ranger
-
 #+BEGIN_SRC emacs-lisp
 (add-to-list 'load-path "~/.emacs.d/packages/ranger.el-0.9.8.5")
 (require 'ranger)
 #+END_SRC
 
 ** neotree
-
 #+BEGIN_SRC emacs-lisp
 (add-to-list 'load-path "~/.emacs.d/packages/emacs-neotree-0.5.2")
 (require 'neotree)
@@ -733,7 +625,6 @@ Neotree keybindings conflict with evil-moe, so rebind them.
 #+END_SRC
 
 ** rainbow-delimiters
-
 #+BEGIN_SRC emacs-lisp
 (add-to-list 'load-path "~/.emacs.d/packages/rainbow-delimiters-2.1.3")
 (require 'rainbow-delimiters)
@@ -757,7 +648,6 @@ Set the colours to be as distinct as possible.
 #+END_SRC
 
 ** beacon
-
 #+BEGIN_SRC emacs-lisp
 (add-to-list 'load-path "~/.emacs.d/packages/beacon-1.3.4")
 (require 'beacon)
@@ -765,7 +655,6 @@ Set the colours to be as distinct as possible.
 #+END_SRC
 
 ** json-mode
-
 #+BEGIN_SRC emacs-lisp
 (add-to-list 'load-path "~/.emacs.d/packages/json-snatcher-1.0.0")
 (add-to-list 'load-path "~/.emacs.d/packages/json-reformat-0.0.6")
@@ -773,85 +662,7 @@ Set the colours to be as distinct as possible.
 (require 'json-mode)
 #+END_SRC
 
-** eyebrowse
-
-#+BEGIN_SRC emacs-lisp
-(add-to-list 'load-path "~/.emacs.d/packages/dash.el-2.16.0")
-(add-to-list 'load-path "~/.emacs.d/packages/eyebrowse-0.7.7")
-(require 'eyebrowse)
-(eyebrowse-mode) ; enable global eyebrowse mode on start up
-#+END_SRC
-
-I want eyebrowse to open the current buffer in new configs.
-
-It uses the fact that eyebrowse will open a buffer if the variable
-=eyebrowse-new-workspace= is a string referencing a buffer name.
-
-I previously attempted to use the =funcall= ability of eyebrowse, however
-because eyebrowse does =delete-other-windows= before running the function, there
-is no way to reference the buffer I was current on.
-
-So I am using a hacky way of doing, by setting the =eyebrowse-new-workspace=
-variable to the current buffer name on the =eyebrowse-pre-window-switch-hook=,
-thereby making eyebrowse open the buffer.
-
-#+BEGIN_SRC emacs-lisp
-(setq eyebrowse-new-workspace t) ; set a default first of all
-(defun eyebrowse-store-current-buffer-to-open ()
-  (setq eyebrowse-new-workspace (buffer-name)))
-(add-hook 'eyebrowse-pre-window-switch-hook
-          'eyebrowse-store-current-buffer-to-open)
-#+END_SRC
-
-Set the format of the status line.
-
-#+BEGIN_SRC emacs-lisp
-(setq eyebrowse-mode-line-left-delimiter "| ")
-(setq eyebrowse-mode-line-right-delimiter " |")
-(setq eyebrowse-mode-line-separator " | ")
-(setq eyebrowse-mode-line-style 'always) ; Will show in title bar instead
-(setq eyebrowse-tagged-slot-format "%s: %t")
-#+END_SRC
-
-Eyebrowse mode line takes up too much space. Show it in the title bar instead.
-
-Slight alteration is required of the eyebrowse package to force it to calculate
-the mode line, even when I don't want to show it in the mode line.
-
-#+BEGIN_SRC emacs-lisp
-(defun eyebrowse-workspaces-string (&optional frame)
-    "Get the current workspaces as a string."
-    (let ((workspaces (substring-no-properties
-                       (eyebrowse-mode-line-indicator frame))))
-      (replace-regexp-in-string
-       (format "| \\(%s.*?\\) |.*\\'" (eyebrowse--get 'current-slot frame))
-       "> \\1 <"
-       workspaces
-       nil nil 1)))
-(defun eyebrowse-workspaces-string-rename (arg1 arg2)
-    "Advice for `eyebrowse-rename-window-config'. Requires two
-    arguments ARG1 and ARG2 to work..."
-    (set-frame-titles))
-(defun set-frame-titles ()
-  (dolist (frame (frame-list))
-    (set-frame-parameter frame 'title
-                         (concat
-                          (frame-parameter frame 'custom-title)
-                          " : "
-                          (eyebrowse-workspaces-string frame)
-                          " - Emacs"))))
-
-(set-frame-titles)
-
-(add-hook 'eyebrowse-post-window-switch-hook 'set-frame-titles)
-(advice-add 'eyebrowse-close-window-config
-            :after #'set-frame-titles)
-(advice-add 'eyebrowse-rename-window-config
-            :after #'eyebrowse-workspaces-string-rename)
-#+END_SRC
-
 ** telephone-line
-
 #+BEGIN_SRC emacs-lisp
 (add-to-list 'load-path "~/.emacs.d/packages/telephone-line-0.4")
 (require 'telephone-line)
@@ -874,7 +685,6 @@ Telephone line customization.
 #+END_SRC
 
 ** nlinum-relative
-
 nlinum is a dependency.
 
 Delay is kinda required or else files with loads of lines tend to lag.
@@ -907,7 +717,6 @@ I want relative numbers to display when in evil operator mode.
 #+END_SRC
 
 ** diff-hl
-
 #+BEGIN_SRC emacs-lisp
 (add-to-list 'load-path "~/.emacs.d/packages/diff-hl-1.8.6")
 (require 'diff-hl)
@@ -917,7 +726,6 @@ I want relative numbers to display when in evil operator mode.
 #+END_SRC
 
 ** erlang
-
 #+BEGIN_SRC emacs-lisp
 (when leslie/enable-erlang
   (setq load-path (cons  "~/erl_rel/18.3/lib/tools-2.8.3/emacs" load-path))
@@ -990,7 +798,6 @@ Source: https://oremacs.com/2015/01/01/three-ansi-term-tips/
 #+END_SRC
 
 ** general
-
 #+BEGIN_SRC emacs-lisp
 (add-to-list
  'load-path
@@ -1120,7 +927,6 @@ To keep the code nice and clean.
 #+END_SRC
 
 ** Unbinding Keys
-
 #+BEGIN_SRC emacs-lisp
 ;(general-unbind 
 ;  '(normal insert visual operator)
@@ -1132,6 +938,7 @@ To keep the code nice and clean.
   ;"C-M-S-d"
 ;)
 
+;; Prevent these from appearing in the standard keymap
 (global-unset-key (kbd "M-s ESC"))
 (global-unset-key (kbd "M-s ."))
 (global-unset-key (kbd "M-s _"))
@@ -1289,7 +1096,6 @@ To keep the code nice and clean.
 (leslie/p3 "f"    'nil                                  "frames")
 (leslie/p3 "f R"  'set-frame-title                      "rename frame")
 (leslie/p3 "f o"  'pop-out-config-to-new-frame          "pop out to frame")
-(leslie/p3 "f b"  'ivy-eyebrowse-switch-config          "switch config")
 (leslie/p3 "f c"  'make-frame                           "create new frame")
 #+END_SRC
 
