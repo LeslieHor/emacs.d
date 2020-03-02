@@ -497,6 +497,17 @@ Revert all the buffers in the current project.
         (message "Reverted: %s" buffer)))
     (message "Project buffers reverted")))
 #+END_SRC
+* Local variables
+** Safe Local Eval Aliases
+#+BEGIN_SRC emacs-lisp
+(defun leslie/file-local-eval-safe-auto-revert ()
+  (interactive)
+  (auto-revert-mode t))
+#+END_SRC
+** Safe Local Eval List
+#+BEGIN_SRC emacs-lisp
+(add-to-list 'safe-local-eval-forms '(leslie/file-local-eval-safe-auto-revert))
+#+END_SRC
 
 * Package Specific
 ** which-key
@@ -576,6 +587,12 @@ Override for :wq"
 (require 'counsel)
 (setq ivy-use-virtual-buffers t)
 (setq ivy-count-format "(%d/%d) ")
+
+;; Setting up more ivy completion
+(add-to-list 'ivy-completing-read-handlers-alist '(org-tags-view . completing-read-default))
+(add-to-list 'ivy-completing-read-handlers-alist '(org-refile . completing-read-default))
+(setq org-outline-path-complete-in-steps nil)
+(setq org-completion-use-ido nil)
 #+END_SRC
 
 ** projectile
@@ -1022,9 +1039,11 @@ To keep the code nice and clean.
 (leslie/p1 "t c"  'neotree-collapse-all                 "collapse all"                        'neotree-mode-map)
 (leslie/p1 "t h"  'neotree-hdden-file-toggle            "toggle hidden"                       'neotree-mode-map)
 (leslie/p1 "e"    'nil                                  "edits")
-(leslie/p1 "e f"  'nil                                  "fill")
+(leslie/p1 "e f"  'nil                                  "formatting")
 (leslie/p1 "e fr" 'fill-region                          "fill region")
 (leslie/p1 "e fp" 'fill-paragraph                       "fill paragraph")
+(leslie/p1 "e fi" 'indent-region                        "indent region")
+(leslie/p1 "e fb" 'json-mode-beautify                   "json beautify"                       'json-mode-map)
 (leslie/p1 "e a"  'nil                                  "align")
 (leslie/p1 "e ah" 'align-once-head                      "regex ahead of match")
 (leslie/p1 "e aH" 'align-repeat-head                    "regex ahead of match repeatedly")
@@ -1125,6 +1144,8 @@ To keep the code nice and clean.
 (leslie/p4 "i"    'org-clock-in                         "clock in"                            'org-mode-map)
 (leslie/p4 "o"    'org-clock-out                        "clock out"                           'org-mode-map)
 (leslie/p4 "m"    'org-archive-subtree-default          "archive"                             'org-mode-map)
+(leslie/p4 "q"    'org-set-tags-command                 "set tags"                            'org-mode-map)
+(leslie/p4 "r"    'org-refile                           "refile"                              'org-mode-map)
 #+END_SRC
 
 ** Other
