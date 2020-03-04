@@ -1016,6 +1016,7 @@ To keep the code nice and clean.
 (leslie/p1 "t r"  'rainbow-delimiters-mode              "toggle rainbow delimiters")
 (leslie/p1 "t R"  'auto-revert-mode                     "toggle auto revert mode")
 (leslie/p1 "t l"  'nlinum-mode                          "toggle relative line numbers")
+(leslie/p1 "t h"  'hl-line-mode                         "toggle highight line mode")
 (leslie/p1 "t i"  'org-toggle-inline-images             "toggle images"                       'org-mode-map)
 (leslie/p1 "t t"  'nil                                  "tables"                              'org-mode-map)
 (leslie/p1 "t tr" 'org-table-toggle-coordinate-overlay  "toggle images"                       'org-mode-map)
