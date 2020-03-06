@@ -5,15 +5,35 @@ Settings that only work on my home computer. They will probably break other setu
 
 * Org
 #+BEGIN_SRC emacs-lisp
+;; Set todo states
+(setq org-todo-keywords
+      '((sequence "TODO(t)" "WAIT(w)" "NEXT(n)" "|" "DONE(d)" "CANCELLED(c)")))
+
+;; Set tags
+(setq org-tag-alist '((:startgroup . nil)
+                      ("@anywhere" . ?a)
+                      ("@work"     . ?w)
+                      ("@home"     . ?h)
+                      ("@errand"   . ?e)
+                      ("@computer" . ?c)
+                      ("@octavius" . ?o)
+                      ("@nonus"    . ?n)
+                      (:endgroup   . nil)
+                      (:startgroup . nil)
+                      ("emacs"     . ?m)
+                      ("org"       . ?g)
+                      (:endgroup   . nil)))
+
 ;; Set agenda files
 (setq org-agenda-files '("~/projects/notes/todo.org"
                          "~/projects/notes/projects.org"
                          "~/projects/notes/calendar.org"))
 
 ;; Set refile targets
+(setq leslie/org-reference-directory "~/projects/notes/reference")
 (setq org-refile-allow-creating-parent-nodes 'confirm)
 (setq org-refile-use-outline-path 'file)
-(setq org-refile-targets '(("~/projects/notes/todo.org" :level . 1)
+(setq org-refile-targets '(("~/projects/notes/todo.org" :level . 0)
                            ("~/projects/notes/someday.org" :level . 1)
                            ("~/projects/notes/projects.org" :level . 1)
                            ("~/projects/notes/calendar.org" :level . 1)

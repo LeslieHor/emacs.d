@@ -508,6 +508,39 @@ Revert all the buffers in the current project.
                              current-value)))
     (org-entry-put nil property value)))
 #+END_SRC
+** Org file reference
+#+BEGIN_SRC emacs-lisp
+(defun leslie/org-file-reference ()
+  (interactive)
+  (let* ((target-file (expand-file-name
+                       (ivy-read "File reference (C-M-j to done): "
+                                 (mapcar (lambda (filepath)
+                                           (file-relative-name
+                                            filepath
+                                            leslie/org-reference-directory))
+                                         (directory-files-recursively
+                                          leslie/org-reference-directory
+                                          ".*\.org"
+                                          nil)))
+                       leslie/org-reference-directory))
+         (org-heading (org-get-heading)))
+    (org-back-to-heading)
+    (org-cut-subtree)
+
+    (find-file target-file)
+    (let ((target-buffer (get-file-buffer target-file)))
+      (unless (file-exists-p target-file)
+        (make-directory (file-name-directory target-file) t)
+        (with-current-buffer target-buffer
+          (insert (concat "#+TITLE: " org-heading))
+          (newline))
+        (message "Created file"))
+      (with-current-buffer target-buffer
+        (end-of-buffer)
+        (newline)
+        (yank)
+        (save-buffer)))))
+#+END_SRC
 * Local variables
 ** Safe Local Eval Aliases
 #+BEGIN_SRC emacs-lisp
@@ -544,6 +577,10 @@ Rebind the ~q~ and ~quit~ commands to make more sense.
 (evil-ex-define-cmd "q" 'kill-this-buffer) ; :q should kill the buffer rather
                                         ; than quiting emacs
 (evil-ex-define-cmd "quit" 'evil-quit-all) ; :quit to quit emacs
+;; Deal with common mistakes
+(evil-ex-define-cmd "W"  'evil-write)
+(evil-ex-define-cmd "Wq" 'evil-save-and-close)
+(evil-ex-define-cmd "WQ" 'evil-save-and-close)
 
 (evil-define-command evil-save-and-kill-buffer (file &optional bang)
   "Save current buffer and close buffer.
@@ -1079,6 +1116,7 @@ To keep the code nice and clean.
 (leslie/p1 "p b"  'projectile-switch-to-buffer          "switch project buffer")
 (leslie/p1 "p o"  'org-publish-current-project          "org publish project"                 'org-mode-map)
 (leslie/p1 "p O"  'leslie/alias-org-force-publish       "force org publish project"           'org-mode-map)
+(leslie/p1 "p w"  'org-save-all-org-buffers             "save all org buffers"                'org-mode-map)
 #+END_SRC
 
 ** P2
@@ -1129,6 +1167,7 @@ To keep the code nice and clean.
 (leslie/p4 "m"    'org-archive-subtree-default          "archive"                             'org-mode-map)
 (leslie/p4 "q"    'org-set-tags-command                 "set tags"                            'org-mode-map)
 (leslie/p4 "r"    'org-refile                           "refile"                              'org-mode-map)
+(leslie/p4 "f"    'leslie/org-file-reference            "file reference"                      'org-mode-map)
 (leslie/p4 "p"    'nil                                  "property"                            'org-mode-map)
 (leslie/p4 "p p"  'org-set-property                     "set property (free)"                 'org-mode-map)
 (leslie/p4 "p c"  'leslie/alias-org-set-property-category "set category"                      'org-mode-map)
