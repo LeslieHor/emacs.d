@@ -1171,6 +1171,8 @@ To keep the code nice and clean.
 (leslie/p4 "p"    'nil                                  "property"                            'org-mode-map)
 (leslie/p4 "p p"  'org-set-property                     "set property (free)"                 'org-mode-map)
 (leslie/p4 "p c"  'leslie/alias-org-set-property-category "set category"                      'org-mode-map)
+(leslie/p4 "v"    'nil                                  "insert items"                        'org-mode-map)
+(leslie/p4 "v d"  'org-time-stamp                       "time stamp"                          'org-mode-map)
 #+END_SRC
 
 ** Other
