@@ -1078,6 +1078,7 @@ To keep the code nice and clean.
 (leslie/p1 "t tr" 'org-table-toggle-coordinate-overlay  "toggle table coords"                 'org-mode-map)
 (leslie/p1 "t h"  'ranger-toggle-dotfiles               "toggle hidden"                       'ranger-mode-map)
 (leslie/p1 "e"    'nil                                  "edits")
+(leslie/p1 "e c"  'ispell                               "spell check")
 (leslie/p1 "e f"  'nil                                  "formatting")
 (leslie/p1 "e fr" 'fill-region                          "fill region")
 (leslie/p1 "e fp" 'fill-paragraph                       "fill paragraph")
