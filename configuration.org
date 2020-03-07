@@ -23,6 +23,7 @@
 (setq split-width-threshold 160)
 (setq split-height-threshold 100)
 (setq-default fill-column 80)
+(setq calendar-week-start-day 1)
 #+END_SRC
 
 ** Tab Behaviour
