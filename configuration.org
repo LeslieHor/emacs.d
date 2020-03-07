@@ -72,6 +72,9 @@ Highlights:
 (setq org-clock-into-drawer t)
 (setq org-agenda-window-setup 'current-window)
 (setq org-agenda-sticky t)
+(setq org-log-done 'time)
+(setq org-agenda-skip-scheduled-if-done t)
+(setq org-agenda-skip-deadline-if-done t)
 
 ;; Enable habit tracking in org-mode
 (add-to-list 'org-modules 'org-habit)
@@ -541,6 +544,19 @@ Revert all the buffers in the current project.
         (newline)
         (yank)
         (save-buffer)))))
+#+END_SRC
+** Buffer yank paste
+#+BEGIN_SRC emacs-lisp
+(setq leslie/buffer-clipboard nil)
+
+(defun leslie/buffer-yank ()
+  (interactive)
+  (setq leslie/buffer-clipboard (current-buffer)))
+
+(defun leslie/buffer-paste ()
+  (interactive)
+  (when leslie/buffer-clipboard
+    (set-window-buffer (selected-window) leslie/buffer-clipboard)))
 #+END_SRC
 * Local variables
 ** Safe Local Eval Aliases
@@ -1030,6 +1046,8 @@ To keep the code nice and clean.
 (leslie/p1 "b r"  'rename-buffer                        "rename buffer")
 (leslie/p1 "b x"  'smart-clear-buffer                   "clear buffer")
 (leslie/p1 "b f"  'show-file-path                       "show file path")
+(leslie/p1 "b y"  'leslie/buffer-yank                   "yank buffer")
+(leslie/p1 "b p"  'leslie/buffer-paste                  "paste buffer")
 (leslie/p1 "b t"  'nil                                  "transpose buffers")
 (leslie/p1 "b th" 'leslie/alias-transpose-buffer-left   "transpose windows left")
 (leslie/p1 "b tj" 'leslie/alias-transpose-buffer-down   "transpose windows down")
