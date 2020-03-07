@@ -577,6 +577,11 @@ Revert all the buffers in the current project.
 #+END_SRC
 
 * Package Specific
+** ediff
+#+BEGIN_SRC emacs-lisp
+(setq ediff-split-window-function 'split-window-horizontally)
+(setq ediff-window-setup-function 'ediff-setup-windows-plain)
+#+END_SRC
 ** which-key
 #+BEGIN_SRC emacs-lisp
 (add-to-list 'load-path "~/.emacs.d/packages/which-key-3.3.1")
@@ -1127,7 +1132,8 @@ To keep the code nice and clean.
 (leslie/p1 "o tp" 'leslie/alias-python-shell            "python")
 (leslie/p1 "v"    'nil                                  "version control")
 (leslie/p1 "v a"  'vc-annotate                          "annotate")
-(leslie/p1 "v d"  'vc-diff                              "diff")
+(leslie/p1 "v d"  'vc-version-ediff                     "version ediff")
+(leslie/p1 "v D"  'vc-ediff                             "ediff")
 (leslie/p1 "v b"  'vc-retrieve-tag                      "change branch")
 (leslie/p1 "p"    'nil                                  "projects")
 (leslie/p1 "p ?"  'projectile-command-map               "other")
