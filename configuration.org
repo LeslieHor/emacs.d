@@ -503,6 +503,19 @@ Revert all the buffers in the current project.
         (message "Reverted: %s" buffer)))
     (message "Project buffers reverted")))
 #+END_SRC
+** Save all project buffers
+#+BEGIN_SRC emacs-lisp
+(defun leslie/save-project-buffers ()
+  (interactive)
+  (let* ((project (projectile-ensure-project (projectile-project-root)))
+         (project-buffers (projectile-project-buffers project))
+         (buffers (remove-if-not 'buffer-file-name project-buffers)))
+    (dolist (buffer buffers)
+      (with-current-buffer buffer
+        (save-buffer)
+        (message "Saved: %s" buffer)))
+    (message "Project buffers saved")))
+#+END_SRC
 ** Org Set Property
 #+BEGIN_SRC emacs-lisp
 (defun leslie/org-set-property (property)
@@ -1148,6 +1161,7 @@ To keep the code nice and clean.
 (leslie/p1 "p b"  'projectile-switch-to-buffer          "switch project buffer")
 (leslie/p1 "p o"  'org-publish-current-project          "org publish project"                 'org-mode-map)
 (leslie/p1 "p O"  'leslie/alias-org-force-publish       "force org publish project"           'org-mode-map)
+(leslie/p1 "p w"  'leslie/save-project-buffers          "save all project buffers")
 (leslie/p1 "p w"  'org-save-all-org-buffers             "save all org buffers"                'org-mode-map)
 #+END_SRC
 
