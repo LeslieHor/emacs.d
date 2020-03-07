@@ -558,6 +558,12 @@ Revert all the buffers in the current project.
   (when leslie/buffer-clipboard
     (set-window-buffer (selected-window) leslie/buffer-clipboard)))
 #+END_SRC
+** Kill buffer
+#+BEGIN_SRC emacs-lisp
+(defun leslie/kill-this-buffer ()
+  (interactive)
+  (kill-buffer (current-buffer)))
+#+END_SRC
 * Local variables
 ** Safe Local Eval Aliases
 #+BEGIN_SRC emacs-lisp
@@ -1012,7 +1018,7 @@ To keep the code nice and clean.
 #+BEGIN_SRC emacs-lisp
 ;;FUN      KEY    FUNCTION                              DESCRIPTION                           MODE
 (leslie/p1 ";"    'counsel-M-x                          "M-x")
-(leslie/p1 "q"    'kill-this-buffer                     "kill buffer")
+(leslie/p1 "q"    'leslie/kill-this-buffer              "kill buffer")
 (leslie/p1 "d"    'evil-goto-definition                 "goto definition")
 (leslie/p1 "d"    'leslie/alias-erlang-find-tag         "goto definition"                     'erlang-mode-map)
 (leslie/p1 "d"    'org-open-at-point                    "open link"                           'org-mode-map)
