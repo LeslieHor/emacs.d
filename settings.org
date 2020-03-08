@@ -56,4 +56,10 @@ Settings that only work on my home computer. They will probably break other setu
         ("w" "WAIT"   tags "+TODO=\"WAIT\"")
         ("qm" "emacs" tags "+TODO=\"NEXT\"&+emacs")
         ("qg" "org"   tags "+TODO=\"NEXT\"&+org")))
+
+(setq org-default-notes-file "~/projects/notes/inbox.org")
+(setq org-capture-templates
+      '(("n" "New Inbox Item"
+         entry (file "~/projects/notes/inbox.org")
+         "* %^{Item: }\n")))
 #+END_SRC

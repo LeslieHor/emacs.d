@@ -1194,6 +1194,7 @@ To keep the code nice and clean.
 (leslie/p4 "l"    'outline-forward-same-level           "forward same level")
 (leslie/p4 "u"    'outline-up-heading                   "up heading")
 (leslie/p4 "a"    'org-agenda                           "agenda")
+(leslie/p4 "n"    'org-capture                          "org capture")
 (leslie/p4 "x"    'nil                                  "none")
 (leslie/p4 "x"    'org-toggle-checkbox                  "toggle checkbox"                     'org-mode-map)
 (leslie/p4 "s"    'org-schedule                         "schedule"                            'org-mode-map)
