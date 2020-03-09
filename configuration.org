@@ -41,7 +41,7 @@
 
 ** Default major mode
 #+BEGIN_SRC emacs-lisp
-(setq-default major-mode 'text-mode)
+(setq-default major-mode 'org-mode)
 #+END_SRC
 
 * Whitespace
