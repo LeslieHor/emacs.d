@@ -95,6 +95,11 @@ Line wrap mode
   (toggle-truncate-lines -1))
 
 (add-hook 'org-mode-hook 'org-mode-startup-functions)
+
+(defun org-agenda-mode-startup-functions ()
+  (hl-line-mode +1))
+
+(add-hook 'org-agenda-mode-hook 'org-agenda-mode-startup-functions)
 #+END_SRC
 
 ** Beautifying org-mode
