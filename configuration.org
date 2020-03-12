@@ -593,11 +593,16 @@ Revert all the buffers in the current project.
          (filepath (leslie/cortex/create-new-file title)))
     (find-file filepath)))
 
+(defun leslie/cortex/clean-title (title)
+  (downcase
+   (replace-regexp-in-string (regexp-quote " ") "_" title)))
+
 (defun leslie/cortex/create-new-file (title)
-  (let ((abs-filepath (concat leslie/cortex/directory
-                              (format-time-string "%Y%m%d%H%M%S")
-                              "_"
-                              (concat (downcase title) ".org"))))
+  (let* ((abs-filepath (concat leslie/cortex/directory
+                               (format-time-string "%Y%m%d%H%M%S")
+                               "_"
+                               (concat (leslie/cortex/clean-title title)
+                                       ".org"))))
     (write-region (format "* %s" title) nil
                   abs-filepath)
     abs-filepath))
@@ -652,7 +657,7 @@ created from."
          (current-heading (org-get-heading t t)))
 
     (unless (file-exists-p abs-filepath)
-      (write-region (format "* %s" description) nil
+      (write-region (format "* %s" (capitalize description)) nil
                     abs-filepath))
 
     (with-temp-buffer
@@ -661,18 +666,18 @@ created from."
         (org-entry-put nil "Backlinks"
                        (let* ((backlinks (org-entry-get nil "Backlinks"))
                               (src-link (file-name-nondirectory current-file))
-                              (new-link (format "[[%s][%s]]"
+                              (new-link (format "[[file:%s][%s]]"
                                                 src-link
                                                 current-heading)))
-                         (unless (string-match-p (regexp-quote new-link)
-                                                 (cond (backlinks backlinks)
-                                                       (t "")))
-                           (cond (backlinks
-                                  (format "%s [[file:%s][%s]]"
-                                          backlinks src-link current-heading))
-                                 (t
-                                  (format "[[file:%s][%s]]"
-                                          src-link current-heading))))))
+                         (message new-link)
+                         (message backlinks)
+                         (cond ((string-match-p (regexp-quote new-link)
+                                                (cond (backlinks backlinks)
+                                                      (t "")))
+                                backlinks)
+                               (t
+                                (cond (backlinks (concat backlinks " " new-link))
+                                      (t new-link))))))
         (save-buffer)
         (cond (file-buffer (previous-buffer))
               (t (leslie/kill-this-buffer)))))
