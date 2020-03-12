@@ -597,7 +597,7 @@ Revert all the buffers in the current project.
   (let ((abs-filepath (concat leslie/cortex/directory
                               (format-time-string "%Y%m%d%H%M%S")
                               "_"
-                              (concat title ".org"))))
+                              (concat (downcase title) ".org"))))
     (write-region (format "* %s" title) nil
                   abs-filepath)
     abs-filepath))
@@ -638,7 +638,8 @@ created from."
   (let* ((initial-input (cond ((region-active-p) (buffer-substring start end))
                              (t "")))
          (filepath (replace-regexp-in-string ":.*" ""
-                    (ivy-read "Cotex link: " (leslie/cortex/get-file-previews)
+                    (ivy-read "Cotex link (C-M-j to done): "
+                              (leslie/cortex/get-file-previews)
                               :initial-input initial-input)))
          (description (read-string "Description: " initial-input))
          (temp-abs-filepath (concat leslie/cortex/directory filepath))
