@@ -31,7 +31,9 @@ Settings that only work on my home computer. They will probably break other setu
                          "~/projects/notes/calendar.org"))
 
 ;; Set refile targets
-(setq leslie/org-reference-directory "~/projects/notes/reference")
+(setq leslie/cortex/directory "~/projects/notes/cortex/")
+(setq leslie/cortex/max-file-preview 200)
+(setq leslie/org-reference-directory "~/projects/notes/cortex/reference")
 (setq org-refile-allow-creating-parent-nodes 'confirm)
 (setq org-refile-use-outline-path 'file)
 (setq org-refile-targets '(("~/projects/notes/todo.org" :level . 0)
@@ -46,7 +48,8 @@ Settings that only work on my home computer. They will probably break other setu
 
 ;; Custom agenda commants
 (setq org-agenda-custom-commands
-      '(("n" "NEXT" ((tags "+TODO=\"NEXT\"&+@computer")
+      '(("n" "NEXT" ((agenda "")
+                     (tags "+TODO=\"NEXT\"&+@computer")
                      (tags "+TODO=\"NEXT\"&+@octavius")
                      (tags "+TODO=\"NEXT\"&+@nonus")
                      (tags "+TODO=\"NEXT\"&+@anywhere")

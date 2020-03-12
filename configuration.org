@@ -582,6 +582,104 @@ Revert all the buffers in the current project.
   (interactive)
   (kill-buffer (current-buffer)))
 #+END_SRC
+** Cortex
+#+BEGIN_SRC emacs-lisp
+(defun leslie/cortex/create-file ()
+  "Create a new cortex file"
+  (interactive)
+  (let* ((title (read-string "Title: "))
+         (filepath (leslie/cortex/create-new-file title)))
+    (find-file filepath)))
+
+(defun leslie/cortex/create-new-file (title)
+  (let ((abs-filepath (concat leslie/cortex/directory
+                              (format-time-string "%Y%m%d%H%M%S")
+                              "_"
+                              (concat title ".org"))))
+    (write-region (format "* %s" title) nil
+                  abs-filepath)
+    abs-filepath))
+
+(defun leslie/cortex/get-files ()
+  (directory-files leslie/cortex/directory nil "^[0-9A-Za-z_\-]*\.org$"))
+
+(defun leslie/cortex/get-file-previews ()
+  (let ((files (leslie/cortex/get-files)))
+    (mapcar (lambda (file)
+              (with-temp-buffer
+                (insert-file-contents (concat leslie/cortex/directory file))
+                (concat (propertize file 'face '(:foreground "green"))
+                        ": "
+                        (replace-regexp-in-string
+                         "\n"
+                         " -- "
+                         (buffer-substring-no-properties
+                          (point-min)
+                          (min (point-max) leslie/cortex/max-file-preview))))))
+            files)))
+
+(defun leslie/cortex/link (start end)
+  "Create a cortex link.
+
+When a region is highlighted, the initial search input is set to the highlighted
+text, and the initial default description is also set to the highlighted text.
+
+When no region is highlighed, the initial search input and initial description
+are blank.
+
+If the link given does not exist, the file is created with an initial heading
+of the inputted description.
+
+The targeted file is assigned a backlink for the original file the link was
+created from."
+  (interactive "r")
+  (let* ((initial-input (cond ((region-active-p) (buffer-substring start end))
+                             (t "")))
+         (filepath (replace-regexp-in-string ":.*" ""
+                    (ivy-read "Cotex link: " (leslie/cortex/get-file-previews)
+                              :initial-input initial-input)))
+         (description (read-string "Description: " initial-input))
+         (temp-abs-filepath (concat leslie/cortex/directory filepath))
+         (abs-filepath (cond ((file-exists-p temp-abs-filepath)
+                              temp-abs-filepath)
+                             (t
+                              (leslie/cortex/create-new-file filepath
+                                                             description))))
+         (link (file-name-nondirectory abs-filepath))
+         (current-file (buffer-file-name))
+         (current-heading (org-get-heading t t)))
+
+    (unless (file-exists-p abs-filepath)
+      (write-region (format "* %s" description) nil
+                    abs-filepath))
+
+    (with-temp-buffer
+      (let ((file-buffer (get-file-buffer abs-filepath)))
+        (find-file abs-filepath)
+        (org-entry-put nil "Backlinks"
+                       (let* ((backlinks (org-entry-get nil "Backlinks"))
+                              (src-link (file-name-nondirectory current-file))
+                              (new-link (format "[[%s][%s]]"
+                                                src-link
+                                                current-heading)))
+                         (unless (string-match-p (regexp-quote new-link)
+                                                 (cond (backlinks backlinks)
+                                                       (t "")))
+                           (cond (backlinks
+                                  (format "%s [[file:%s][%s]]"
+                                          backlinks src-link current-heading))
+                                 (t
+                                  (format "[[file:%s][%s]]"
+                                          src-link current-heading))))))
+        (save-buffer)
+        (cond (file-buffer (previous-buffer))
+              (t (leslie/kill-this-buffer)))))
+
+    (when (region-active-p)
+      (delete-region start end))
+    (insert (format "[[file:%s][%s]]" link description))))
+#+END_SRC
+
 * Local variables
 ** Safe Local Eval Aliases
 #+BEGIN_SRC emacs-lisp
@@ -816,6 +914,7 @@ I want relative numbers to display when in evil operator mode.
 
 ** erlang
 #+BEGIN_SRC emacs-lisp
+(defvar leslie/enable-erlang t)
 (when leslie/enable-erlang
   (setq load-path (cons  "~/erl_rel/18.3/lib/tools-2.8.3/emacs" load-path))
   (setq erlang-root-dir "~/erl_rel/18.3")
@@ -1225,6 +1324,9 @@ To keep the code nice and clean.
 (leslie/p4 "p c"  'leslie/alias-org-set-property-category "set category"                      'org-mode-map)
 (leslie/p4 "v"    'nil                                  "insert items"                        'org-mode-map)
 (leslie/p4 "v d"  'org-time-stamp                       "time stamp"                          'org-mode-map)
+(leslie/p4 "g"    'nil                                  "cortex"                              'org-mode-map)
+(leslie/p4 "g l"  'leslie/cortex/link                   "cortex link"                         'org-mode-map)
+(leslie/p4 "g n"  'leslie/cortex/create-file            "create cortex file"                  'org-mode-map)
 #+END_SRC
 
 ** Other
