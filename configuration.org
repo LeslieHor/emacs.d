@@ -76,6 +76,8 @@ Highlights:
 (setq org-agenda-skip-scheduled-if-done t)
 (setq org-agenda-skip-deadline-if-done t)
 
+(add-to-list 'org-link-frame-setup '(file . find-file))
+
 ;; Enable habit tracking in org-mode
 (add-to-list 'org-modules 'org-habit)
 ;; Always show habits
@@ -643,8 +645,7 @@ created from."
          (abs-filepath (cond ((file-exists-p temp-abs-filepath)
                               temp-abs-filepath)
                              (t
-                              (leslie/cortex/create-new-file filepath
-                                                             description))))
+                              (leslie/cortex/create-new-file filepath))))
          (link (file-name-nondirectory abs-filepath))
          (current-file (buffer-file-name))
          (current-heading (org-get-heading t t)))
