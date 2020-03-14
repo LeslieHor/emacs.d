@@ -1034,7 +1034,7 @@ I don't know why.
 (defun term-mode-normal-visual-operator-switch ()
   (when (equal major-mode 'term-mode) (ignore-errors (term-line-mode))))
 (defun term-mode-insert-switch ()
-  (when (equal major-mode 'term-mode) (ignore-errors (term-char-mode))))
+  (when (equal major-mode 'term-mode) (ignore-errors (term-char-mode)) (end-of-buffer)))
 
 (add-hook 'evil-normal-state-entry-hook 'term-mode-normal-visual-operator-switch)
 (add-hook 'evil-visual-state-entry-hook 'term-mode-normal-visual-operator-switch)
