@@ -30,9 +30,17 @@ Settings that only work on my home computer. They will probably break other setu
                          "~/projects/notes/projects.org"
                          "~/projects/notes/calendar.org"))
 
-;; Set refile targets
-(setq leslie/cortex/directory "~/projects/notes/cortex/")
+;; Cortex
+(setq leslie/cortex/directory "~/projects/notes/cortex")
 (setq leslie/cortex/max-file-preview 200)
+
+;; Link abbreviations
+(setq org-link-abbrev-alist
+      '(("cortex" . "file:~/projects/notes/cortex/")
+        ("google" . "http://www.google.com/search?q=")))
+
+
+;; Set refile targets
 (setq leslie/org-reference-directory "~/projects/notes/cortex/reference")
 (setq org-refile-allow-creating-parent-nodes 'confirm)
 (setq org-refile-use-outline-path 'file)

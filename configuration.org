@@ -593,36 +593,50 @@ Revert all the buffers in the current project.
          (filepath (leslie/cortex/create-new-file title)))
     (find-file filepath)))
 
-(defun leslie/cortex/clean-title (title)
-  (downcase
-   (replace-regexp-in-string (regexp-quote " ") "_" title)))
-
 (defun leslie/cortex/create-new-file (title)
-  (let* ((abs-filepath (concat leslie/cortex/directory
+  (let* ((abs-filepath (concat (file-name-as-directory leslie/cortex/directory)
                                (format-time-string "%Y%m%d%H%M%S")
-                               "_"
-                               (concat (leslie/cortex/clean-title title)
-                                       ".org"))))
+                               ".org")))
     (write-region (format "* %s" title) nil
                   abs-filepath)
     abs-filepath))
 
 (defun leslie/cortex/get-files ()
-  (directory-files leslie/cortex/directory nil "^[0-9A-Za-z_\-]*\.org$"))
+  (directory-files leslie/cortex/directory nil "^[0-9]*\.org$"))
 
+(defun leslie/repeated-regex (regex-list string)
+  (let ((result string))
+    (dolist (r regex-list)
+      (when r
+        (let ((regex (car r))
+              (replacement (cdr r)))
+          (setq result
+                (replace-regexp-in-string
+                 regex replacement
+                 result)))))
+      result))
+      
 (defun leslie/cortex/get-file-previews ()
   (let ((files (leslie/cortex/get-files)))
     (mapcar (lambda (file)
               (with-temp-buffer
-                (insert-file-contents (concat leslie/cortex/directory file))
-                (concat (propertize file 'face '(:foreground "green"))
+                (insert-file-contents (concat
+                                       (file-name-as-directory
+                                        leslie/cortex/directory)
+                                       file))
+                (org-mode)
+                (concat (propertize file 'face '(:foreground "grey"))
                         ": "
-                        (replace-regexp-in-string
-                         "\n"
-                         " -- "
-                         (buffer-substring-no-properties
-                          (point-min)
-                          (min (point-max) leslie/cortex/max-file-preview))))))
+                        (propertize (org-get-heading t t)
+                                    'face '(:foreground "green"))
+                        ": "
+                        (leslie/repeated-regex
+                         '((" *:PROPERTIES: *\n" . "")
+                           (" *:Backlinks: .*\n" . "")
+                           (" *:END: *\n?" . "")
+                           ("\n" . " -- "))
+                         (org-get-entry))
+                         )))
             files)))
 
 (defun leslie/cortex/link (start end)
@@ -647,7 +661,9 @@ created from."
                               (leslie/cortex/get-file-previews)
                               :initial-input initial-input)))
          (description (read-string "Description: " initial-input))
-         (temp-abs-filepath (concat leslie/cortex/directory filepath))
+         (temp-abs-filepath (concat
+                             (file-name-as-directory leslie/cortex/directory)
+                             filepath))
          (abs-filepath (cond ((file-exists-p temp-abs-filepath)
                               temp-abs-filepath)
                              (t
@@ -662,11 +678,12 @@ created from."
 
     (with-temp-buffer
       (let ((file-buffer (get-file-buffer abs-filepath)))
-        (find-file abs-filepath)
+        (insert-file-contents abs-filepath)
+        (org-mode)
         (org-entry-put nil "Backlinks"
                        (let* ((backlinks (org-entry-get nil "Backlinks"))
                               (src-link (file-name-nondirectory current-file))
-                              (new-link (format "[[file:%s][%s]]"
+                              (new-link (format "[[cortex:%s][%s]]"
                                                 src-link
                                                 current-heading)))
                          (message new-link)
@@ -678,13 +695,51 @@ created from."
                                (t
                                 (cond (backlinks (concat backlinks " " new-link))
                                       (t new-link))))))
-        (save-buffer)
-        (cond (file-buffer (previous-buffer))
-              (t (leslie/kill-this-buffer)))))
+        (write-file abs-filepath)))
 
     (when (region-active-p)
       (delete-region start end))
-    (insert (format "[[file:%s][%s]]" link description))))
+    (insert (format "[[cortex:%s][%s]]" link description))))
+
+(defun leslie/cortex/rename-slide ()
+  "Rename the current slide and update the backlinks for any linked slides"
+  (interactive)
+  (let* ((old-title (org-get-heading t t))
+         (old-heading (concat "* " old-title))
+         (new-title (read-string "New title: " old-title))
+         (file-name (file-name-nondirectory (buffer-file-name)))
+         (old-link (concat "[[cortex:" file-name "][" old-title "]"))
+         (new-link (concat "[[cortex:" file-name "][" new-title "]"))
+         (point-location (point)))
+    ;; Go to the beginning of the buffer
+    (goto-char (point-min))
+    ;; Search for the current heading
+    (re-search-forward (regexp-quote old-heading))
+    ;; Replace it with the new heading
+    (replace-match (concat "* " new-title))
+    ;; Move past the properties (if any)
+    (re-search-forward (regexp-quote ":END:") nil t)
+    (let (links)
+      ;; Generate list of links in current buffer
+      (while (re-search-forward "\\[\\[cortex:\\([0-9]*\.org\\)\\]\\[.*?\\]\\]"
+                                nil t)
+        (push (match-string 1) links))
+      ;; For each link, update the backlinks to the new title
+      (dolist (f links)
+        (message "Updating %s" f)
+        (with-temp-buffer
+          (let ((org-filepath (concat
+                               (file-name-as-directory leslie/cortex/directory)
+                               f)))
+            (insert-file-contents org-filepath)
+            (org-mode)
+            (let ((backlinks (org-entry-get nil "Backlinks")))
+              (org-entry-put nil "Backlinks"
+                             (replace-regexp-in-string
+                              (regexp-quote old-link)
+                              new-link backlinks)))
+            (write-file org-filepath)))))
+    (goto-char point-location)))
 #+END_SRC
 
 * Local variables
@@ -1334,6 +1389,7 @@ To keep the code nice and clean.
 (leslie/p4 "g"    'nil                                  "cortex"                              'org-mode-map)
 (leslie/p4 "g l"  'leslie/cortex/link                   "cortex link"                         'org-mode-map)
 (leslie/p4 "g n"  'leslie/cortex/create-file            "create cortex file"                  'org-mode-map)
+(leslie/p4 "g r"  'leslie/cortex/rename-slide           "rename slide"                        'org-mode-map)
 #+END_SRC
 
 ** Other
