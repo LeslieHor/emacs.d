@@ -72,5 +72,8 @@ Settings that only work on my home computer. They will probably break other setu
 (setq org-capture-templates
       '(("n" "New Inbox Item"
          entry (file "~/projects/notes/inbox.org")
-         "* %^{Item: }\n")))
+         "* %^{Item}\n")
+        ("c" "Clipboard"
+         entry (file "~/projects/notes/inbox.org")
+         "* %x\n")))
 #+END_SRC

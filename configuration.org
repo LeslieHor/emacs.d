@@ -162,7 +162,7 @@ Set up nice fonts
 Interative function to create a new instance of eshell.
 
 #+BEGIN_SRC emacs-lisp
-(defun eshell-new()
+(defun leslie/eshell-new ()
   "Open a new instance of eshell."
   (interactive)
   (eshell 'N))
@@ -172,7 +172,7 @@ Interative function to create a new instance of eshell.
 Transpose two buffers.
 
 #+BEGIN_SRC emacs-lisp
-(defun transpose-buffers (dir &optional arg)
+(defun leslie/transpose-buffers (dir &optional arg)
   "Transpose the buffers in the current window and the target window
 If arg is non-nil, the selected window will change to keep the source buffer
 selected."
@@ -191,32 +191,32 @@ selected."
            (if arg
                (select-window target-window))))))
 
-(defun transpose-buffers-left (&optional arg)
+(defun leslie/transpose-buffers-left (&optional arg)
     "Transpose buffers from current window to buffer to the left"
   (interactive)
-  (transpose-buffers 'left arg))
+  (leslie/transpose-buffers 'left arg))
 
-(defun transpose-buffers-up (&optional arg)
+(defun leslie/transpose-buffers-up (&optional arg)
     "Transpose buffers from current window to buffer above"
   (interactive)
-  (transpose-buffers 'up arg))
+  (leslie/transpose-buffers 'up arg))
 
-(defun transpose-buffers-right (&optional arg)
+(defun leslie/transpose-buffers-right (&optional arg)
     "Transpose buffers from current window to buffer to the right"
   (interactive)
-  (transpose-buffers 'right arg))
+  (leslie/transpose-buffers 'right arg))
 
-(defun transpose-buffers-down (&optional arg)
+(defun leslie/transpose-buffers-down (&optional arg)
     "Transpose buffers from current window to buffer below"
   (interactive)
-  (transpose-buffers 'down arg))
+  (leslie/transpose-buffers 'down arg))
 #+END_SRC
 
 ** cast-buffer
 Send a buffer to another window.
 
 #+BEGIN_SRC emacs-lisp
-(defun cast-buffer (dir &optional arg)
+(defun leslie/cast-buffer (dir &optional arg)
   "Casts the current buffer to window in direction dir, and switches current
 window back to last buffer.
 If arg is non-nil, the targetted window is selected."
@@ -233,32 +233,32 @@ If arg is non-nil, the targetted window is selected."
            (if arg
                (select-window target-window))))))
 
-(defun cast-buffer-left (&optional arg)
+(defun leslie/cast-buffer-left (&optional arg)
   "Cast current buffer to the left"
   (interactive)
-  (cast-buffer 'left arg))
+  (leslie/cast-buffer 'left arg))
 
-(defun cast-buffer-up (&optional arg)
+(defun leslie/cast-buffer-up (&optional arg)
   "Cast current buffer up"
   (interactive)
-  (cast-buffer 'up arg))
+  (leslie/cast-buffer 'up arg))
 
-(defun cast-buffer-right (&optional arg)
+(defun leslie/cast-buffer-right (&optional arg)
   "Cast current buffer to the right"
   (interactive)
-  (cast-buffer 'right arg))
+  (leslie/cast-buffer 'right arg))
 
-(defun cast-buffer-down (&optional arg)
+(defun leslie/cast-buffer-down (&optional arg)
   "Cast current buffer down"
   (interactive)
-  (cast-buffer 'down arg))
+  (leslie/cast-buffer 'down arg))
 #+END_SRC
 
 ** duplicate-buffer
 Open buffer in another window.
 
 #+BEGIN_SRC emacs-lisp
-(defun duplicate-buffer (dir &optional arg)
+(defun leslie/duplicate-buffer (dir &optional arg)
   "Opens the current buffer in the window in the direction dir
 If arg is non-nil, the targeted window is selected"
   (let ((target-window (windmove-find-other-window dir))
@@ -273,46 +273,33 @@ If arg is non-nil, the targeted window is selected"
            (if arg
                (select-window target-window))))))
 
-(defun duplicate-buffer-left (&optional arg)
+(defun leslie/duplicate-buffer-left (&optional arg)
   "Cast current buffer to the left"
   (interactive)
-  (duplicate-buffer 'left arg))
+  (leslie/duplicate-buffer 'left arg))
 
-(defun duplicate-buffer-up (&optional arg)
+(defun leslie/duplicate-buffer-up (&optional arg)
   "Cast current buffer up"
   (interactive)
-  (duplicate-buffer 'up arg))
+  (leslie/duplicate-buffer 'up arg))
 
-(defun duplicate-buffer-right (&optional arg)
+(defun leslie/duplicate-buffer-right (&optional arg)
   "Cast current buffer to the right"
   (interactive)
-  (duplicate-buffer 'right arg))
+  (leslie/duplicate-buffer 'right arg))
 
-(defun duplicate-buffer-down (&optional arg)
+(defun leslie/duplicate-buffer-down (&optional arg)
   "Cast current buffer down"
   (interactive)
-  (duplicate-buffer 'down arg))
+  (leslie/duplicate-buffer 'down arg))
 #+END_SRC
-
-** get-string-from-file
-Read a file in as a string.
-
-#+BEGIN_SRC emacs-lisp
-(defun get-string-from-file (filePath)
-  "Return filePath's file content."
-  (with-temp-buffer
-    (insert-file-contents filePath)
-    (buffer-string)))
-#+END_SRC
-
-[[http://ergoemacs.org/emacs/elisp_read_file_content.html][Credits to “Pascal J Bourguignon” and “TheFlyingDutchman"]]
 
 ** regenerate-tags
 Regenerate tags using a command defined in the project root under the =.emacs=
 directory.
 
 #+BEGIN_SRC emacs-lisp
-(defun regenerate-tags ()
+(defun leslie/regenerate-tags ()
   "use the generate-tags script in the project root to generate tags"
   (interactive)
   (cond ((projectile-project-root)
@@ -330,7 +317,7 @@ Opens a konsole in the current project root. If not in project, opens it in the
 current directory.
 
 #+BEGIN_SRC emacs-lisp
-(defun open-terminal-in-workdir ()
+(defun leslie/open-terminal-in-workdir ()
  "Opens a terminal in the project root.
 If not in a project, opens it in the current directory."
  (interactive)
@@ -345,7 +332,7 @@ If not in a project, opens it in the current directory."
 Toggle on and off whitespace trailing mode
 
 #+BEGIN_SRC emacs-lisp
-(defun toggle-whitespace-full ()
+(defun leslie/toggle-whitespace-full ()
   "toggle display of more whitespace"
   (interactive)
   (whitespace-toggle-options '(lines-tail)))
@@ -353,25 +340,25 @@ Toggle on and off whitespace trailing mode
 
 ** alignment functions
 #+BEGIN_SRC emacs-lisp
-(defun align-once-head (start end regexp)
+(defun leslie/align-once-head (start end regexp)
   "Align by regex once, adding spaces to the head of the regexp"
   (interactive "r\nsAlign once head regexp: ")
   (align-regexp start end
                 (concat "\\(\\s-*\\)" regexp) 1 1 nil))
 
-(defun align-once-tail (start end regexp)
+(defun leslie/align-once-tail (start end regexp)
   "Align by regex once, adding spaces to the tail of the regexp"
   (interactive "r\nsAlign once tail regexp: ")
   (align-regexp start end
                 (concat regexp "\\(\\s-*\\)") 1 1 nil))
 
-(defun align-repeat-head (start end regexp)
+(defun leslie/align-repeat-head (start end regexp)
   "Align by regex repeatedly, adding spaces to the head of the regexp"
   (interactive "r\nsAlign repeat head regexp: ")
   (align-regexp start end
                 (concat "\\(\\s-*\\)" regexp) 1 1 t))
 
-(defun align-repeat-tail (start end regexp)
+(defun leslie/align-repeat-tail (start end regexp)
   "Align by regex repeatedly, adding spaces to the tail of the regexp"
   (interactive "r\nsAlign repeat tail regexp: ")
   (align-regexp start end
@@ -382,7 +369,7 @@ Toggle on and off whitespace trailing mode
 Some extra functions to aid in opening files
 
 #+BEGIN_SRC emacs-lisp
-(defun find-file-line (filename linenum)
+(defun leslie/find-file-line (filename linenum)
   "invoke function find-file and goto-line"
   (find-file filename)
   (goto-line linenum))
@@ -392,7 +379,7 @@ The =find-file-line= function expects two args. We just therefore parse any
 FILENAME:LINENUMBER string that it uses.
 
 #+BEGIN_SRC emacs-lisp
-(defun parse-file-special-syntax (file-string)
+(defun leslie/parse-file-special-syntax (file-string)
   "parses the format FILENAME:LINENUMBER"
   (let* ((file-list (split-string file-string ":"))
          (filename (car file-list))
@@ -403,7 +390,7 @@ FILENAME:LINENUMBER string that it uses.
 We also want the ability to parse dirty file paths.
 
 #+BEGIN_SRC emacs-lisp
-(defun clean-file-path (file-string)
+(defun leslie/clean-file-path (file-string)
   "cleans the file path"
   (replace-regexp-in-string
    "^.*:[0-9]*\\(.*\\)$"
@@ -415,11 +402,11 @@ We also want the ability to parse dirty file paths.
 Plus we need a function to tie it all together.
 
 #+BEGIN_SRC emacs-lisp
-(defun find-file-special-syntax (file-string)
+(defun leslie/find-file-special-syntax (file-string)
   "opens special syntax"
-  (apply 'find-file-line
-         (parse-file-special-syntax
-          (clean-file-path file-string))))
+  (apply 'leslie/find-file-line
+         (leslie/parse-file-special-syntax
+          (leslie/clean-file-path file-string))))
 #+END_SRC
 
 ** open-in-intellij
@@ -431,14 +418,14 @@ emacsclient -n +$LINENUMBER$:$COLUMN$ $FILE$
 #+END_SRC
 
 #+BEGIN_SRC emacs-lisp
-  (defun open-in-intellij ()
-    "Open the current file + line in intellij"
-    (interactive)
-    (let* ((file (buffer-file-name))
-           (line-num (number-to-string (line-number-at-pos)))
-           (command (concat "idea " file ":" line-num)))
-      (shell-command command)
-      (message "file opened in intellij")))
+(defun leslie/open-in-intellij ()
+  "Open the current file + line in intellij"
+  (interactive)
+  (let* ((file (buffer-file-name))
+         (line-num (number-to-string (line-number-at-pos)))
+         (command (concat "idea " file ":" line-num)))
+    (shell-command command)
+    (message "file opened in intellij")))
 #+END_SRC
 
 ** check-project
@@ -453,7 +440,7 @@ FILENAME:40can also be dirty
 #+END_EXAMPLE
 
 #+BEGIN_SRC emacs-lisp
-(defun check-project ()
+(defun leslie/check-project ()
   "run .emacs/check-project and put results in ivy-read"
   (interactive)
   (cond ((projectile-project-root)
@@ -464,7 +451,7 @@ FILENAME:40can also be dirty
            (cond ((> (length result) 0)
                   (ivy-read "Check project results: "
                             (split-string result "\n")
-                            :action 'find-file-special-syntax))
+                            :action 'leslie/find-file-special-syntax))
                  (t
                   (user-error "Check complete")))))
         (t
@@ -475,7 +462,7 @@ FILENAME:40can also be dirty
 Show the full file path as a message
 
 #+BEGIN_SRC emacs-lisp
-(defun show-file-path ()
+(defun leslie/show-file-path ()
   "Show full file path as a message"
   (interactive)
   (if buffer-file-name
@@ -487,7 +474,7 @@ Show the full file path as a message
 Clear the buffer, but with special cases for certain major modes.
 
 #+BEGIN_SRC emacs-lisp
-(defun smart-clear-buffer ()
+(defun leslie/smart-clear-buffer ()
   "Clear the current buffer. term-mode requires different command to clear."
   (interactive)
   (case major-mode
@@ -740,6 +727,26 @@ created from."
                               new-link backlinks)))
             (write-file org-filepath)))))
     (goto-char point-location)))
+#+END_SRC
+
+** Surround
+#+BEGIN_SRC emacs-lisp
+(defun leslie/surround-parentheses () (interactive) (leslie/surround "(" ")"))
+(defun leslie/surround-brackets    () (interactive) (leslie/surround "[" "]"))
+(defun leslie/surround-braces      () (interactive) (leslie/surround "{" "}"))
+(defun leslie/surround-asterisk    () (interactive) (leslie/surround "*" "*"))
+(defun leslie/surround-d-quote     () (interactive) (leslie/surround "\"" "\""))
+(defun leslie/surround-s-quote     () (interactive) (leslie/surround "'" "'"))
+
+(defun leslie/surround-region ()
+  (interactive)
+  (leslie/surround (read-string "Beginning: ")
+                   (read-string "End: ")))
+
+(defun leslie/surround (start end)
+  (let ((region (buffer-substring (region-beginning) (region-end))))
+    (delete-region (region-beginning) (region-end))
+    (insert (format "%s%s%s" start region end))))
 #+END_SRC
 
 * Local variables
@@ -1065,20 +1072,20 @@ To keep the code nice and clean.
 
 (defun leslie/alias-search-buffer () (interactive) (swiper (ivy-thing-at-point)))
 
-(defun leslie/alias-transpose-buffer-left  () (interactive) (transpose-buffers-left t))
-(defun leslie/alias-transpose-buffer-down  () (interactive) (transpose-buffers-down t))
-(defun leslie/alias-transpose-buffer-up    () (interactive) (transpose-buffers-up t))
-(defun leslie/alias-transpose-buffer-right () (interactive) (transpose-buffers-right t))
+(defun leslie/alias-transpose-buffer-left  () (interactive) (leslie/transpose-buffers-left t))
+(defun leslie/alias-transpose-buffer-down  () (interactive) (leslie/transpose-buffers-down t))
+(defun leslie/alias-transpose-buffer-up    () (interactive) (leslie/transpose-buffers-up t))
+(defun leslie/alias-transpose-buffer-right () (interactive) (leslie/transpose-buffers-right t))
 
-(defun leslie/alias-cast-buffer-left  () (interactive) (cast-buffer-left t))
-(defun leslie/alias-cast-buffer-down  () (interactive) (cast-buffer-down t))
-(defun leslie/alias-cast-buffer-up    () (interactive) (cast-buffer-up t))
-(defun leslie/alias-cast-buffer-right () (interactive) (cast-buffer-right t))
+(defun leslie/alias-cast-buffer-left  () (interactive) (leslie/cast-buffer-left t))
+(defun leslie/alias-cast-buffer-down  () (interactive) (leslie/cast-buffer-down t))
+(defun leslie/alias-cast-buffer-up    () (interactive) (leslie/cast-buffer-up t))
+(defun leslie/alias-cast-buffer-right () (interactive) (leslie/cast-buffer-right t))
 
-(defun leslie/alias-duplicate-buffer-left  () (interactive) (duplicate-buffer-left t))
-(defun leslie/alias-duplicate-buffer-down  () (interactive) (duplicate-buffer-down t))
-(defun leslie/alias-duplicate-buffer-up    () (interactive) (duplicate-buffer-up t))
-(defun leslie/alias-duplicate-buffer-right () (interactive) (duplicate-buffer-right t))
+(defun leslie/alias-duplicate-buffer-left  () (interactive) (leslie/duplicate-buffer-left t))
+(defun leslie/alias-duplicate-buffer-down  () (interactive) (leslie/duplicate-buffer-down t))
+(defun leslie/alias-duplicate-buffer-up    () (interactive) (leslie/duplicate-buffer-up t))
+(defun leslie/alias-duplicate-buffer-right () (interactive) (leslie/duplicate-buffer-right t))
 
 (defun leslie/alias-erlang-find-tag () (interactive) (erlang-find-tag (erlang-find-tag-default)))
 
@@ -1234,8 +1241,8 @@ To keep the code nice and clean.
 (leslie/p1 "b b"  'ivy-switch-buffer                    "switch buffers")
 (leslie/p1 "b o"  'open-in-new-config                   "open buffer in a new window config")
 (leslie/p1 "b r"  'rename-buffer                        "rename buffer")
-(leslie/p1 "b x"  'smart-clear-buffer                   "clear buffer")
-(leslie/p1 "b f"  'show-file-path                       "show file path")
+(leslie/p1 "b x"  'leslie/smart-clear-buffer            "clear buffer")
+(leslie/p1 "b f"  'leslie/show-file-path                "show file path")
 (leslie/p1 "b y"  'leslie/buffer-yank                   "yank buffer")
 (leslie/p1 "b p"  'leslie/buffer-paste                  "paste buffer")
 (leslie/p1 "b t"  'nil                                  "transpose buffers")
@@ -1255,7 +1262,7 @@ To keep the code nice and clean.
 (leslie/p1 "b dl" 'leslie/alias-duplicate-buffer-right  "duplicate buffer right")
 (leslie/p1 "t"    'nil                                  "toggles")
 (leslie/p1 "t w"  'whitespace-mode                      "toggle whitespace display")
-(leslie/p1 "t W"  'toggle-whitespace-full               "toggle whitespace full")
+(leslie/p1 "t W"  'leslie/toggle-whitespace-full        "toggle whitespace full")
 (leslie/p1 "t p"  'projectile-mode                      "toggle projectile mode")
 (leslie/p1 "t f"  'font-lock-mode                       "toggle auto font formatting")
 (leslie/p1 "t c"  'comment-line                         "toggle comment line")
@@ -1275,12 +1282,21 @@ To keep the code nice and clean.
 (leslie/p1 "e fi" 'indent-region                        "indent region")
 (leslie/p1 "e fb" 'json-mode-beautify                   "json beautify"                       'json-mode-map)
 (leslie/p1 "e a"  'nil                                  "align")
-(leslie/p1 "e ah" 'align-once-head                      "regex ahead of match")
-(leslie/p1 "e aH" 'align-repeat-head                    "regex ahead of match repeatedly")
-(leslie/p1 "e at" 'align-once-tail                      "regex to tail of match")
-(leslie/p1 "e aT" 'align-repeat-tail                    "regex to tail of match repeatedly")
+(leslie/p1 "e ah" 'leslie/align-once-head               "regex ahead of match")
+(leslie/p1 "e aH" 'leslie/align-repeat-head             "regex ahead of match repeatedly")
+(leslie/p1 "e at" 'leslie/align-once-tail               "regex to tail of match")
+(leslie/p1 "e aT" 'leslie/align-repeat-tail             "regex to tail of match repeatedly")
+(leslie/p1 "e s"  'nil                                  "surround")
+(leslie/p1 "e s(" 'leslie/surround-parentheses          "parentheses ( )")
+(leslie/p1 "e s)" 'leslie/surround-parentheses          "parentheses ( )")
+(leslie/p1 "e s[" 'leslie/surround-brackets             "brackets [ ]")
+(leslie/p1 "e s]" 'leslie/surround-brackets             "brackets [ ]")
+(leslie/p1 "e s{" 'leslie/surround-braces               "braces { }")
+(leslie/p1 "e s}" 'leslie/surround-braces               "braces { }")
+(leslie/p1 "e s*" 'leslie/surround-asterisk             "asterisk *")
+(leslie/p1 "e s\"" 'leslie/surround-d-quote             "double quote \"")
+(leslie/p1 "e s'" 'leslie/surround-s-quote              "single quote '")
 (leslie/p1 "e l"  'org-insert-link                      "edit link"                           'org-mode-map)
-(leslie/p1 "e s"  'org-sort                             "sort"                                'org-mode-map)
 (leslie/p1 "e aa" 'erlang-align-arrows                  "align arrows"                        'erlang-mode-map)
 (leslie/p1 "e j"  'erlang-generate-new-clause           "new clause"                          'erlang-mode-map)
 (leslie/p1 "e d"  'erlang-clone-arguments               "duplicate arguments"                 'erlang-mode-map)
@@ -1303,7 +1319,7 @@ To keep the code nice and clean.
 (leslie/p1 "r ni" 'increment-register                   "increment register with number")
 (leslie/p1 "o"    'nil                                  "applications")
 (leslie/p1 "o r"  'ranger                               "ranger")
-(leslie/p1 "o i"  'open-in-intellij                     "open in intellij")
+(leslie/p1 "o i"  'leslie/open-in-intellij              "open in intellij")
 (leslie/p1 "a t"  'nil                                  "terminals")
 (leslie/p1 "o tt" 'leslie/alias-bash-shell              "bash")
 (leslie/p1 "o te" 'erlang-shell                         "erlang")
@@ -1321,9 +1337,9 @@ To keep the code nice and clean.
 (leslie/p1 "p f"  'counsel-projectile-find-file         "find project file")
 (leslie/p1 "p s"  'org-store-link                       "copy link")
 (leslie/p1 "p i"  'org-insert-link                      "insert link")
-(leslie/p1 "p t"  'regenerate-tags                      "regenerate tags")
+(leslie/p1 "p t"  'leslie/regenerate-tags               "regenerate tags")
 (leslie/p1 "p r"  'leslie/revert-project-buffers        "revert project buffers")
-(leslie/p1 "p c"  'check-project                        "check / compile project")
+(leslie/p1 "p c"  'leslie/check-project                 "check / compile project")
 (leslie/p1 "p b"  'projectile-switch-to-buffer          "switch project buffer")
 (leslie/p1 "p o"  'org-publish-current-project          "org publish project"                 'org-mode-map)
 (leslie/p1 "p O"  'leslie/alias-org-force-publish       "force org publish project"           'org-mode-map)
@@ -1390,6 +1406,8 @@ To keep the code nice and clean.
 (leslie/p4 "g l"  'leslie/cortex/link                   "cortex link"                         'org-mode-map)
 (leslie/p4 "g n"  'leslie/cortex/create-file            "create cortex file"                  'org-mode-map)
 (leslie/p4 "g r"  'leslie/cortex/rename-slide           "rename slide"                        'org-mode-map)
+(leslie/p4 "["    'org-previous-link                    "previous link"                       'org-mode-map)
+(leslie/p4 "]"    'org-next-link                        "next link"                           'org-mode-map)
 #+END_SRC
 
 ** Other
