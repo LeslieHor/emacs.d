@@ -1109,16 +1109,16 @@ To keep the code nice and clean.
 (setq leslie/p1-prefix-special  "C-M-")
 (setq leslie/p1-prefix-standard "M-f")
 
-(setq leslie/p2-prefix-normal   "C-S-")
-(setq leslie/p2-prefix-special  "C-")
+(setq leslie/p2-prefix-normal   "s-M-S-")
+(setq leslie/p2-prefix-special  "s-M-")
 (setq leslie/p2-prefix-standard "M-d")
 
-(setq leslie/p3-prefix-normal   "C-M-")
-(setq leslie/p3-prefix-special  "C-M-")
+(setq leslie/p3-prefix-normal   "s-C-S-")
+(setq leslie/p3-prefix-special  "s-C-")
 (setq leslie/p3-prefix-standard "M-s")
 
-(setq leslie/p4-prefix-normal   "M-")
-(setq leslie/p4-prefix-special  "M-")
+(setq leslie/p4-prefix-normal   "s-C-M-")
+(setq leslie/p4-prefix-special  "s-C-M-")
 (setq leslie/p4-prefix-standard "M-a")
 
 (defun leslie/p1 (key command description &optional keymap)
@@ -1139,7 +1139,7 @@ To keep the code nice and clean.
   (let* ((prefix-normal   leslie/p2-prefix-normal)
          (prefix-special  leslie/p2-prefix-special)
          (standard-prefix leslie/p2-prefix-standard)
-         (prefix-key (cond (t (concat prefix-normal key))))
+         (prefix-key (cond (t (concat prefix-special (upcase (substring key 0 1)) (substring key 1)))))
          (standard-prefix-key (concat standard-prefix " " key)))
     (leslie/set-keys prefix-key standard-prefix-key command description keymap)))
 
@@ -1147,7 +1147,7 @@ To keep the code nice and clean.
   (let* ((prefix-normal   leslie/p3-prefix-normal)
          (prefix-special  leslie/p3-prefix-special)
          (standard-prefix leslie/p3-prefix-standard)
-         (prefix-key (cond (t (concat prefix-normal key))))
+         (prefix-key (cond (t (concat prefix-special (upcase (substring key 0 1)) (substring key 1)))))
          (standard-prefix-key (concat standard-prefix " " key)))
     (leslie/set-keys prefix-key standard-prefix-key command description keymap)))
 
@@ -1155,7 +1155,7 @@ To keep the code nice and clean.
   (let* ((prefix-normal   leslie/p4-prefix-normal)
          (prefix-special  leslie/p4-prefix-special)
          (standard-prefix leslie/p4-prefix-standard)
-         (prefix-key (cond (t (concat prefix-normal (upcase (substring key 0 1)) (substring key 1)))))
+         (prefix-key (cond (t (concat prefix-normal key ))))
          (standard-prefix-key (concat standard-prefix " " key)))
     (leslie/set-keys prefix-key standard-prefix-key command description keymap)))
 
