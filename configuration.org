@@ -727,6 +727,16 @@ created from."
                               new-link backlinks)))
             (write-file org-filepath)))))
     (goto-char point-location)))
+
+(defun leslie/cortex/search-slides ()
+  "Search all slides and open"
+  (interactive)
+  (find-file (concat
+              (file-name-as-directory leslie/cortex/directory)
+              (replace-regexp-in-string
+               ":.*" ""
+               (ivy-read "Test: "
+                         (leslie/cortex/get-file-previews))))))
 #+END_SRC
 
 ** Surround
@@ -1414,8 +1424,9 @@ To keep the code nice and clean.
 (leslie/p4 "v d"  'org-time-stamp                       "time stamp"                          'org-mode-map)
 (leslie/p4 "g"    'nil                                  "cortex"                              'org-mode-map)
 (leslie/p4 "g l"  'leslie/cortex/link                   "cortex link"                         'org-mode-map)
-(leslie/p4 "g n"  'leslie/cortex/create-file            "create cortex file"                  'org-mode-map)
+(leslie/p4 "g n"  'leslie/cortex/create-file            "create cortex file")
 (leslie/p4 "g r"  'leslie/cortex/rename-slide           "rename slide"                        'org-mode-map)
+(leslie/p4 "g f"  'leslie/cortex/search-slides          "search slides")
 (leslie/p4 "["    'org-previous-link                    "previous link"                       'org-mode-map)
 (leslie/p4 "]"    'org-next-link                        "next link"                           'org-mode-map)
 #+END_SRC
