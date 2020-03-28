@@ -659,7 +659,9 @@ Revert all the buffers in the current project.
         (org-entry-put nil "Backlinks"
                        ;; Ensure we do not add a duplicate backlink
                        (let* ((backlinks (org-entry-get nil "Backlinks"))
-                              (link (leslie/cortex/format-link id current-heading)))
+                              (link (leslie/cortex/format-link
+                                     (leslie/cortex/extract-id current-file)
+                                     current-heading)))
                          (cond ((string-match-p (regexp-quote link)
                                                 (cond (backlinks backlinks)
                                                       (t "")))
@@ -728,7 +730,7 @@ created from."
   (interactive "r")
   (let* ((initial-input (cond ((region-active-p) (buffer-substring start end))
                              (t "")))
-         (id-desc (leslie/cortex/interactive-slide-picker))
+         (id-desc (leslie/cortex/interactive-slide-picker initial-input))
          (id (car id-desc))
          (desc (cdr id-desc))
          (description (read-string "Description: " initial-input)))
@@ -827,7 +829,10 @@ The new slide is created with an incremented index."
     (leslie/cortex/add-link new-id "Continued...")
     (leslie/cortex/add-index new-id new-index)
     (goto-char point-location)
-    (save-buffer)))
+    (save-buffer)
+    (find-file (leslie/cortex/expand-filepath new-id))
+    (goto-char (point-max))
+    (message "%s continued..." current-title)))
 
 (defun leslie/cortex/add-index (id index)
   "Add index to given slide id"
