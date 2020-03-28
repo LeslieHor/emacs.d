@@ -586,44 +586,38 @@ Revert all the buffers in the current project.
     (leslie/cortex/ensure-file new-id title)
     new-id))
 
-(defun leslie/cortex/get-files ()
-  (directory-files leslie/cortex/directory nil "^[0-9]*\.org$"))
+(defun leslie/cortex/get-ids ()
+  (mapcar (lambda (file)
+            (replace-regexp-in-string "\.org" "" file))
+          (directory-files leslie/cortex/directory nil "^[0-9]*\.org$")))
 
-(defun leslie/repeated-regex (regex-list string)
-  (let ((result string))
-    (dolist (r regex-list)
-      (when r
-        (let ((regex (car r))
-              (replacement (cdr r)))
-          (setq result
-                (replace-regexp-in-string
-                 regex replacement
-                 result)))))
-      result))
-      
-(defun leslie/cortex/get-file-previews ()
-  (let ((files (leslie/cortex/get-files)))
-    (mapcar (lambda (file)
+(defun leslie/cortex/get-title ()
+  (let ((point-location (point)))
+    (goto-char (point-min))
+    (re-search-forward "\* \\(.*\\)")
+    (goto-char point-location)
+    (match-string 1)))
+
+(defun leslie/cortex/get-entry ()
+  (let ((point-location (point)))
+    (goto-char (point-min))
+    (let ((entry (cond ((re-search-forward ":END: *\n" nil t)
+                        (buffer-substring (point) (point-max)))
+                       ((re-search-forward "\* .*\n" nil t)
+                        (buffer-substring (point) (point-max)))
+                       (t "ERROR PARSING ENTRY"))))
+      (goto-char point-location)
+      (replace-regexp-in-string "\\[cortex:[0-9]*\\]" "" entry))))
+
+(defun leslie/cortex/get-file-previews()
+  (let ((ids (leslie/cortex/get-ids)))
+    (mapcar (lambda (id)
               (with-temp-buffer
-                (insert-file-contents (concat
-                                       (file-name-as-directory
-                                        leslie/cortex/directory)
-                                       file))
-                (org-mode)
-                (concat (propertize (replace-regexp-in-string "\.org" "" file)
-                                    'face '(:foreground "grey"))
-                        ": "
-                        (propertize (org-get-heading t t)
-                                    'face '(:foreground "green"))
-                        "\n"
-                        (leslie/repeated-regex
-                         '((" *:PROPERTIES: *\n" . "")
-                           (" *:Backlinks: .*\n" . "")
-                           (" *:END: *\n?" . "")
-                           ("\\[cortex:[0-9]*.org\\]" . ""))
-                         (org-get-entry))
-                         )))
-            files)))
+                (insert-file-contents (leslie/cortex/expand-filepath id))
+                (concat (propertize id 'face '(:foreground "grey")) ": "
+                        (propertize (leslie/cortex/get-title) 'face '(:foreground "green")) "\n"
+                        (leslie/cortex/get-entry))))
+            ids)))
 
 (defun leslie/cortex/expand-filepath (id)
   "Given an id, create the full cortex filepath"
