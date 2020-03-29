@@ -26,29 +26,29 @@ Settings that only work on my home computer. They will probably break other setu
         (:endgroup   . nil)))
 
 ;; Set agenda files
-(setq org-agenda-files '("~/projects/notes/todo.org"
-                         "~/projects/notes/projects.org"
-                         "~/projects/notes/calendar.org"))
+(setq org-agenda-files '("~/pims/todo.org"
+                         "~/pims/projects.org"
+                         "~/pims/calendar.org"))
 
 ;; Cortex
-(setq leslie/cortex/directory "~/projects/notes/cortex")
+(setq leslie/cortex/directory "~/pims/cortex")
 (setq leslie/cortex/max-file-preview 200)
 
 ;; Link abbreviations
 (setq org-link-abbrev-alist
-      '(("cortex" . "file:~/projects/notes/cortex/%s.org")
+      '(("cortex" . "file:~/pims/cortex/%s.org")
         ("google" . "http://www.google.com/search?q=")))
 
 
 ;; Set refile targets
-(setq leslie/org-reference-directory "~/projects/notes/cortex/reference")
+(setq leslie/org-reference-directory "~/pims/cortex/reference")
 (setq org-refile-allow-creating-parent-nodes 'confirm)
 (setq org-refile-use-outline-path 'file)
-(setq org-refile-targets '(("~/projects/notes/todo.org" :level . 0)
-                           ("~/projects/notes/someday.org" :level . 1)
-                           ("~/projects/notes/projects.org" :level . 1)
-                           ("~/projects/notes/calendar.org" :level . 1)
-                           ("~/projects/notes/read.org" :level . 1)))
+(setq org-refile-targets '(("~/pims/todo.org" :level . 0)
+                           ("~/pims/someday.org" :level . 1)
+                           ("~/pims/projects.org" :level . 1)
+                           ("~/pims/calendar.org" :level . 1)
+                           ("~/pims/read.org" :level . 1)))
 
 ;; Set archiving targets
 ;; Archiving something in ./projects.org goes to ./.projects.org_archive
@@ -68,12 +68,12 @@ Settings that only work on my home computer. They will probably break other setu
         ("qm" "emacs" tags "+TODO=\"NEXT\"&+emacs")
         ("qg" "org"   tags "+TODO=\"NEXT\"&+org")))
 
-(setq org-default-notes-file "~/projects/notes/inbox.org")
+(setq org-default-notes-file "~/pims/inbox.org")
 (setq org-capture-templates
       '(("n" "New Inbox Item"
-         entry (file "~/projects/notes/inbox.org")
+         entry (file "~/pims/inbox.org")
          "* %^{Item}\n")
         ("c" "Clipboard"
-         entry (file "~/projects/notes/inbox.org")
+         entry (file "~/pims/inbox.org")
          "* %x\n")))
 #+END_SRC
