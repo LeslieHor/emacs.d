@@ -64,7 +64,7 @@ Settings that only work on my home computer. They will probably break other setu
                      (tags "+TODO=\"NEXT\"&+@home")
                      (tags "+TODO=\"NEXT\"&+@work")
                      (tags "+TODO=\"NEXT\"&+@errand")
-                     (tags "+TODO=\"WAIT\""))
+                     (tags "+TODO=\"WAIT\"")))
         ("qm" "emacs" tags "+TODO=\"NEXT\"&+emacs")
         ("qg" "org"   tags "+TODO=\"NEXT\"&+org")))
 
