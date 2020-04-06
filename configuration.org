@@ -81,7 +81,7 @@ Highlights:
 ;; Enable habit tracking in org-mode
 (add-to-list 'org-modules 'org-habit)
 ;; Always show habits
-(setq org-habit-show-habits-only-for-today nil)
+(setq org-habit-show-habits-only-for-today t)
 
 ;; Set up languages for running code blocks in org
 (org-babel-do-load-languages
@@ -889,6 +889,21 @@ The new slide is created with an incremented index."
 (setq ediff-split-window-function 'split-window-horizontally)
 (setq ediff-window-setup-function 'ediff-setup-windows-plain)
 #+END_SRC
+
+Restore previous window config.
+#+BEGIN_SRC emacs-lisp
+(defvar leslie/ediff-last-window-configuration nil)
+
+(defun leslie/ediff-store-window-configuration ()
+  (setq leslie/ediff-last-window-configuration (current-window-configuration)))
+
+(defun leslie/ediff-restore-window-configuration ()
+  (set-window-configuration leslie/ediff-last-window-configuration))
+
+(add-hook 'ediff-before-setup-hook #'leslie/ediff-store-window-configuration)
+(add-hook 'ediff-quit-hook #'leslie/ediff-restore-window-configuration)
+#+END_SRC
+
 ** which-key
 #+BEGIN_SRC emacs-lisp
 (add-to-list 'load-path "~/.emacs.d/packages/which-key-3.3.1")
@@ -925,6 +940,11 @@ Override for :wq"
   (evil-write nil nil nil file bang)
   (kill-this-buffer))
 (evil-ex-define-cmd "wq" 'evil-save-and-kill-buffer)
+#+END_SRC
+
+Set initial states
+#+BEGIN_SRC emacs-lisp
+(evil-set-initial-state 'vc-annotate-mode 'motion)
 #+END_SRC
 
 ** evil-leader
