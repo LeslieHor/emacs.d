@@ -1551,6 +1551,7 @@ To keep the code nice and clean.
 (leslie/p4 "p c"  'leslie/alias-org-set-property-category "set category"                      'org-mode-map)
 (leslie/p4 "v"    'nil                                  "insert items"                        'org-mode-map)
 (leslie/p4 "v d"  'org-time-stamp                       "time stamp"                          'org-mode-map)
+(leslie/p4 "v p"  'counsel-yank-pop                     "paste selector")
 (leslie/p4 "g"    'nil                                  "cortex"                              'org-mode-map)
 (leslie/p4 "g l"  'leslie/cortex/link                   "cortex link"                         'org-mode-map)
 (leslie/p4 "g n"  'leslie/cortex/create-file            "create cortex file")

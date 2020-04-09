@@ -76,4 +76,12 @@ Settings that only work on my home computer. They will probably break other setu
         ("c" "Clipboard"
          entry (file "~/pims/inbox.org")
          "* %x\n")))
+
+;; Functions to open org files
+(defun leslie/open-inbox    () (interactive) (find-file "~/pims/inbox.org"))
+(defun leslie/open-todo     () (interactive) (find-file "~/pims/todo.org"))
+(defun leslie/open-projects () (interactive) (find-file "~/pims/projects.org"))
+(defun leslie/open-calendar () (interactive) (find-file "~/pims/calendar.org"))
+(defun leslie/open-someday  () (interactive) (find-file "~/pims/someday.org"))
+(defun leslie/open-read     () (interactive) (find-file "~/pims/read.org"))
 #+END_SRC
