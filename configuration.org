@@ -493,7 +493,7 @@ Revert all the buffers in the current project.
          (buffers (remove-if-not 'buffer-file-name project-buffers)))
     (dolist (buffer buffers)
       (with-current-buffer buffer
-        (revert-buffer nil t)
+        (ignore-errors (revert-buffer nil t))
         (message "Reverted: %s" buffer)))
     (message "Project buffers reverted")))
 #+END_SRC
