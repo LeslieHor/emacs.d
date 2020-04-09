@@ -57,16 +57,14 @@ Settings that only work on my home computer. They will probably break other setu
 ;; Custom agenda commants
 (setq org-agenda-custom-commands
       '(("n" "NEXT" ((agenda "")
-                     (tags "+TODO=\"NEXT\"&+@computer")
-                     (tags "+TODO=\"NEXT\"&+@octavius")
-                     (tags "+TODO=\"NEXT\"&+@nonus")
-                     (tags "+TODO=\"NEXT\"&+@anywhere")
-                     (tags "+TODO=\"NEXT\"&+@home")
-                     (tags "+TODO=\"NEXT\"&+@work")
-                     (tags "+TODO=\"NEXT\"&+@errand")
-                     (tags "+TODO=\"WAIT\"")))
-        ("qm" "emacs" tags "+TODO=\"NEXT\"&+emacs")
-        ("qg" "org"   tags "+TODO=\"NEXT\"&+org")))
+                     (tags "+TODO=\"NEXT\"")
+                     (tags "+TODO=\"WAIT\"")))))
+
+(setq org-agenda-sorting-strategy '((tags tag-up)
+                                    (agenda habit-down time-up priority-down category-keep)
+                                    (todo priority-down category-keep)
+                                    (tags priority-down category-keep)
+                                    (search category-keep)))
 
 (setq org-default-notes-file "~/pims/inbox.org")
 (setq org-capture-templates
