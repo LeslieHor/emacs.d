@@ -82,4 +82,7 @@ Settings that only work on my home computer. They will probably break other setu
 (defun leslie/open-calendar () (interactive) (find-file "~/pims/calendar.org"))
 (defun leslie/open-someday  () (interactive) (find-file "~/pims/someday.org"))
 (defun leslie/open-read     () (interactive) (find-file "~/pims/read.org"))
+
+;; Stuck projects search
+(setq org-stuck-projects '("+LEVEL=1&PRJ" ("NEXT" "WAIT") nil ""))
 #+END_SRC
