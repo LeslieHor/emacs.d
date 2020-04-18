@@ -11,19 +11,21 @@ Settings that only work on my home computer. They will probably break other setu
 
 ;; Set tags
 (setq org-tag-persistent-alist
-      '((:startgroup . nil)
-        ("@anywhere" . ?a)
-        ("@work"     . ?w)
-        ("@home"     . ?h)
-        ("@errand"   . ?e)
-        ("@computer" . ?c)
-        ("@octavius" . ?o)
-        ("@nonus"    . ?n)
-        (:endgroup   . nil)
-        (:startgroup . nil)
-        ("emacs"     . ?m)
-        ("org"       . ?g)
-        (:endgroup   . nil)))
+      '((:startgroup    . nil)
+        ("@anywhere"    . ?a)
+        ("@work"        . ?w)
+        ("@home"        . ?h)
+        ("@errand"      . ?e)
+        ("@research"    . ?r)
+        ("@programming" . ?p)
+        ("@computer"    . ?c)
+        ("@octavius"    . ?o)
+        ("@nonus"       . ?n)
+        (:endgroup      . nil)
+        (:startgroup    . nil)
+        ("emacs"        . ?m)
+        ("org"          . ?g)
+        (:endgroup      . nil)))
 
 ;; Set agenda files
 (setq org-agenda-files '("~/pims/todo.org"

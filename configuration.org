@@ -1508,7 +1508,7 @@ To keep the code nice and clean.
 ** P3
 #+BEGIN_SRC emacs-lisp
 ;;         KEY    FUNCTION                              DESCRIPTION                           MODE
-(leslie/p3 "f R"  'set-frame-title                      "rename frame")
+(leslie/p3 "f r"  'set-frame-name                       "rename frame")
 (leslie/p3 "f c"  'make-frame                           "create new frame")
 (leslie/p3 "f o"  'pop-out-config-to-new-frame          "pop out to frame")
 (leslie/p3 "f"    'nil                                  "frames")
