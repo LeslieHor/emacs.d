@@ -871,6 +871,16 @@ The new slide is created with an incremented index."
     (insert (format "%s%s%s" start region end))))
 #+END_SRC
 
+** Insert org timestamp
+#+BEGIN_SRC emacs-lisp
+(defun leslie/insert-label-timestamp (label)
+  (insert (format "%s: " label))
+  (org-time-stamp-inactive))
+
+(defun leslie/insert-created-timestamp ()
+  (interactive)
+  (leslie/insert-label-timestamp "Created"))
+#+END_SRC
 * Local variables
 ** Safe Local Eval Aliases
 #+BEGIN_SRC emacs-lisp
@@ -1516,7 +1526,7 @@ To keep the code nice and clean.
 (leslie/p3 "l"    'evil-jump-forward                    "jump forward")
 #+END_SRC
 
-** TODO P4
+** P4
 #+BEGIN_SRC emacs-lisp
 ;;         KEY    FUNCTION                              DESCRIPTION                           MODE
 (leslie/p4 "["    'org-previous-link                    "previous link"                       'org-mode-map)
@@ -1567,6 +1577,7 @@ To keep the code nice and clean.
 (leslie/p4 "t ir" 'org-table-insert-row                 "insert row"                          'org-mode-map)
 (leslie/p4 "t"    'nil                                  "tables"                              'org-mode-map)
 (leslie/p4 "u"    'outline-up-heading                   "up heading")
+(leslie/p4 "v c"  'leslie/insert-created-timestamp      "created date"                        'org-mode-map)
 (leslie/p4 "v d"  'org-time-stamp                       "time stamp"                          'org-mode-map)
 (leslie/p4 "v p"  'counsel-yank-pop                     "paste selector")
 (leslie/p4 "v"    'nil                                  "insert items"                        'org-mode-map)
