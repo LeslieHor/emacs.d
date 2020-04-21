@@ -87,4 +87,30 @@ Settings that only work on my home computer. They will probably break other setu
 
 ;; Stuck projects search
 (setq org-stuck-projects '("+LEVEL=1&PRJ" ("NEXT" "WAIT") nil ""))
+
+;; Automate filing process
+(defun leslie/pims/set-todo ()
+  "Convert item under point into todo item"
+  (interactive)
+  (org-todo "NEXT")
+  (org-set-tags-command)
+  (org-refile nil nil '(nil "~/pims/todo.org" nil nil)))
+
+(defun leslie/pims/set-project ()
+  "Convert item under point into project. Requires refiling to project after"
+  (interactive)
+  (let ((project-heading (read-string "Project Heading: "))
+        (project-category (read-string "Project Category: ")))
+    (org-demote)
+    (org-todo "NEXT")
+    (org-set-tags-command)
+    (move-beginning-of-line nil)
+    (insert "\n")
+    (previous-line)
+    (insert (format "* %s" project-heading))
+    (org-set-property "CATEGORY" project-category)))
+
+(defun leslie/pims/refile-to-projects ()
+  (interactive)
+  (org-refile nil nil '(nil "~/pims/projects.org" nil nil)))
 #+END_SRC
