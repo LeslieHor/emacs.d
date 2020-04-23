@@ -1550,6 +1550,7 @@ To keep the code nice and clean.
 (leslie/p4 "f m"  'leslie/org-file-reference            "file reference"                      'org-mode-map)
 (leslie/p4 "f m"  'leslie/org-file-reference            "file reference"                      'org-mode-map)
 (leslie/p4 "f p"  'leslie/pims/set-project              "set as project"                      'org-mode-map)
+(leslie/p4 "f P"  'leslie/pims/refile-to-project        "refile to projects"                  'org-mode-map)
 (leslie/p4 "f r"  'org-refile                           "org refile"                          'org-mode-map)
 (leslie/p4 "f t"  'leslie/pims/set-todo                 "set as todo"                         'org-mode-map)
 (leslie/p4 "f"    'nil                                  "filing"                              'org-mode-map)

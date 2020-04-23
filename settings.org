@@ -94,7 +94,8 @@ Settings that only work on my home computer. They will probably break other setu
   (interactive)
   (org-todo "NEXT")
   (org-set-tags-command)
-  (org-refile nil nil '(nil "~/pims/todo.org" nil nil)))
+  (org-refile nil nil '(nil "~/pims/todo.org" nil nil))
+  (org-save-all-org-buffers))
 
 (defun leslie/pims/set-project ()
   "Convert item under point into project. Requires refiling to project after"
@@ -112,5 +113,6 @@ Settings that only work on my home computer. They will probably break other setu
 
 (defun leslie/pims/refile-to-projects ()
   (interactive)
-  (org-refile nil nil '(nil "~/pims/projects.org" nil nil)))
+  (org-refile nil nil '(nil "~/pims/projects.org" nil nil))
+  (org-save-all-org-buffers))
 #+END_SRC
