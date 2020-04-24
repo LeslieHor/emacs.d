@@ -1137,7 +1137,7 @@ I want relative numbers to display when in evil operator mode.
 #+BEGIN_SRC emacs-lisp
 (defvar leslie/enable-erlang t)
 (when leslie/enable-erlang
-  (setq load-path (cons  "~/erl_rel/18.3/lib/tools-2.8.3/emacs" load-path))
+  (setq load-path (cons  "~/.emacs.d/packages/erlang-2.8.4" load-path))
   (setq erlang-root-dir "~/erl_rel/18.3")
   (setq exec-path (cons "~/erl_rel/18.3/bin" exec-path))
   (require 'erlang-start)
@@ -1239,7 +1239,7 @@ To keep the code nice and clean.
 (defun leslie/alias-duplicate-buffer-up    () (interactive) (leslie/duplicate-buffer-up t))
 (defun leslie/alias-duplicate-buffer-right () (interactive) (leslie/duplicate-buffer-right t))
 
-(defun leslie/alias-erlang-find-tag () (interactive) (erlang-find-tag (erlang-find-tag-default)))
+(defun leslie/alias-erlang-find-tag () (interactive) (erlang-find-tag (erlang-default-function-or-module)))
 
 (defun leslie/alias-bash-shell () (interactive) (ansi-term "/bin/bash"))
 (defun leslie/alias-clip-shell () (interactive) (ansi-term "/usr/bin/clisp"))
