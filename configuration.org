@@ -1379,7 +1379,7 @@ C-x interferes with emacs a lot. I am leaving this out one.
 Interferes with my custom invokers.
 
 *** C-x C-e - Edit the current command in your text editor
-Danger! Having this makes it too each to invoke vim from within emacs.
+Danger! Having this makes it too easy to invoke vim from within emacs.
 
 Bad idea.
 
