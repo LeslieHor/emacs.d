@@ -16,6 +16,7 @@ Settings that only work on my home computer. They will probably break other setu
         ("@work"        . ?w)
         ("@home"        . ?h)
         ("@errand"      . ?e)
+        ("@email"       . ?m)
         ("@research"    . ?r)
         ("@programming" . ?p)
         ("@computer"    . ?c)
@@ -23,8 +24,6 @@ Settings that only work on my home computer. They will probably break other setu
         ("@nonus"       . ?n)
         (:endgroup      . nil)
         (:startgroup    . nil)
-        ("emacs"        . ?m)
-        ("org"          . ?g)
         (:endgroup      . nil)))
 
 ;; Set agenda files

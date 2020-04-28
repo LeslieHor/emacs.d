@@ -881,6 +881,14 @@ The new slide is created with an incremented index."
   (interactive)
   (leslie/insert-label-timestamp "Created"))
 #+END_SRC
+** Term Mode Functions
+#+BEGIN_SRC emacs-lisp
+(defun leslie/term/delete-previous-word ()
+  "Simulates typical C-<backspace> behaviour by sending C-w instead."
+  (interactive)
+  (term-send-raw-string "\C-w"))
+#+END_SRC
+
 * Local variables
 ** Safe Local Eval Aliases
 #+BEGIN_SRC emacs-lisp
@@ -1206,6 +1214,11 @@ Source: https://oremacs.com/2015/01/01/three-ansi-term-tips/
 (add-hook 'term-exec-hook 'auto-exit-term-exec-hook)
 #+END_SRC
 
+** man
+Open man pages in current window
+#+BEGIN_SRC emacs-lisp
+(setq Man-notify-method 'pushy)
+#+END_SRC
 ** general
 #+BEGIN_SRC emacs-lisp
 (add-to-list
@@ -1337,6 +1350,85 @@ To keep the code nice and clean.
          (general-define-key 
           :states '(normal insert visual operator motion emacs)
           key (list command :which-key description)))))
+
+#+END_SRC
+
+** Term Mode Keys
+Evil-mode interferes with the normal bash bindings. They must be dealt with.
+
+*** C-a     - Go to beginning of line
+#+BEGIN_SRC emacs-lisp
+(evil-define-key 'insert term-raw-map (kbd "C-a") 'term-send-raw)
+#+END_SRC
+
+*** C-e     - Go to end of line
+#+BEGIN_SRC emacs-lisp
+(evil-define-key 'insert term-raw-map (kbd "C-e") 'term-send-raw)
+#+END_SRC
+
+*** M-f     - Go to next word
+Interferes with my custom invokers.
+
+*** M-b     - Go to previous word
+Already build in.
+
+*** C-x x   - Toggle point between current position and start of line
+C-x interferes with emacs a lot. I am leaving this out one.
+
+*** M-d     - Delete next word
+Interferes with my custom invokers.
+
+*** C-x C-e - Edit the current command in your text editor
+Danger! Having this makes it too each to invoke vim from within emacs.
+
+Bad idea.
+
+*** C--     - Undo previous action(s)
+Does anyone use this? I won't. Leaving it out.
+
+*** C-w     - Cut current word before the cursor
+#+BEGIN_SRC emacs-lisp
+(evil-define-key 'insert term-raw-map (kbd "C-w") 'term-send-raw)
+#+END_SRC
+
+*** C-k     - Cut from cursor to end of line
+#+BEGIN_SRC emacs-lisp
+(evil-define-key 'insert term-raw-map (kbd "C-k") 'term-send-raw)
+#+END_SRC
+
+*** C-u     - Cut from cursor to start of line
+#+BEGIN_SRC emacs-lisp
+(evil-define-key 'insert term-raw-map (kbd "C-u") 'term-send-raw)
+#+END_SRC
+
+*** C-y     - Paste the cut buffer at current position
+#+BEGIN_SRC emacs-lisp
+(evil-define-key 'insert term-raw-map (kbd "C-y") 'term-send-raw)
+#+END_SRC
+
+*** C-d     - Send EOF / Delete current character
+#+BEGIN_SRC emacs-lisp
+(evil-define-key 'insert term-raw-map (kbd "C-d") 'term-send-raw)
+#+END_SRC
+
+*** C-l     - Clear the terminal screen
+Already built-in.
+
+*** C-z     - Send current command to the background.
+#+BEGIN_SRC emacs-lisp
+;; C-z is more useful as a switch between evil and emacs states
+;; So a command is available instead
+(defun term-send-current-command-to-background ()
+  (interactive)
+  (term-send-raw-string "\C-z"))
+#+END_SRC
+
+*** C-<backspace> - Delete prevous word
+Not strictly a bash thing, but I'm putting it in anyway.
+Simply send C-w instead
+#+BEGIN_SRC emacs-lisp
+(evil-define-key 'insert term-raw-map (kbd "C-<backspace>")
+  'leslie/term/delete-previous-word)
 #+END_SRC
 
 ** Unbinding Keys
@@ -1550,7 +1642,7 @@ To keep the code nice and clean.
 (leslie/p4 "f m"  'leslie/org-file-reference            "file reference"                      'org-mode-map)
 (leslie/p4 "f m"  'leslie/org-file-reference            "file reference"                      'org-mode-map)
 (leslie/p4 "f p"  'leslie/pims/set-project              "set as project"                      'org-mode-map)
-(leslie/p4 "f P"  'leslie/pims/refile-to-project        "refile to projects"                  'org-mode-map)
+(leslie/p4 "f P"  'leslie/pims/refile-to-projects       "refile to projects"                  'org-mode-map)
 (leslie/p4 "f r"  'org-refile                           "org refile"                          'org-mode-map)
 (leslie/p4 "f t"  'leslie/pims/set-todo                 "set as todo"                         'org-mode-map)
 (leslie/p4 "f"    'nil                                  "filing"                              'org-mode-map)
