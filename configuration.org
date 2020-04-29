@@ -887,6 +887,21 @@ The new slide is created with an incremented index."
   "Simulates typical C-<backspace> behaviour by sending C-w instead."
   (interactive)
   (term-send-raw-string "\C-w"))
+
+(defun leslie/term/delete-next-word ()
+  "Simulates typical C-<delete> behaviour by sending M-d instead."
+  (interactive)
+  (term-send-raw-string "\^[d"))
+
+(defun leslie/term/go-to-previous-word ()
+  "Simulates typical C-<left> behaviour by sending M-b instead."
+  (interactive)
+  (term-send-raw-string "\^[b"))
+
+(defun leslie/term/go-to-next-word ()
+  "Simulates typical C-<right> behaviour by sending M-f instead."
+  (interactive)
+  (term-send-raw-string "\^[f"))
 #+END_SRC
 
 * Local variables
@@ -1423,12 +1438,41 @@ Already built-in.
   (term-send-raw-string "\C-z"))
 #+END_SRC
 
+*** C-r - Search history
+#+BEGIN_SRC emacs-lisp
+(evil-define-key 'insert term-raw-map (kbd "C-r") 'term-send-raw)
+#+END_SRC
+
 *** C-<backspace> - Delete prevous word
 Not strictly a bash thing, but I'm putting it in anyway.
 Simply send C-w instead
 #+BEGIN_SRC emacs-lisp
 (evil-define-key 'insert term-raw-map (kbd "C-<backspace>")
   'leslie/term/delete-previous-word)
+#+END_SRC
+
+*** C-<delete> - Delete next word
+Not strictly a bash thing, but I'm putting it in anyway.
+Simply send M-d instead
+#+BEGIN_SRC emacs-lisp
+(evil-define-key 'insert term-raw-map (kbd "C-<delete>")
+  'leslie/term/delete-next-word)
+#+END_SRC
+
+*** C-<left> - Go to previous word
+Not strictly a bash thing, but I'm putting it in anyway.
+Simply send M-b instead
+#+BEGIN_SRC emacs-lisp
+(evil-define-key 'insert term-raw-map (kbd "C-<left>")
+  'leslie/term/go-to-previous-word)
+#+END_SRC
+
+*** C-<right> - Go to next word
+Not strictly a bash thing, but I'm putting it in anyway.
+Simply send M-f instead
+#+BEGIN_SRC emacs-lisp
+(evil-define-key 'insert term-raw-map (kbd "C-<right>")
+  'leslie/term/go-to-next-word)
 #+END_SRC
 
 ** Unbinding Keys
