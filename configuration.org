@@ -31,6 +31,7 @@
 (setq-default indent-tabs-mode nil) ; don't insert tabs
 (setq-default tab-width 4) ; self-documenting
 (setq indent-line-function 'insert-tab)
+(setq comment-column 2)
 #+END_SRC
 
 ** Backup and autosave locations
@@ -1165,6 +1166,29 @@ I want relative numbers to display when in evil operator mode.
   (setq exec-path (cons "~/erl_rel/18.3/bin" exec-path))
   (require 'erlang-start)
   (require 'erlang-flymake))
+#+END_SRC
+
+*** Use regular indenting for single '%' comments
+#+BEGIN_SRC emacs-lisp
+(defun leslie/erlang-comment-indent ()
+  (cond ((looking-at "%%%") 0)
+        ((looking-at "%%")
+         (or (erlang-calculate-indent)
+             (current-indentation)))
+        ((looking-at "%")
+         (or (erlang-calculate-indent)
+             (current-indentation)))
+        (t
+         (save-excursion
+           (skip-chars-backward " \t")
+           (max (if (bolp) 0 (1+ (current-column)))
+                comment-column)))))
+
+(advice-add
+   'erlang-comment-indent
+   :override
+   (lambda (&rest r) (leslie/erlang-comment-indent))
+   '((name . "erlang-comment-indent-advice")))
 #+END_SRC
 
 ** term mode
