@@ -159,6 +159,15 @@ Set up nice fonts
 #+END_SRC
 
 * Custom Functions
+** Helper Functions
+#+BEGIN_SRC emacs-lisp
+(defun leslie/strip-last-newline (string)
+  (replace-regexp-in-string "\n\\'" "" string))
+
+(defun leslie/escape-double-quotes (string)
+  (replace-regexp-in-string "\"" "\\\\\"" string))
+#+END_SRC
+
 ** eshell-new
 Interative function to create a new instance of eshell.
 
@@ -905,6 +914,70 @@ The new slide is created with an incremented index."
   (term-send-raw-string "\^[f"))
 #+END_SRC
 
+** Shell Command
+#+BEGIN_SRC emacs-lisp
+(defvar leslie/shell-line-history '())
+
+(defun leslie/do-sh-cmd (input-list command &optional strip-newline)
+  (let (output-list)
+    (dolist (dirty-input input-list)
+      (set-text-properties 0 (length dirty-input) nil dirty-input)
+      (let* ((input (leslie/escape-double-quotes
+                     (leslie/strip-last-newline
+                      dirty-input)))
+             (output (shell-command-to-string
+                      (concat command " <<< \"" input "\""))))
+        (setq output-list (cons (if strip-newline
+                                    (leslie/strip-last-newline output)
+                                  output) output-list))))
+    (reverse output-list)))
+
+(defun leslie/sh-cmd (&optional cmd whole-buffer split-lines)
+  "Execute CMD on the buffer. If CMD is nil, ask the user what
+command to use. If split-lines is non-nil, split the input by
+newlines and send each line into the command individually.
+
+Use the selected region as the input to the shell command. If no
+region is selected, use the current line as the input, except
+when WHOLE-BUFFER is non-nil, in which case, use the entire
+buffer as the input.
+
+A history of executed commands is kept."
+  (interactive)
+  (let ((command (cond (cmd cmd)
+                       (t (ivy-read "Command (C-M-j to done): "
+                                    leslie/shell-line-history)))))
+    (add-to-list 'leslie/shell-line-history command)
+    (cond ((eq evil-this-type 'block)
+           ;; Case when region is an evil block
+           (let* ((rb (region-beginning))
+                  (re (region-end))
+                  (input-list (extract-rectangle rb re))
+                  (output-list (leslie/do-sh-cmd input-list command t))
+                  (start (= (point) rb)))
+             (goto-char rb)
+             (delete-rectangle rb re)
+             (insert-rectangle output-list)
+             ;; after inserting rectanble, point will move to the end of the
+             ;; input, so if the point was at the start of the rectangle, then
+             ;; move it back.
+             (when start
+               (goto-char rb))))
+          (t
+           (let* ((rb (cond (whole-buffer (point-min))
+                            ((use-region-p) (region-beginning))
+                            (t (line-beginning-position))))
+                  (re (cond (whole-buffer (point-max))
+                            ((use-region-p) (region-end))
+                            (t (line-end-position))))
+                  (input (buffer-substring rb re))
+                  (input-list (cond (split-lines (split-string input "\n"))
+                                    (t (list input))))
+                  (output-list (leslie/do-sh-cmd input-list command (not whole-buffer))))
+             (delete-region rb re)
+             (dolist (line output-list)
+               (insert line)))))))
+#+END_SRC
 * Local variables
 ** Safe Local Eval Aliases
 #+BEGIN_SRC emacs-lisp
@@ -1302,6 +1375,10 @@ To keep the code nice and clean.
 (defun leslie/alias-org-set-property-category () (interactive) (leslie/org-set-property "CATEGORY"))
 
 (defun leslie/alias-org-agenda-n () (interactive) (org-agenda nil "n"))
+
+(defun leslie/alias-sh-cmd-whole-buffer () (interactive) (leslie/sh-cmd nil t nil))
+(defun leslie/alias-sh-cmd-split-lines () (interactive) (leslie/sh-cmd nil nil t))
+(defun leslie/alias-sh-cmd-whole-buffer-split-lines () (interactive) (leslie/sh-cmd nil t t))
 #+END_SRC
 
 ** Helper Functions
@@ -1664,6 +1741,11 @@ Simply send M-f instead
 (leslie/p1 "w v"  'split-window-below                   "split vertical")
 (leslie/p1 "w z"  'maximize-window                      "maximize")
 (leslie/p1 "w"    'nil                                  "windows")
+(leslie/p1 "x"    'nil                                  "sh cmd")
+(leslie/p1 "x x"  'leslie/sh-cmd                        "sh cmd")
+(leslie/p1 "x X"  'leslie/alias-sh-cmd-whole-buffer     "sh cmd whole buffer")
+(leslie/p1 "x s"  'leslie/alias-sh-cmd-split-lines      "sh cmd split lines")
+(leslie/p1 "x S"  'leslie/alias-sh-cmd-whole-buffer-split-lines "sh cmd whole buffer split lines")
 #+END_SRC
 
 ** P2
