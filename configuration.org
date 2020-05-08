@@ -316,7 +316,9 @@ directory.
          (let* ((root-dir (projectile-project-root))
                 (generate-tags-script (concat root-dir ".emacs/generate-tags"))
                 (tag-command (concat ". " generate-tags-script " " root-dir))
-                (result (shell-command-to-string tag-command)))
+                (result (if (file-exists-p generate-tags-script)
+                            (shell-command-to-string tag-command)
+                          (projectile-regenerate-tags))))
            (message result)))
         (t
          (user-error "Not in a project!"))))
@@ -454,6 +456,7 @@ FILENAME:40can also be dirty
   "run .emacs/check-project and put results in ivy-read"
   (interactive)
   (cond ((projectile-project-root)
+         (message "Checking project...")
          (let* ((root-dir (projectile-project-root))
                 (script (concat root-dir ".emacs/check-project"))
                 (command (concat ". " script " " root-dir))
