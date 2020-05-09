@@ -36,6 +36,8 @@
 
 ** Backup and autosave locations
 #+BEGIN_SRC emacs-lisp
+(setq auto-save-visited-file-name t)
+(setq auto-save-default nil)
 (setq backup-directory-alist '((".*" . "~/.emacs.d/backup")))
 (setq auto-save-file-name-transforms '((".*" "~/.emacs.d/autosave/" t)))
 #+END_SRC
