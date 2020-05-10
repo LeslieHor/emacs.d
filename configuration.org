@@ -464,9 +464,9 @@ FILENAME:40can also be dirty
                 (command (concat ". " script " " root-dir))
                 (result (shell-command-to-string command)))
            (cond ((> (length result) 0)
-                  (ivy-read "Check project results: "
-                            (split-string result "\n")
-                            :action 'leslie/find-file-special-syntax))
+                  (completing-read "Check project results: "
+                                   (split-string result "\n")
+                                   :action 'leslie/find-file-special-syntax))
                  (t
                   (user-error "Check complete")))))
         (t
@@ -539,15 +539,15 @@ Revert all the buffers in the current project.
 (defun leslie/org-file-reference ()
   (interactive)
   (let* ((target-file (expand-file-name
-                       (ivy-read "File reference (C-M-j to done): "
-                                 (mapcar (lambda (filepath)
-                                           (file-relative-name
-                                            filepath
-                                            leslie/org-reference-directory))
-                                         (directory-files-recursively
-                                          leslie/org-reference-directory
-                                          ".*\.org"
-                                          nil)))
+                       (completing-read "File reference (C-M-j to done): "
+                                        (mapcar (lambda (filepath)
+                                                  (file-relative-name
+                                                   filepath
+                                                   leslie/org-reference-directory))
+                                                (directory-files-recursively
+                                                 leslie/org-reference-directory
+                                                 ".*\.org"
+                                                 nil)))
                        leslie/org-reference-directory))
          (org-heading (org-get-heading)))
     (org-back-to-heading)
@@ -691,9 +691,9 @@ description in a cons.
 
 If no slide is found, a new id is generated and the search term is returned as
 the description"
-  (let* ((ivy-result (ivy-read "Cortex link (C-M-j to done): "
-                               (leslie/cortex/get-file-previews)
-                               :initial-input initial-input))
+  (let* ((ivy-result (completing-read "Cortex link (C-M-j to done): "
+                                      (leslie/cortex/get-file-previews)
+                                      :initial-input initial-input))
          (id (progn
                (string-match "^\\([0-9]*\\):" ivy-result)
                (match-string 1 ivy-result)))
@@ -950,8 +950,8 @@ buffer as the input.
 A history of executed commands is kept."
   (interactive)
   (let ((command (cond (cmd cmd)
-                       (t (ivy-read "Command (C-M-j to done): "
-                                    leslie/shell-line-history)))))
+                       (t (completing-read "Command (C-M-j to done): "
+                                           leslie/shell-line-history)))))
     (add-to-list 'leslie/shell-line-history command)
     (cond ((eq evil-this-type 'block)
            ;; Case when region is an evil block
@@ -1102,10 +1102,9 @@ Set initial states
 (require 'counsel)
 (setq ivy-use-virtual-buffers t)
 (setq ivy-count-format "(%d/%d) ")
+(ivy-mode 1)
 
 ;; Setting up more ivy completion
-(add-to-list 'ivy-completing-read-handlers-alist '(org-tags-view . completing-read-default))
-(add-to-list 'ivy-completing-read-handlers-alist '(org-refile . completing-read-default))
 (setq org-outline-path-complete-in-steps nil)
 (setq org-completion-use-ido nil)
 #+END_SRC
