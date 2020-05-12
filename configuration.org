@@ -168,6 +168,10 @@ Set up nice fonts
 
 (defun leslie/escape-double-quotes (string)
   (replace-regexp-in-string "\"" "\\\\\"" string))
+
+(defun leslie/strip-font-properties (string)
+  (set-text-properties 0 (length string) nil string)
+  string)
 #+END_SRC
 
 ** eshell-new
@@ -691,19 +695,20 @@ description in a cons.
 
 If no slide is found, a new id is generated and the search term is returned as
 the description"
-  (let* ((ivy-result (completing-read "Cortex link (C-M-j to done): "
-                                      (leslie/cortex/get-file-previews)
-                                      :initial-input initial-input))
+  (let* ((result (completing-read "Cortex link (C-M-j to done): "
+                                  (leslie/cortex/get-file-previews)
+                                  nil nil
+                                  initial-input))
          (id (progn
-               (string-match "^\\([0-9]*\\):" ivy-result)
-               (match-string 1 ivy-result)))
+               (string-match "^\\([0-9]*\\):" result)
+               (match-string 1 result)))
          (description (cond
                        (id
-                        (string-match "^[0-9]*: \\(.*\\)" ivy-result)
-                        (match-string 1 ivy-result))
+                        (string-match "^[0-9]*: \\(.*\\)" result)
+                        (match-string 1 result))
                        (t
-                        (string-match "^\\(.*\\)" ivy-result)
-                        (match-string 1 ivy-result)))))
+                        (string-match "^\\(.*\\)" result)
+                        (match-string 1 result)))))
 
     ;; Remove any font properties
     (set-text-properties 0 (length id) nil id)
@@ -737,12 +742,14 @@ of the inputted description.
 The targeted file is assigned a backlink for the original file the link was
 created from."
   (interactive "r")
-  (let* ((initial-input (cond ((region-active-p) (buffer-substring start end))
-                             (t "")))
+  (let* ((initial-input (when (region-active-p)
+                               (leslie/strip-font-properties
+                                (buffer-substring start end))))
          (id-desc (leslie/cortex/interactive-slide-picker initial-input))
          (id (car id-desc))
          (desc (cdr id-desc))
-         (description (read-string "Description: " initial-input)))
+         (description (read-string "Description: " (cond (initial-input initial-input)
+                                                         (t desc)))))
 
     ;; Firstly, ensure that a target file exists with the proper heading
     (leslie/cortex/ensure-file id desc)
