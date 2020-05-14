@@ -7,7 +7,8 @@ Settings that only work on my home computer. They will probably break other setu
 #+BEGIN_SRC emacs-lisp
 ;; Set todo states
 (setq org-todo-keywords
-      '((sequence "TODO(t)" "WAIT(w)" "NEXT(n)" "|" "DONE(d)" "CANCELLED(c)")))
+      '((sequence "TODO(t)" "WAIT(w)" "NEXT(n)" "PROJECT(p)"
+                  "|" "DONE(d)" "CANCELLED(c)")))
 
 ;; Set tags
 (setq org-tag-persistent-alist
@@ -28,7 +29,6 @@ Settings that only work on my home computer. They will probably break other setu
 
 ;; Set agenda files
 (setq org-agenda-files '("~/pims/todo.org"
-                         "~/pims/projects.org"
                          "~/pims/calendar.org"))
 
 ;; Cortex
@@ -47,7 +47,6 @@ Settings that only work on my home computer. They will probably break other setu
 (setq org-refile-use-outline-path 'file)
 (setq org-refile-targets '(("~/pims/todo.org" :level . 0)
                            ("~/pims/someday.org" :level . 1)
-                           ("~/pims/projects.org" :level . 1)
                            ("~/pims/calendar.org" :level . 1)
                            ("~/pims/read.org" :level . 1)))
 
@@ -79,13 +78,12 @@ Settings that only work on my home computer. They will probably break other setu
 ;; Functions to open org files
 (defun leslie/open-inbox    () (interactive) (find-file "~/pims/inbox.org"))
 (defun leslie/open-todo     () (interactive) (find-file "~/pims/todo.org"))
-(defun leslie/open-projects () (interactive) (find-file "~/pims/projects.org"))
 (defun leslie/open-calendar () (interactive) (find-file "~/pims/calendar.org"))
 (defun leslie/open-someday  () (interactive) (find-file "~/pims/someday.org"))
 (defun leslie/open-read     () (interactive) (find-file "~/pims/read.org"))
 
 ;; Stuck projects search
-(setq org-stuck-projects '("+LEVEL=1&PRJ" ("NEXT" "WAIT") nil ""))
+(setq org-stuck-projects '("/PROJECT" ("NEXT" "WAIT") nil ""))
 
 ;; Automate filing process
 (defun leslie/pims/set-todo ()
@@ -108,10 +106,7 @@ Settings that only work on my home computer. They will probably break other setu
     (insert "\n")
     (previous-line)
     (insert (format "* %s" project-heading))
-    (org-set-property "CATEGORY" project-category)))
-
-(defun leslie/pims/refile-to-projects ()
-  (interactive)
-  (org-refile nil nil '(nil "~/pims/projects.org" nil nil))
-  (org-save-all-org-buffers))
+    (org-set-property "CATEGORY" project-category)
+    (org-refile nil nil '(nil "~/pims/todo.org" nil nil))
+    (org-save-all-org-buffers)))
 #+END_SRC
