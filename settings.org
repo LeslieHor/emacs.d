@@ -107,6 +107,7 @@ Settings that only work on my home computer. They will probably break other setu
     (previous-line)
     (insert (format "* %s" project-heading))
     (org-set-property "CATEGORY" project-category)
+    (org-todo "PROJECT")
     (org-refile nil nil '(nil "~/pims/todo.org" nil nil))
     (org-save-all-org-buffers)))
 #+END_SRC

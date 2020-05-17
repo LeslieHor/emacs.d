@@ -78,6 +78,7 @@ Highlights:
 (setq org-log-done 'time)
 (setq org-agenda-skip-scheduled-if-done t)
 (setq org-agenda-skip-deadline-if-done t)
+(setq org-src-window-setup 'current-window)
 
 (add-to-list 'org-link-frame-setup '(file . find-file))
 
