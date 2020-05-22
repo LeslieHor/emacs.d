@@ -1031,6 +1031,18 @@ has no effect."
 
 (advice-add #'org-agenda-finalize :before #'leslie/org-agenda-mark-habits)
 #+END_SRC
+** VC annotate in current window
+#+BEGIN_SRC emacs-lisp
+(defun leslie/vc-annotate-current-window ()
+  "A bad implementation of vc-annotate-current-window"
+  (interactive)
+  (vc-ensure-vc-buffer)
+  (let ((prev-window-configuration (current-window-configuration)))
+    (call-interactively 'vc-annotate)
+    (let ((vc-buffer (current-buffer)))
+      (set-window-configuration prev-window-configuration)
+      (switch-to-buffer vc-buffer))))
+#+END_SRC
 * Local variables
 ** Safe Local Eval Aliases
 #+BEGIN_SRC emacs-lisp
@@ -1686,6 +1698,7 @@ Simply send M-f instead
 (leslie/p1 "d"    'evil-goto-definition                 "goto definition")
 (leslie/p1 "d"    'leslie/alias-erlang-find-tag         "goto definition"                     'erlang-mode-map)
 (leslie/p1 "d"    'org-open-at-point                    "open link"                           'org-mode-map)
+(leslie/p1 "d"    'org-open-at-point                    "open link"                           'org-agenda-mode-map)
 (leslie/p1 "e a"  'nil                                  "align")
 (leslie/p1 "e aH" 'leslie/align-repeat-head             "regex ahead of match repeatedly")
 (leslie/p1 "e aT" 'leslie/align-repeat-tail             "regex to tail of match repeatedly")
@@ -1782,7 +1795,7 @@ Simply send M-f instead
 (leslie/p1 "t w"  'whitespace-mode                      "toggle whitespace display")
 (leslie/p1 "t"    'nil                                  "toggles")
 (leslie/p1 "v D"  'vc-ediff                             "ediff")
-(leslie/p1 "v a"  'vc-annotate                          "annotate")
+(leslie/p1 "v a"  'leslie/vc-annotate-current-window    "annotate")
 (leslie/p1 "v b"  'vc-retrieve-tag                      "change branch")
 (leslie/p1 "v d"  'vc-version-ediff                     "version ediff")
 (leslie/p1 "v"    'nil                                  "version control")
@@ -1825,6 +1838,8 @@ Simply send M-f instead
 ;;         KEY    FUNCTION                              DESCRIPTION                           MODE
 (leslie/p4 "["    'org-previous-link                    "previous link"                       'org-mode-map)
 (leslie/p4 "]"    'org-next-link                        "next link"                           'org-mode-map)
+(leslie/p4 "["    'org-previous-link                    "previous link"                       'org-agenda-mode-map)
+(leslie/p4 "]"    'org-next-link                        "next link"                           'org-agenda-mode-map)
 (leslie/p4 "a"    'leslie/alias-org-agenda-n            "agenda")
 (leslie/p4 "b a"  'leslie/alias-org-agenda-n            "agenda")
 (leslie/p4 "b c"  'leslie/open-calendar                 "calendar")

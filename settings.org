@@ -38,6 +38,7 @@ Settings that only work on my home computer. They will probably break other setu
 ;; Link abbreviations
 (setq org-link-abbrev-alist
       '(("cortex" . "file:~/pims/cortex/%s.org")
+        ("pims"   . "file:~/pims/%s")
         ("google" . "http://www.google.com/search?q=")))
 
 
