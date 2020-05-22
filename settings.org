@@ -57,8 +57,9 @@ Settings that only work on my home computer. They will probably break other setu
 ;; Custom agenda commants
 (setq org-agenda-custom-commands
       '(("n" "NEXT" ((agenda "")
-                     (tags "+TODO=\"NEXT\"")
-                     (tags "+TODO=\"WAIT\"")))))
+                     (tags-todo "STYLE=\"habit\"" ((org-agenda-overriding-header "Habits")))
+                     (tags "+TODO=\"NEXT\"" ((org-agenda-overriding-header "Next")))
+                     (tags "+TODO=\"WAIT\"" ((org-agenda-overriding-header "Wait")))))))
 
 (setq org-agenda-sorting-strategy '((tags tag-up)
                                     (agenda habit-down time-up priority-down category-keep)

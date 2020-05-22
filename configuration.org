@@ -84,8 +84,10 @@ Highlights:
 
 ;; Enable habit tracking in org-mode
 (add-to-list 'org-modules 'org-habit)
-;; Always show habits
-(setq org-habit-show-habits-only-for-today t)
+;; Don't show any habits in the agenda, there is a dedicated section for that.
+(setq org-habit-show-habits nil)
+(setq org-habit-show-habits-only-for-today nil)
+(setq org-habit-show-all-today nil)
 
 ;; Set up languages for running code blocks in org
 (org-babel-do-load-languages
