@@ -28,8 +28,12 @@ Settings that only work on my home computer. They will probably break other setu
         (:endgroup      . nil)))
 
 ;; Set agenda files
-(setq org-agenda-files '("~/pims/todo.org"
-                         "~/pims/calendar.org"))
+;; inbox.org is for timekeeping purposes
+(setq org-agenda-files '("~/pims/inbox.org"
+                         "~/pims/todo.org"
+                         "~/pims/.todo.org_archive"
+                         "~/pims/calendar.org"
+                         "~/pims/.calendar.org_archive"))
 
 ;; Cortex
 (setq leslie/cortex/directory "~/pims/cortex")
@@ -75,7 +79,13 @@ Settings that only work on my home computer. They will probably break other setu
          "* %^{Item}\n")
         ("c" "Clipboard"
          entry (file "~/pims/inbox.org")
-         "* %x\n")))
+         "* %x\n")
+        ("t" "Clock in task"
+         entry (file "~/pims/inbox.org")
+         "* %^{Task}\n%?" :clock-in t :clock-keep t)
+        ("b" "Microblog" ;; I don't know if this works
+         entry (file+datetree "~/pims/microblog.org")
+         "*%U\n%?\n")))
 
 ;; Functions to open org files
 (defun leslie/open-inbox    () (interactive) (find-file "~/pims/inbox.org"))

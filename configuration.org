@@ -79,6 +79,7 @@ Highlights:
 (setq org-agenda-skip-scheduled-if-done t)
 (setq org-agenda-skip-deadline-if-done t)
 (setq org-src-window-setup 'current-window)
+(setq org-time-stamp-rounding-minutes '(1 1))
 
 (add-to-list 'org-link-frame-setup '(file . find-file))
 
@@ -95,6 +96,13 @@ Highlights:
  'org-babel-load-languages '((python . t)
                              (sh . t)
                              (emacs-lisp . t)))
+
+;; Set clock checks
+(setq org-agenda-clock-consistency-checks
+      (quote (:max-duration "4:00"
+              :min-duration 0
+              :max-gap 0
+              :gap-ok-around ("4:00"))))
 #+END_SRC
 
 Line wrap mode
@@ -106,9 +114,25 @@ Line wrap mode
 (add-hook 'org-mode-hook 'org-mode-startup-functions)
 
 (defun org-agenda-mode-startup-functions ()
-  (hl-line-mode +1))
+  (hl-line-mode +1)
+  (evil-quickscope-mode 0))
 
 (add-hook 'org-agenda-mode-hook 'org-agenda-mode-startup-functions)
+#+END_SRC
+
+Fix the =\emsp= bug in clock tables.
+#+BEGIN_SRC emacs-lisp
+(defun leslie/org-clocktable-indent-string (level)
+  (if (= level 1)
+      ""
+    (let ((str "^"))
+      (while (> level 2)
+        (setq level (1- level)
+              str (concat str "--")))
+      (concat str "-> "))))
+
+(advice-add 'org-clocktable-indent-string :override
+            #'leslie/org-clocktable-indent-string)
 #+END_SRC
 
 ** Beautifying org-mode
@@ -1896,7 +1920,8 @@ Simply send M-f instead
 ** Other
 *** Non-P Bindings
 #+BEGIN_SRC emacs-lisp
-
+(evil-define-key 'motion org-agenda-mode-map "ci" 'org-agenda-show-clocking-issues)
+(evil-define-key 'motion org-agenda-mode-map "cl" 'org-agenda-log-mode)
 #+END_SRC
 
 *** Help
