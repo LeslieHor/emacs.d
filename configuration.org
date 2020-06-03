@@ -80,6 +80,9 @@ Highlights:
 (setq org-agenda-skip-deadline-if-done t)
 (setq org-src-window-setup 'current-window)
 (setq org-time-stamp-rounding-minutes '(1 1))
+(setq org-clock-persist 'clock)
+
+(org-clock-persistence-insinuate)
 
 (add-to-list 'org-link-frame-setup '(file . find-file))
 
@@ -559,11 +562,12 @@ Revert all the buffers in the current project.
 #+END_SRC
 ** Org Set Property
 #+BEGIN_SRC emacs-lisp
-(defun leslie/org-set-property (property)
+(defun leslie/org-set-property (property &optional val)
   (interactive)
   (let* ((current-value (org-entry-get nil property))
-         (value (read-string (format "Set property %s: " property)
-                             current-value)))
+         (value (cond (val val)
+                      (t (read-string (format "Set property %s: " property)
+                                      current-value)))))
     (org-entry-put nil property value)))
 #+END_SRC
 ** Org file reference
@@ -1067,6 +1071,14 @@ has no effect."
       (set-window-configuration prev-window-configuration)
       (switch-to-buffer vc-buffer))))
 #+END_SRC
+** Org agenda setup
+#+BEGIN_SRC emacs-lisp
+(defun leslie/setup-agenda-view()
+  (interactive)
+  (leslie/alias-org-agenda-tasks)
+  (split-window-right)
+  (leslie/alias-org-agenda-agenda))
+#+END_SRC
 * Local variables
 ** Safe Local Eval Aliases
 #+BEGIN_SRC emacs-lisp
@@ -1460,9 +1472,8 @@ To keep the code nice and clean.
 
 (defun leslie/alias-org-force-publish () (interactive) (org-publish-current-project t))
 
-(defun leslie/alias-org-set-property-category () (interactive) (leslie/org-set-property "CATEGORY"))
-
-(defun leslie/alias-org-agenda-n () (interactive) (org-agenda nil "n"))
+(defun leslie/alias-org-agenda-agenda () (interactive) (org-agenda nil "A"))
+(defun leslie/alias-org-agenda-tasks () (interactive) (org-agenda nil "T"))
 
 (defun leslie/alias-sh-cmd-whole-buffer () (interactive) (leslie/sh-cmd nil t nil))
 (defun leslie/alias-sh-cmd-split-lines () (interactive) (leslie/sh-cmd nil nil t))
@@ -1864,8 +1875,10 @@ Simply send M-f instead
 (leslie/p4 "]"    'org-next-link                        "next link"                           'org-mode-map)
 (leslie/p4 "["    'org-previous-link                    "previous link"                       'org-agenda-mode-map)
 (leslie/p4 "]"    'org-next-link                        "next link"                           'org-agenda-mode-map)
-(leslie/p4 "a"    'leslie/alias-org-agenda-n            "agenda")
-(leslie/p4 "b a"  'leslie/alias-org-agenda-n            "agenda")
+(leslie/p4 "a"    'nil                                  "org-agenda")
+(leslie/p4 "a a"  'leslie/alias-org-agenda-agenda       "agenda")
+(leslie/p4 "a t"  'leslie/alias-org-agenda-tasks        "tasks")
+(leslie/p4 "a s"  'leslie/setup-agenda-view             "setup agenda view")
 (leslie/p4 "b c"  'leslie/open-calendar                 "calendar")
 (leslie/p4 "b i"  'leslie/open-inbox                    "inbox")
 (leslie/p4 "b r"  'leslie/open-read                     "read")
@@ -1893,9 +1906,8 @@ Simply send M-f instead
 (leslie/p4 "m"    'org-archive-subtree-default          "archive"                             'org-mode-map)
 (leslie/p4 "n"    'org-capture                          "org capture")
 (leslie/p4 "o"    'org-clock-out                        "clock out"                           'org-mode-map)
-(leslie/p4 "p c"  'leslie/alias-org-set-property-category "set category"                      'org-mode-map)
 (leslie/p4 "p d"  'org-deadline                         "deadline"                            'org-mode-map)
-(leslie/p4 "p p"  'org-set-property                     "set property (free)"                 'org-mode-map)
+(leslie/p4 "p p"  'org-set-property                     "set property"                        'org-mode-map)
 (leslie/p4 "p s"  'org-schedule                         "schedule"                            'org-mode-map)
 (leslie/p4 "p t"  'org-set-tags-command                 "set tags"                            'org-mode-map)
 (leslie/p4 "p"    'nil                                  "property"                            'org-mode-map)

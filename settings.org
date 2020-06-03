@@ -31,9 +31,7 @@ Settings that only work on my home computer. They will probably break other setu
 ;; inbox.org is for timekeeping purposes
 (setq org-agenda-files '("~/pims/inbox.org"
                          "~/pims/todo.org"
-                         "~/pims/.todo.org_archive"
-                         "~/pims/calendar.org"
-                         "~/pims/.calendar.org_archive"))
+                         "~/pims/calendar.org"))
 
 ;; Cortex
 (setq leslie/cortex/directory "~/pims/cortex")
@@ -41,16 +39,18 @@ Settings that only work on my home computer. They will probably break other setu
 
 ;; Link abbreviations
 (setq org-link-abbrev-alist
-      '(("cortex" . "file:~/pims/cortex/%s.org")
-        ("pims"   . "file:~/pims/%s")
-        ("google" . "http://www.google.com/search?q=")))
+      '(("cortex"  . "file:~/pims/cortex/%s.org")
+        ("pims"    . "file:~/pims/%s")
+        ("l.wiki"  . "http://billy/search?content=wikipedia_en_all_maxi&pattern=%s")
+        ("l.emacs" . "http://billy/search?content=emacs.stackexchange.com_en_all&patten=%s")
+        ("google"  . "http://www.google.com/search?q=")))
 
 
 ;; Set refile targets
 (setq leslie/org-reference-directory "~/pims/cortex/reference")
 (setq org-refile-allow-creating-parent-nodes 'confirm)
 (setq org-refile-use-outline-path 'file)
-(setq org-refile-targets '(("~/pims/todo.org" :level . 0)
+(setq org-refile-targets '(("~/pims/todo.org" :level . 1)
                            ("~/pims/someday.org" :level . 1)
                            ("~/pims/calendar.org" :level . 1)
                            ("~/pims/read.org" :level . 1)))
@@ -61,10 +61,11 @@ Settings that only work on my home computer. They will probably break other setu
 
 ;; Custom agenda commants
 (setq org-agenda-custom-commands
-      '(("n" "NEXT" ((agenda "")
-                     (tags-todo "STYLE=\"habit\"" ((org-agenda-overriding-header "Habits")))
-                     (tags "+TODO=\"NEXT\"" ((org-agenda-overriding-header "Next")))
-                     (tags "+TODO=\"WAIT\"" ((org-agenda-overriding-header "Wait")))))))
+      '(("A" "Agenda" ((agenda "")))
+        ("T" "Tasks" ((tags-todo "STYLE=\"habit\"" ((org-agenda-overriding-header "Habits")))
+                      (tags "STYLE=\"timebucket\"" ((org-agenda-overriding-header "Time Buckets")))
+                      (tags "+TODO=\"NEXT\"" ((org-agenda-overriding-header "Next")))
+                      (tags "+TODO=\"WAIT\"" ((org-agenda-overriding-header "Wait")))))))
 
 (setq org-agenda-sorting-strategy '((tags tag-up)
                                     (agenda habit-down time-up priority-down category-keep)
@@ -86,6 +87,14 @@ Settings that only work on my home computer. They will probably break other setu
         ("b" "Microblog" ;; I don't know if this works
          entry (file+datetree "~/pims/microblog.org")
          "*%U\n%?\n")))
+
+(setq org-agenda-prefix-format '((agenda . " %i %-30:c%?-12t% s")
+                                 (timeline . "  % s")
+                                 (todo . " %i %-30:c")
+                                 (tags . " %i %-30:c")
+                                 (search . " %i %-30:c")))
+(setq org-agenda-tags-column -120)
+(setq org-habit-graph-column 91)
 
 ;; Functions to open org files
 (defun leslie/open-inbox    () (interactive) (find-file "~/pims/inbox.org"))
