@@ -80,9 +80,10 @@ Highlights:
 (setq org-agenda-skip-deadline-if-done t)
 (setq org-src-window-setup 'current-window)
 (setq org-time-stamp-rounding-minutes '(1 1))
-(setq org-clock-persist 'clock)
+(setq org-clock-out-when-done nil)
 
-(org-clock-persistence-insinuate)
+;(setq org-clock-persist 'clock)
+;(org-clock-persistence-insinuate)
 
 (add-to-list 'org-link-frame-setup '(file . find-file))
 
@@ -1079,6 +1080,44 @@ has no effect."
   (split-window-right)
   (leslie/alias-org-agenda-agenda))
 #+END_SRC
+** Org agenda templates
+#+BEGIN_SRC emacs-lisp
+(setq leslie/org-template-alist
+      '(("Is this useful?" . "*Is this useful?*
+/What do you think you could use it for?/
+
+/What does it do?/
+")
+        ("Does this fix my issue?" . "*Does this fix my issue?*
+/What issue could this solve?/
+
+/What features does this have?/
+
+/How could such features solve your problem?/")))
+
+(defun leslie/org-template-insert ()
+  (interactive)
+  (let ((template (completing-read "Template: "
+                                   leslie/org-template-alist)))
+    (insert (cdr (assoc template leslie/org-template-alist)))))
+
+(message "%s" leslie/org-template-alist)
+#+END_SRC
+** Org sort headlines
+Sorts the level 0 headlines by todo state
+#+BEGIN_SRC emacs-lisp
+(defun leslie/org-hide-all ()
+  (interactive)
+  (org-map-entries
+   (lambda () (outline-hide-subtree))
+   nil 'file))
+
+(defun leslie/org-sort-headlines ()
+  (interactive)
+  (mark-whole-buffer)
+  (org-sort-entries nil ?o)
+  (leslie/org-hide-all))
+#+END_SRC
 * Local variables
 ** Safe Local Eval Aliases
 #+BEGIN_SRC emacs-lisp
@@ -1740,7 +1779,7 @@ Simply send M-f instead
 (leslie/p1 "e aa" 'erlang-align-arrows                  "align arrows"                        'erlang-mode-map)
 (leslie/p1 "e ah" 'leslie/align-once-head               "regex ahead of match")
 (leslie/p1 "e at" 'leslie/align-once-tail               "regex to tail of match")
-(leslie/p1 "e c"  'ispell                               "spell check")
+(leslie/p1 "e c"  'dabbrev-completion                   "dabbrev completion")
 (leslie/p1 "e d"  'erlang-clone-arguments               "duplicate arguments"                 'erlang-mode-map)
 (leslie/p1 "e f"  'nil                                  "formatting")
 (leslie/p1 "e fb" 'json-mode-beautify                   "json beautify"                       'json-mode-map)
@@ -1892,6 +1931,8 @@ Simply send M-f instead
 (leslie/p4 "c n"  'leslie/cortex/create-file            "create cortex file")
 (leslie/p4 "c r"  'leslie/cortex/rename-slide           "rename slide"                        'org-mode-map)
 (leslie/p4 "c"    'nil                                  "cortex"                              'org-mode-map)
+(leslie/p4 "e"    'nil                                  "org edit"                            'org-mode-map)
+(leslie/p4 "e s"  'leslie/org-sort-headlines            "sort headlines"                      'org-mode-map)
 (leslie/p4 "f m"  'leslie/org-file-reference            "file reference"                      'org-mode-map)
 (leslie/p4 "f m"  'leslie/org-file-reference            "file reference"                      'org-mode-map)
 (leslie/p4 "f p"  'leslie/pims/set-project              "set as project"                      'org-mode-map)
@@ -1924,6 +1965,7 @@ Simply send M-f instead
 (leslie/p4 "v c"  'leslie/insert-created-timestamp      "created date"                        'org-mode-map)
 (leslie/p4 "v d"  'org-time-stamp                       "time stamp"                          'org-mode-map)
 (leslie/p4 "v p"  'counsel-yank-pop                     "paste selector")
+(leslie/p4 "v t"  'leslie/org-template-insert           "template"                            'org-mode-map)
 (leslie/p4 "v"    'nil                                  "insert items"                        'org-mode-map)
 (leslie/p4 "x"    'nil                                  "none")
 (leslie/p4 "x"    'org-toggle-checkbox                  "toggle checkbox"                     'org-mode-map)
