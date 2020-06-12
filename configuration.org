@@ -31,7 +31,6 @@
 (setq-default indent-tabs-mode nil) ; don't insert tabs
 (setq-default tab-width 4) ; self-documenting
 (setq indent-line-function 'insert-tab)
-(setq comment-column 2)
 #+END_SRC
 
 ** Backup and autosave locations
@@ -73,6 +72,8 @@ Highlights:
 (setq org-hide-leading-stars t)
 (setq org-edit-src-content-indentation 0)
 (setq org-clock-into-drawer t)
+(setq org-use-property-inheritance t)
+(setq org-clock-mode-line-total 'current)
 (setq org-agenda-window-setup 'current-window)
 (setq org-agenda-sticky t)
 (setq org-log-done 'time)
@@ -899,6 +900,38 @@ The new slide is created with an incremented index."
       (org-mode)
       (org-entry-put nil "Index" index)
       (write-file abs-filepath))))
+
+(defun leslie/cortex/list-reference-files ()
+  (mapcar (lambda (file)
+            (replace-regexp-in-string (regexp-quote (expand-file-name leslie/cortex/reference-directory))
+                                      "" file))
+          (directory-files-recursively leslie/cortex/reference-directory "")))
+
+(defun leslie/cortex/reference-completing-read (&optional initial-input)
+  (completing-read "Reference: "
+                   (leslie/cortex/list-reference-files)
+                   nil nil initial-input))
+
+(defun leslie/cortex/find-reference ()
+  (interactive)
+  (let* ((filepath (leslie/cortex/reference-completing-read))
+         (full-filepath (concat (expand-file-name leslie/cortex/reference-directory) filepath)))
+    (leslie/ensure-file full-filepath)
+    (find-file full-filepath)))
+
+(defun leslie/cortex/insert-reference-link ()
+  (interactive)
+  (let* ((filepath (leslie/cortex/reference-completing-read))
+         (description (read-string "Description: " (concat "Ref: " filepath)))
+         (org-link (concat "ref:" filepath))
+         (full-filepath (concat (expand-file-name leslie/cortex/reference-directory) filepath)))
+    (leslie/ensure-file full-filepath)
+    (insert (org-make-link-string org-link description))))
+
+(defun leslie/ensure-file (filepath)
+  (unless (file-exists-p full-filepath)
+    (make-directory (file-name-directory full-filepath) t)
+    (write-region "" nil full-filepath)))
 #+END_SRC
 
 ** Surround
@@ -1934,7 +1967,6 @@ Simply send M-f instead
 (leslie/p4 "e"    'nil                                  "org edit"                            'org-mode-map)
 (leslie/p4 "e s"  'leslie/org-sort-headlines            "sort headlines"                      'org-mode-map)
 (leslie/p4 "f m"  'leslie/org-file-reference            "file reference"                      'org-mode-map)
-(leslie/p4 "f m"  'leslie/org-file-reference            "file reference"                      'org-mode-map)
 (leslie/p4 "f p"  'leslie/pims/set-project              "set as project"                      'org-mode-map)
 (leslie/p4 "f r"  'org-refile                           "org refile"                          'org-mode-map)
 (leslie/p4 "f t"  'leslie/pims/set-todo                 "set as todo"                         'org-mode-map)
@@ -1952,6 +1984,9 @@ Simply send M-f instead
 (leslie/p4 "p s"  'org-schedule                         "schedule"                            'org-mode-map)
 (leslie/p4 "p t"  'org-set-tags-command                 "set tags"                            'org-mode-map)
 (leslie/p4 "p"    'nil                                  "property"                            'org-mode-map)
+(leslie/p4 "r"    'nil                                  "references"                          'org-mode-map)
+(leslie/p4 "r f"  'leslie/cortex/find-reference         "find reference")
+(leslie/p4 "r l"  'leslie/cortex/insert-reference-link  "insert reference link"               'org-mode-map)
 (leslie/p4 "t c"  'org-table-create-or-convert-from-region "create / convert table"           'org-mode-map)
 (leslie/p4 "t d"  'nil                                  "delete"                              'org-mode-map)
 (leslie/p4 "t dc" 'org-table-delete-column              "delete column"                       'org-mode-map)

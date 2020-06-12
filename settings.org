@@ -45,6 +45,7 @@ Settings that only work on my home computer. They will probably break other setu
 
 ;; Cortex
 (setq leslie/cortex/directory "~/pims/cortex")
+(setq leslie/cortex/reference-directory "~/pims/cortex/reference/")
 (setq leslie/cortex/max-file-preview 200)
 
 ;; Link abbreviations
