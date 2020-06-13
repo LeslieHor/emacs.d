@@ -43,6 +43,10 @@ Settings that only work on my home computer. They will probably break other setu
                          "~/pims/todo.org"
                          "~/pims/calendar.org"))
 
+(setq org-agenda-start-day "-7d")
+(setq org-agenda-start-on-weekday 1)
+(setq org-agenda-span 35)
+
 ;; Cortex
 (setq leslie/cortex/directory "~/pims/cortex")
 (setq leslie/cortex/reference-directory "~/pims/cortex/reference/")

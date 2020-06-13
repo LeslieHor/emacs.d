@@ -193,6 +193,12 @@ Set up nice fonts
                     :background "black")
 #+END_SRC
 
+* Enable disabled commands
+
+#+BEGIN_SRC emacs-lisp
+(put 'narrow-to-region 'disabled nil)
+#+END_SRC
+
 * Custom Functions
 ** Helper Functions
 #+BEGIN_SRC emacs-lisp
@@ -626,10 +632,10 @@ Revert all the buffers in the current project.
 #+END_SRC
 ** Cortex
 #+BEGIN_SRC emacs-lisp
-(defun leslie/cortex/create-file ()
+(defun leslie/cortex/create-file (&optional initial-title)
   "Create a new cortex file"
   (interactive)
-  (let* ((title (read-string "Title: "))
+  (let* ((title (read-string "Title: " initial-title))
          (id (leslie/cortex/create-new-file title)))
     (find-file (leslie/cortex/expand-filepath id))
     (goto-char (point-max))))
@@ -855,8 +861,13 @@ description"
 (defun leslie/cortex/search-slides ()
   "Search all slides and open"
   (interactive)
-  (find-file (leslie/cortex/expand-filepath
-              (car (leslie/cortex/interactive-slide-picker)))))
+  (let* ((search-term (leslie/cortex/interactive-slide-picker))
+         (filepath (leslie/cortex/expand-filepath (car search-term))))
+    (cond ((not (file-exists-p filepath))
+           (message "Slide does not exist. Creating")
+           (leslie/cortex/create-file (cdr search-term)))
+          (t
+           (find-file filepath)))))
 
 (defun leslie/cortex/continue ()
   "Creates a continue link at the bottom of the current slide.
@@ -1150,6 +1161,29 @@ Sorts the level 0 headlines by todo state
   (mark-whole-buffer)
   (org-sort-entries nil ?o)
   (leslie/org-hide-all))
+#+END_SRC
+** Bash history
+#+BEGIN_SRC emacs-lisp
+(defun leslie/bash-history ()
+  (reverse
+   (remove-if (lambda (string) (string-match-p "^#[0-9]*$" string))
+              (split-string
+               (with-temp-buffer
+                 (insert-file-contents "~/.bash_history")
+                 (buffer-substring-no-properties (point-min) (point-max)))
+               "\n" t))))
+
+(defun leslie/bash-history-search()
+  (interactive)
+  (if (string-equal major-mode "term-mode")
+      (progn
+        (let* (;; Hacky fix for ivy sorting. Does not work with default
+               ;; completing-read function
+               (ivy-sort-functions-alist nil)
+               (string (completing-read "History: " (leslie/bash-history))))
+          (term-send-raw-string string)
+          (term-send-raw-string "\n")))
+    (message "Not in term-mode")))
 #+END_SRC
 * Local variables
 ** Safe Local Eval Aliases
@@ -1712,7 +1746,8 @@ Already built-in.
 
 *** C-r - Search history
 #+BEGIN_SRC emacs-lisp
-(evil-define-key 'insert term-raw-map (kbd "C-r") 'term-send-raw)
+;(evil-define-key 'insert term-raw-map (kbd "C-r") 'term-send-raw)
+(evil-define-key 'insert term-raw-map (kbd "C-r") 'leslie/bash-history-search)
 #+END_SRC
 
 *** C-<backspace> - Delete prevous word
