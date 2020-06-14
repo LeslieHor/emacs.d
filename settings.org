@@ -48,9 +48,9 @@ Settings that only work on my home computer. They will probably break other setu
 (setq org-agenda-span 35)
 
 ;; Cortex
-(setq leslie/cortex/directory "~/pims/cortex")
-(setq leslie/cortex/reference-directory "~/pims/cortex/reference/")
-(setq leslie/cortex/max-file-preview 200)
+(setq circ/cortex/directory "~/pims/cortex")
+(setq circ/cortex/reference-directory "~/pims/cortex/reference/")
+(setq circ/cortex/max-file-preview 200)
 
 ;; Link abbreviations
 (setq org-link-abbrev-alist
@@ -64,7 +64,7 @@ Settings that only work on my home computer. They will probably break other setu
 
 
 ;; Set refile targets
-(setq leslie/org-reference-directory "~/pims/cortex/reference")
+(setq circ/org-reference-directory "~/pims/cortex/reference")
 (setq org-refile-allow-creating-parent-nodes 'confirm)
 (setq org-refile-use-outline-path 'file)
 (setq org-refile-targets '(("~/pims/todo.org" :level . 1)
@@ -82,9 +82,11 @@ Settings that only work on my home computer. They will probably break other setu
         ("T" "Tasks" ((tags-todo "STYLE=\"habit\"" ((org-agenda-overriding-header
                                                      "Habits\nBlue:   Not to be done          !: Today\nGreen:  Could have been done    *: Done that day\nYellow: Overdue the next day\nRed:    Overdue that day                                                                       Today V")))
                       (tags "STYLE=\"timebucket\"" ((org-agenda-overriding-header "Time Buckets")))
+                      (tags "+TODO=\"PROJECT\"&+CATEGORY=\"todo\"" ((org-agenda-overriding-header "Projects Without Category")))
                       (tags "+TODO=\"INPROGRESS\"" ((org-agenda-overriding-header "In Progress")))
                       (tags "+TODO=\"NEXT\"" ((org-agenda-overriding-header "Next")))
-                      (tags "+TODO=\"WAIT\"" ((org-agenda-overriding-header "Wait")))))))
+                      (tags "+TODO=\"WAIT\"" ((org-agenda-overriding-header "Wait")))))
+        ("x" "x" ((tags-todo "+TODO=\"PROJECT\"")))))
 
 (setq org-agenda-sorting-strategy '((tags tag-up)
                                     (agenda habit-down time-up priority-down category-keep)
@@ -116,17 +118,17 @@ Settings that only work on my home computer. They will probably break other setu
 (setq org-habit-graph-column 80)
 
 ;; Functions to open org files
-(defun leslie/open-inbox    () (interactive) (find-file "~/pims/inbox.org"))
-(defun leslie/open-todo     () (interactive) (find-file "~/pims/todo.org"))
-(defun leslie/open-calendar () (interactive) (find-file "~/pims/calendar.org"))
-(defun leslie/open-someday  () (interactive) (find-file "~/pims/someday.org"))
-(defun leslie/open-read     () (interactive) (find-file "~/pims/read.org"))
+(defun circ/open-inbox    () (interactive) (find-file "~/pims/inbox.org"))
+(defun circ/open-todo     () (interactive) (find-file "~/pims/todo.org"))
+(defun circ/open-calendar () (interactive) (find-file "~/pims/calendar.org"))
+(defun circ/open-someday  () (interactive) (find-file "~/pims/someday.org"))
+(defun circ/open-read     () (interactive) (find-file "~/pims/read.org"))
 
 ;; Stuck projects search
 (setq org-stuck-projects '("/PROJECT" ("NEXT" "WAIT" "INPROGRESS") nil ""))
 
 ;; Automate filing process
-(defun leslie/pims/set-todo ()
+(defun circ/pims/set-todo ()
   "Convert item under point into todo item"
   (interactive)
   (org-todo "NEXT")
@@ -134,7 +136,7 @@ Settings that only work on my home computer. They will probably break other setu
   (org-refile nil nil '(nil "~/pims/todo.org" nil nil))
   (org-save-all-org-buffers))
 
-(defun leslie/pims/set-project ()
+(defun circ/pims/set-project ()
   "Convert item under point into project. Requires refiling to project after"
   (interactive)
   (let ((project-heading (read-string "Project Heading: "))

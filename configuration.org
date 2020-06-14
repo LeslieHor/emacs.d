@@ -127,7 +127,7 @@ Line wrap mode
 
 Fix the =\emsp= bug in clock tables.
 #+BEGIN_SRC emacs-lisp
-(defun leslie/org-clocktable-indent-string (level)
+(defun circ/org-clocktable-indent-string (level)
   (if (= level 1)
       ""
     (let ((str "^"))
@@ -137,7 +137,7 @@ Fix the =\emsp= bug in clock tables.
       (concat str "-> "))))
 
 (advice-add 'org-clocktable-indent-string :override
-            #'leslie/org-clocktable-indent-string)
+            #'circ/org-clocktable-indent-string)
 #+END_SRC
 
 ** Beautifying org-mode
@@ -197,18 +197,19 @@ Set up nice fonts
 
 #+BEGIN_SRC emacs-lisp
 (put 'narrow-to-region 'disabled nil)
+(setq safe-local-variable-values '((eval leslie/file-local-eval-safe-auto-revert)))
 #+END_SRC
 
 * Custom Functions
 ** Helper Functions
 #+BEGIN_SRC emacs-lisp
-(defun leslie/strip-last-newline (string)
+(defun circ/strip-last-newline (string)
   (replace-regexp-in-string "\n\\'" "" string))
 
-(defun leslie/escape-double-quotes (string)
+(defun circ/escape-double-quotes (string)
   (replace-regexp-in-string "\"" "\\\\\"" string))
 
-(defun leslie/strip-font-properties (string)
+(defun circ/strip-font-properties (string)
   (set-text-properties 0 (length string) nil string)
   string)
 #+END_SRC
@@ -217,7 +218,7 @@ Set up nice fonts
 Interative function to create a new instance of eshell.
 
 #+BEGIN_SRC emacs-lisp
-(defun leslie/eshell-new ()
+(defun circ/eshell-new ()
   "Open a new instance of eshell."
   (interactive)
   (eshell 'N))
@@ -227,7 +228,7 @@ Interative function to create a new instance of eshell.
 Transpose two buffers.
 
 #+BEGIN_SRC emacs-lisp
-(defun leslie/transpose-buffers (dir &optional arg)
+(defun circ/transpose-buffers (dir &optional arg)
   "Transpose the buffers in the current window and the target window
 If arg is non-nil, the selected window will change to keep the source buffer
 selected."
@@ -246,32 +247,32 @@ selected."
            (if arg
                (select-window target-window))))))
 
-(defun leslie/transpose-buffers-left (&optional arg)
+(defun circ/transpose-buffers-left (&optional arg)
     "Transpose buffers from current window to buffer to the left"
   (interactive)
-  (leslie/transpose-buffers 'left arg))
+  (circ/transpose-buffers 'left arg))
 
-(defun leslie/transpose-buffers-up (&optional arg)
+(defun circ/transpose-buffers-up (&optional arg)
     "Transpose buffers from current window to buffer above"
   (interactive)
-  (leslie/transpose-buffers 'up arg))
+  (circ/transpose-buffers 'up arg))
 
-(defun leslie/transpose-buffers-right (&optional arg)
+(defun circ/transpose-buffers-right (&optional arg)
     "Transpose buffers from current window to buffer to the right"
   (interactive)
-  (leslie/transpose-buffers 'right arg))
+  (circ/transpose-buffers 'right arg))
 
-(defun leslie/transpose-buffers-down (&optional arg)
+(defun circ/transpose-buffers-down (&optional arg)
     "Transpose buffers from current window to buffer below"
   (interactive)
-  (leslie/transpose-buffers 'down arg))
+  (circ/transpose-buffers 'down arg))
 #+END_SRC
 
 ** cast-buffer
 Send a buffer to another window.
 
 #+BEGIN_SRC emacs-lisp
-(defun leslie/cast-buffer (dir &optional arg)
+(defun circ/cast-buffer (dir &optional arg)
   "Casts the current buffer to window in direction dir, and switches current
 window back to last buffer.
 If arg is non-nil, the targetted window is selected."
@@ -288,32 +289,32 @@ If arg is non-nil, the targetted window is selected."
            (if arg
                (select-window target-window))))))
 
-(defun leslie/cast-buffer-left (&optional arg)
+(defun circ/cast-buffer-left (&optional arg)
   "Cast current buffer to the left"
   (interactive)
-  (leslie/cast-buffer 'left arg))
+  (circ/cast-buffer 'left arg))
 
-(defun leslie/cast-buffer-up (&optional arg)
+(defun circ/cast-buffer-up (&optional arg)
   "Cast current buffer up"
   (interactive)
-  (leslie/cast-buffer 'up arg))
+  (circ/cast-buffer 'up arg))
 
-(defun leslie/cast-buffer-right (&optional arg)
+(defun circ/cast-buffer-right (&optional arg)
   "Cast current buffer to the right"
   (interactive)
-  (leslie/cast-buffer 'right arg))
+  (circ/cast-buffer 'right arg))
 
-(defun leslie/cast-buffer-down (&optional arg)
+(defun circ/cast-buffer-down (&optional arg)
   "Cast current buffer down"
   (interactive)
-  (leslie/cast-buffer 'down arg))
+  (circ/cast-buffer 'down arg))
 #+END_SRC
 
 ** duplicate-buffer
 Open buffer in another window.
 
 #+BEGIN_SRC emacs-lisp
-(defun leslie/duplicate-buffer (dir &optional arg)
+(defun circ/duplicate-buffer (dir &optional arg)
   "Opens the current buffer in the window in the direction dir
 If arg is non-nil, the targeted window is selected"
   (let ((target-window (windmove-find-other-window dir))
@@ -328,25 +329,25 @@ If arg is non-nil, the targeted window is selected"
            (if arg
                (select-window target-window))))))
 
-(defun leslie/duplicate-buffer-left (&optional arg)
+(defun circ/duplicate-buffer-left (&optional arg)
   "Cast current buffer to the left"
   (interactive)
-  (leslie/duplicate-buffer 'left arg))
+  (circ/duplicate-buffer 'left arg))
 
-(defun leslie/duplicate-buffer-up (&optional arg)
+(defun circ/duplicate-buffer-up (&optional arg)
   "Cast current buffer up"
   (interactive)
-  (leslie/duplicate-buffer 'up arg))
+  (circ/duplicate-buffer 'up arg))
 
-(defun leslie/duplicate-buffer-right (&optional arg)
+(defun circ/duplicate-buffer-right (&optional arg)
   "Cast current buffer to the right"
   (interactive)
-  (leslie/duplicate-buffer 'right arg))
+  (circ/duplicate-buffer 'right arg))
 
-(defun leslie/duplicate-buffer-down (&optional arg)
+(defun circ/duplicate-buffer-down (&optional arg)
   "Cast current buffer down"
   (interactive)
-  (leslie/duplicate-buffer 'down arg))
+  (circ/duplicate-buffer 'down arg))
 #+END_SRC
 
 ** regenerate-tags
@@ -354,7 +355,7 @@ Regenerate tags using a command defined in the project root under the =.emacs=
 directory.
 
 #+BEGIN_SRC emacs-lisp
-(defun leslie/regenerate-tags ()
+(defun circ/regenerate-tags ()
   "use the generate-tags script in the project root to generate tags"
   (interactive)
   (cond ((projectile-project-root)
@@ -374,7 +375,7 @@ Opens a konsole in the current project root. If not in project, opens it in the
 current directory.
 
 #+BEGIN_SRC emacs-lisp
-(defun leslie/open-terminal-in-workdir ()
+(defun circ/open-terminal-in-workdir ()
  "Opens a terminal in the project root.
 If not in a project, opens it in the current directory."
  (interactive)
@@ -389,7 +390,7 @@ If not in a project, opens it in the current directory."
 Toggle on and off whitespace trailing mode
 
 #+BEGIN_SRC emacs-lisp
-(defun leslie/toggle-whitespace-full ()
+(defun circ/toggle-whitespace-full ()
   "toggle display of more whitespace"
   (interactive)
   (whitespace-toggle-options '(lines-tail)))
@@ -397,25 +398,25 @@ Toggle on and off whitespace trailing mode
 
 ** alignment functions
 #+BEGIN_SRC emacs-lisp
-(defun leslie/align-once-head (start end regexp)
+(defun circ/align-once-head (start end regexp)
   "Align by regex once, adding spaces to the head of the regexp"
   (interactive "r\nsAlign once head regexp: ")
   (align-regexp start end
                 (concat "\\(\\s-*\\)" regexp) 1 1 nil))
 
-(defun leslie/align-once-tail (start end regexp)
+(defun circ/align-once-tail (start end regexp)
   "Align by regex once, adding spaces to the tail of the regexp"
   (interactive "r\nsAlign once tail regexp: ")
   (align-regexp start end
                 (concat regexp "\\(\\s-*\\)") 1 1 nil))
 
-(defun leslie/align-repeat-head (start end regexp)
+(defun circ/align-repeat-head (start end regexp)
   "Align by regex repeatedly, adding spaces to the head of the regexp"
   (interactive "r\nsAlign repeat head regexp: ")
   (align-regexp start end
                 (concat "\\(\\s-*\\)" regexp) 1 1 t))
 
-(defun leslie/align-repeat-tail (start end regexp)
+(defun circ/align-repeat-tail (start end regexp)
   "Align by regex repeatedly, adding spaces to the tail of the regexp"
   (interactive "r\nsAlign repeat tail regexp: ")
   (align-regexp start end
@@ -426,7 +427,7 @@ Toggle on and off whitespace trailing mode
 Some extra functions to aid in opening files
 
 #+BEGIN_SRC emacs-lisp
-(defun leslie/find-file-line (filename linenum)
+(defun circ/find-file-line (filename linenum)
   "invoke function find-file and goto-line"
   (find-file filename)
   (goto-line linenum))
@@ -436,7 +437,7 @@ The =find-file-line= function expects two args. We just therefore parse any
 FILENAME:LINENUMBER string that it uses.
 
 #+BEGIN_SRC emacs-lisp
-(defun leslie/parse-file-special-syntax (file-string)
+(defun circ/parse-file-special-syntax (file-string)
   "parses the format FILENAME:LINENUMBER"
   (let* ((file-list (split-string file-string ":"))
          (filename (car file-list))
@@ -447,7 +448,7 @@ FILENAME:LINENUMBER string that it uses.
 We also want the ability to parse dirty file paths.
 
 #+BEGIN_SRC emacs-lisp
-(defun leslie/clean-file-path (file-string)
+(defun circ/clean-file-path (file-string)
   "cleans the file path"
   (replace-regexp-in-string
    "^.*:[0-9]*\\(.*\\)$"
@@ -459,11 +460,11 @@ We also want the ability to parse dirty file paths.
 Plus we need a function to tie it all together.
 
 #+BEGIN_SRC emacs-lisp
-(defun leslie/find-file-special-syntax (file-string)
+(defun circ/find-file-special-syntax (file-string)
   "opens special syntax"
-  (apply 'leslie/find-file-line
-         (leslie/parse-file-special-syntax
-          (leslie/clean-file-path file-string))))
+  (apply 'circ/find-file-line
+         (circ/parse-file-special-syntax
+          (circ/clean-file-path file-string))))
 #+END_SRC
 
 ** open-in-intellij
@@ -475,7 +476,7 @@ emacsclient -n +$LINENUMBER$:$COLUMN$ $FILE$
 #+END_SRC
 
 #+BEGIN_SRC emacs-lisp
-(defun leslie/open-in-intellij ()
+(defun circ/open-in-intellij ()
   "Open the current file + line in intellij"
   (interactive)
   (let* ((file (buffer-file-name))
@@ -497,7 +498,7 @@ FILENAME:40can also be dirty
 #+END_EXAMPLE
 
 #+BEGIN_SRC emacs-lisp
-(defun leslie/check-project ()
+(defun circ/check-project ()
   "run .emacs/check-project and put results in ivy-read"
   (interactive)
   (cond ((projectile-project-root)
@@ -509,7 +510,7 @@ FILENAME:40can also be dirty
            (cond ((> (length result) 0)
                   (completing-read "Check project results: "
                                    (split-string result "\n")
-                                   :action 'leslie/find-file-special-syntax))
+                                   :action 'circ/find-file-special-syntax))
                  (t
                   (user-error "Check complete")))))
         (t
@@ -520,7 +521,7 @@ FILENAME:40can also be dirty
 Show the full file path as a message
 
 #+BEGIN_SRC emacs-lisp
-(defun leslie/show-file-path ()
+(defun circ/show-file-path ()
   "Show full file path as a message"
   (interactive)
   (if buffer-file-name
@@ -532,7 +533,7 @@ Show the full file path as a message
 Clear the buffer, but with special cases for certain major modes.
 
 #+BEGIN_SRC emacs-lisp
-(defun leslie/smart-clear-buffer ()
+(defun circ/smart-clear-buffer ()
   "Clear the current buffer. term-mode requires different command to clear."
   (interactive)
   (case major-mode
@@ -544,7 +545,7 @@ Clear the buffer, but with special cases for certain major modes.
 Revert all the buffers in the current project.
 
 #+BEGIN_SRC emacs-lisp
-(defun leslie/revert-project-buffers ()
+(defun circ/revert-project-buffers ()
   (interactive)
   (let* ((project (projectile-ensure-project (projectile-project-root)))
          (project-buffers (projectile-project-buffers project))
@@ -557,7 +558,7 @@ Revert all the buffers in the current project.
 #+END_SRC
 ** Save all project buffers
 #+BEGIN_SRC emacs-lisp
-(defun leslie/save-project-buffers ()
+(defun circ/save-project-buffers ()
   (interactive)
   (let* ((project (projectile-ensure-project (projectile-project-root)))
          (project-buffers (projectile-project-buffers project))
@@ -570,7 +571,7 @@ Revert all the buffers in the current project.
 #+END_SRC
 ** Org Set Property
 #+BEGIN_SRC emacs-lisp
-(defun leslie/org-set-property (property &optional val)
+(defun circ/org-set-property (property &optional val)
   (interactive)
   (let* ((current-value (org-entry-get nil property))
          (value (cond (val val)
@@ -580,19 +581,19 @@ Revert all the buffers in the current project.
 #+END_SRC
 ** Org file reference
 #+BEGIN_SRC emacs-lisp
-(defun leslie/org-file-reference ()
+(defun circ/org-file-reference ()
   (interactive)
   (let* ((target-file (expand-file-name
                        (completing-read "File reference (C-M-j to done): "
                                         (mapcar (lambda (filepath)
                                                   (file-relative-name
                                                    filepath
-                                                   leslie/org-reference-directory))
+                                                   circ/org-reference-directory))
                                                 (directory-files-recursively
-                                                 leslie/org-reference-directory
+                                                 circ/org-reference-directory
                                                  ".*\.org"
                                                  nil)))
-                       leslie/org-reference-directory))
+                       circ/org-reference-directory))
          (org-heading (org-get-heading)))
     (org-back-to-heading)
     (org-cut-subtree)
@@ -613,51 +614,51 @@ Revert all the buffers in the current project.
 #+END_SRC
 ** Buffer yank paste
 #+BEGIN_SRC emacs-lisp
-(setq leslie/buffer-clipboard nil)
+(setq circ/buffer-clipboard nil)
 
-(defun leslie/buffer-yank ()
+(defun circ/buffer-yank ()
   (interactive)
-  (setq leslie/buffer-clipboard (current-buffer)))
+  (setq circ/buffer-clipboard (current-buffer)))
 
-(defun leslie/buffer-paste ()
+(defun circ/buffer-paste ()
   (interactive)
-  (when leslie/buffer-clipboard
-    (set-window-buffer (selected-window) leslie/buffer-clipboard)))
+  (when circ/buffer-clipboard
+    (set-window-buffer (selected-window) circ/buffer-clipboard)))
 #+END_SRC
 ** Kill buffer
 #+BEGIN_SRC emacs-lisp
-(defun leslie/kill-this-buffer ()
+(defun circ/kill-this-buffer ()
   (interactive)
   (kill-buffer (current-buffer)))
 #+END_SRC
 ** Cortex
 #+BEGIN_SRC emacs-lisp
-(defun leslie/cortex/create-file (&optional initial-title)
+(defun circ/cortex/create-file (&optional initial-title)
   "Create a new cortex file"
   (interactive)
   (let* ((title (read-string "Title: " initial-title))
-         (id (leslie/cortex/create-new-file title)))
-    (find-file (leslie/cortex/expand-filepath id))
+         (id (circ/cortex/create-new-file title)))
+    (find-file (circ/cortex/expand-filepath id))
     (goto-char (point-max))))
 
-(defun leslie/cortex/create-new-file (title)
-  (let ((new-id (leslie/cortex/new-id)))
-    (leslie/cortex/ensure-file new-id title)
+(defun circ/cortex/create-new-file (title)
+  (let ((new-id (circ/cortex/new-id)))
+    (circ/cortex/ensure-file new-id title)
     new-id))
 
-(defun leslie/cortex/get-ids ()
+(defun circ/cortex/get-ids ()
   (mapcar (lambda (file)
             (replace-regexp-in-string "\.org" "" file))
-          (directory-files leslie/cortex/directory nil "^[0-9]*\.org$")))
+          (directory-files circ/cortex/directory nil "^[0-9]*\.org$")))
 
-(defun leslie/cortex/get-title ()
+(defun circ/cortex/get-title ()
   (let ((point-location (point)))
     (goto-char (point-min))
     (re-search-forward "\* \\(.*\\)")
     (goto-char point-location)
     (match-string 1)))
 
-(defun leslie/cortex/get-entry ()
+(defun circ/cortex/get-entry ()
   (let ((point-location (point)))
     (goto-char (point-min))
     (let ((entry (cond ((re-search-forward ":END: *\n" nil t)
@@ -668,43 +669,43 @@ Revert all the buffers in the current project.
       (goto-char point-location)
       (replace-regexp-in-string "\\[cortex:[0-9]*\\]" "" entry))))
 
-(defun leslie/cortex/get-file-previews()
-  (let ((ids (leslie/cortex/get-ids)))
+(defun circ/cortex/get-file-previews()
+  (let ((ids (circ/cortex/get-ids)))
     (mapcar (lambda (id)
               (with-temp-buffer
-                (insert-file-contents (leslie/cortex/expand-filepath id))
+                (insert-file-contents (circ/cortex/expand-filepath id))
                 (concat (propertize id 'face '(:foreground "grey")) ": "
-                        (propertize (leslie/cortex/get-title) 'face '(:foreground "green")) "\n"
-                        (leslie/cortex/get-entry))))
+                        (propertize (circ/cortex/get-title) 'face '(:foreground "green")) "\n"
+                        (circ/cortex/get-entry))))
             ids)))
 
-(defun leslie/cortex/expand-filepath (id)
+(defun circ/cortex/expand-filepath (id)
   "Given an id, create the full cortex filepath"
-  (concat (file-name-as-directory leslie/cortex/directory)
+  (concat (file-name-as-directory circ/cortex/directory)
           id ".org"))
 
-(defun leslie/cortex/extract-id (filepath)
+(defun circ/cortex/extract-id (filepath)
   "Given a cortex filepath, return the id"
   (let ((filename (file-name-nondirectory filepath)))
     (string-match "^\\([0-9]*\\)\.org" filename)
     (match-string 1 filename)))
 
-(defun leslie/cortex/ensure-file (id &optional descr)
+(defun circ/cortex/ensure-file (id &optional descr)
   (let ((description (cond (descr descr)
                            (t "")))
-        (abs-filepath (leslie/cortex/expand-filepath id)))
-    (unless (file-exists-p (leslie/cortex/expand-filepath id))
+        (abs-filepath (circ/cortex/expand-filepath id)))
+    (unless (file-exists-p (circ/cortex/expand-filepath id))
       (write-region (format "* %s\n" (capitalize description)) nil
                     abs-filepath))))
 
-(defun leslie/cortex/format-link (id descr)
+(defun circ/cortex/format-link (id descr)
   (format "[[cortex:%s][%s]]" id descr))
 
-(defun leslie/cortex/add-backlink (id)
+(defun circ/cortex/add-backlink (id)
   "Adds a backlink to the slide ID that links to the currently visited slide"
   (let ((current-file (buffer-file-name))
         (current-heading (org-get-heading t t))
-        (abs-filepath (leslie/cortex/expand-filepath id)))
+        (abs-filepath (circ/cortex/expand-filepath id)))
     (with-temp-buffer
       (let ((file-buffer (get-file-buffer abs-filepath)))
         (insert-file-contents abs-filepath)
@@ -712,8 +713,8 @@ Revert all the buffers in the current project.
         (org-entry-put nil "Backlinks"
                        ;; Ensure we do not add a duplicate backlink
                        (let* ((backlinks (org-entry-get nil "Backlinks"))
-                              (link (leslie/cortex/format-link
-                                     (leslie/cortex/extract-id current-file)
+                              (link (circ/cortex/format-link
+                                     (circ/cortex/extract-id current-file)
                                      current-heading)))
                          (cond ((string-match-p (regexp-quote link)
                                                 (cond (backlinks backlinks)
@@ -724,10 +725,10 @@ Revert all the buffers in the current project.
                                       (t link))))))
         (write-file abs-filepath)))))
 
-(defun leslie/cortex/new-id ()
+(defun circ/cortex/new-id ()
   (format-time-string "%Y%m%d%H%M%S"))
 
-(defun leslie/cortex/interactive-slide-picker (&optional initial-input)
+(defun circ/cortex/interactive-slide-picker (&optional initial-input)
   "Prompts user to interactively pick a slide and returns the id and the
 description in a cons.
 
@@ -736,7 +737,7 @@ description in a cons.
 If no slide is found, a new id is generated and the search term is returned as
 the description"
   (let* ((result (completing-read "Cortex link (C-M-j to done): "
-                                  (leslie/cortex/get-file-previews)
+                                  (circ/cortex/get-file-previews)
                                   nil nil
                                   initial-input))
          (id (progn
@@ -756,18 +757,18 @@ the description"
     (message "ID: %s" id)
     (message "Des: %s" description)
 
-    (cons (cond ((file-exists-p (leslie/cortex/expand-filepath id)) id)
-                (t (leslie/cortex/new-id)))
+    (cons (cond ((file-exists-p (circ/cortex/expand-filepath id)) id)
+                (t (circ/cortex/new-id)))
           description)))
 
-(defun leslie/cortex/add-link (id description)
+(defun circ/cortex/add-link (id description)
   "Create a cortex link. If a region is highlighted, it is replaced with the
 generated link"
   (when (region-active-p)
     (delete-region (region-beginning) (region-end)))
-  (insert (leslie/cortex/format-link id description)))
+  (insert (circ/cortex/format-link id description)))
 
-(defun leslie/cortex/link (start end)
+(defun circ/cortex/link (start end)
   "Create a cortex link.
 
 When a region is highlighted, the initial search input is set to the highlighted
@@ -783,21 +784,21 @@ The targeted file is assigned a backlink for the original file the link was
 created from."
   (interactive "r")
   (let* ((initial-input (when (region-active-p)
-                               (leslie/strip-font-properties
+                               (circ/strip-font-properties
                                 (buffer-substring start end))))
-         (id-desc (leslie/cortex/interactive-slide-picker initial-input))
+         (id-desc (circ/cortex/interactive-slide-picker initial-input))
          (id (car id-desc))
          (desc (cdr id-desc))
          (description (read-string "Description: " (cond (initial-input initial-input)
                                                          (t desc)))))
 
     ;; Firstly, ensure that a target file exists with the proper heading
-    (leslie/cortex/ensure-file id desc)
-    (leslie/cortex/add-backlink id)
-    (leslie/cortex/add-link id description)
+    (circ/cortex/ensure-file id desc)
+    (circ/cortex/add-backlink id)
+    (circ/cortex/add-link id description)
     (save-buffer)))
 
-(defun leslie/cortex/get-all-links ()
+(defun circ/cortex/get-all-links ()
   "Returns all cortex links in the current file in a list of conses."
   (let ((point-location (point))) ; Save pointer to restore later
     ;; Go to the beginning of the buffer
@@ -816,23 +817,23 @@ created from."
       (goto-char point-location)
       (cl-remove-duplicates links :test #'equal))))
 
-(defun leslie/cortex/update-backlink (slide-id link-id old-desc new-desc)
+(defun circ/cortex/update-backlink (slide-id link-id old-desc new-desc)
   "For the slide of `slide-id`, update the backlink of `link-id` to update the
 description"
   (message "Updating cortex slide %s" slide-id)
   (with-temp-buffer
-    (let ((filepath (leslie/cortex/expand-filepath slide-id)))
+    (let ((filepath (circ/cortex/expand-filepath slide-id)))
       (insert-file-contents filepath)
       (org-mode)
       (let ((backlinks (org-entry-get nil "Backlinks")))
         (org-entry-put nil "Backlinks"
                        (replace-regexp-in-string
-                        (regexp-quote (leslie/cortex/format-link link-id old-desc))
-                        (leslie/cortex/format-link link-id new-desc)
+                        (regexp-quote (circ/cortex/format-link link-id old-desc))
+                        (circ/cortex/format-link link-id new-desc)
                         backlinks)))
       (write-file filepath))))
 
-(defun leslie/cortex/rename-current-title (new-title)
+(defun circ/cortex/rename-current-title (new-title)
   "Renames the title in the current slide"
   (let ((old-title (org-get-heading t t))
         (point-location (point))) ; Restore pointer later
@@ -842,34 +843,34 @@ description"
     (goto-char (- point-location (- (length old-title) (length new-title)))))
   (save-buffer))
 
-(defun leslie/cortex/get-current-id ()
-  (leslie/cortex/extract-id (buffer-file-name)))
+(defun circ/cortex/get-current-id ()
+  (circ/cortex/extract-id (buffer-file-name)))
 
-(defun leslie/cortex/rename-slide ()
+(defun circ/cortex/rename-slide ()
   "Rename the current slide and update the backlinks for any linked slides"
   (interactive)
-  (let* ((current-id (leslie/cortex/get-current-id))
+  (let* ((current-id (circ/cortex/get-current-id))
          (old-title (org-get-heading t t))
          (new-title (read-string "New title: " old-title)))
     (message "Changing %s to %s" old-title new-title)
-    (leslie/cortex/rename-current-title new-title)
-    (dolist (link (leslie/cortex/get-all-links))
+    (circ/cortex/rename-current-title new-title)
+    (dolist (link (circ/cortex/get-all-links))
       (let ((link-id (car link)))
-        (leslie/cortex/update-backlink link-id current-id
+        (circ/cortex/update-backlink link-id current-id
                                        old-title new-title)))))
 
-(defun leslie/cortex/search-slides ()
+(defun circ/cortex/search-slides ()
   "Search all slides and open"
   (interactive)
-  (let* ((search-term (leslie/cortex/interactive-slide-picker))
-         (filepath (leslie/cortex/expand-filepath (car search-term))))
+  (let* ((search-term (circ/cortex/interactive-slide-picker))
+         (filepath (circ/cortex/expand-filepath (car search-term))))
     (cond ((not (file-exists-p filepath))
            (message "Slide does not exist. Creating")
-           (leslie/cortex/create-file (cdr search-term)))
+           (circ/cortex/create-file (cdr search-term)))
           (t
            (find-file filepath)))))
 
-(defun leslie/cortex/continue ()
+(defun circ/cortex/continue ()
   "Creates a continue link at the bottom of the current slide.
 
 If the current slide has no index, set the index property to 1.
@@ -882,64 +883,64 @@ The new slide is created with an incremented index."
          (org-index (org-entry-get nil "Index"))
          (current-index (cond (org-index org-index) (t "1")))
          (new-index (number-to-string (+ 1 (string-to-number current-index))))
-         (new-id (leslie/cortex/new-id))
+         (new-id (circ/cortex/new-id))
          (new-title (read-string "New title: " current-title)))
     (goto-char (point-max))
     (insert "\n")
-    (leslie/cortex/ensure-file new-id new-title)
-    (leslie/cortex/add-backlink new-id)
-    (leslie/cortex/add-link new-id "Continued...")
+    (circ/cortex/ensure-file new-id new-title)
+    (circ/cortex/add-backlink new-id)
+    (circ/cortex/add-link new-id "Continued...")
 
     ;; If the continued slide has the same title, increment indexes
     (when (equal current-title new-title)
       (message "Indexing slides")
       (unless (org-entry-get nil "Index")
         (org-entry-put nil "Index" current-index))
-      (leslie/cortex/add-index new-id new-index))
+      (circ/cortex/add-index new-id new-index))
 
     (goto-char (+ point-location (- (point-max) buffer-size)))
     (save-buffer)
-    (find-file (leslie/cortex/expand-filepath new-id))
+    (find-file (circ/cortex/expand-filepath new-id))
     (goto-char (point-max))
     (message "%s continued..." current-title)))
 
-(defun leslie/cortex/add-index (id index)
+(defun circ/cortex/add-index (id index)
   "Add index to given slide id"
   (with-temp-buffer
-    (let ((abs-filepath (leslie/cortex/expand-filepath id)))
+    (let ((abs-filepath (circ/cortex/expand-filepath id)))
       (insert-file-contents abs-filepath)
       (org-mode)
       (org-entry-put nil "Index" index)
       (write-file abs-filepath))))
 
-(defun leslie/cortex/list-reference-files ()
+(defun circ/cortex/list-reference-files ()
   (mapcar (lambda (file)
-            (replace-regexp-in-string (regexp-quote (expand-file-name leslie/cortex/reference-directory))
+            (replace-regexp-in-string (regexp-quote (expand-file-name circ/cortex/reference-directory))
                                       "" file))
-          (directory-files-recursively leslie/cortex/reference-directory "")))
+          (directory-files-recursively circ/cortex/reference-directory "")))
 
-(defun leslie/cortex/reference-completing-read (&optional initial-input)
+(defun circ/cortex/reference-completing-read (&optional initial-input)
   (completing-read "Reference: "
-                   (leslie/cortex/list-reference-files)
+                   (circ/cortex/list-reference-files)
                    nil nil initial-input))
 
-(defun leslie/cortex/find-reference ()
+(defun circ/cortex/find-reference ()
   (interactive)
-  (let* ((filepath (leslie/cortex/reference-completing-read))
-         (full-filepath (concat (expand-file-name leslie/cortex/reference-directory) filepath)))
-    (leslie/ensure-file full-filepath)
+  (let* ((filepath (circ/cortex/reference-completing-read))
+         (full-filepath (concat (expand-file-name circ/cortex/reference-directory) filepath)))
+    (circ/ensure-file full-filepath)
     (find-file full-filepath)))
 
-(defun leslie/cortex/insert-reference-link ()
+(defun circ/cortex/insert-reference-link ()
   (interactive)
-  (let* ((filepath (leslie/cortex/reference-completing-read))
+  (let* ((filepath (circ/cortex/reference-completing-read))
          (description (read-string "Description: " (concat "Ref: " filepath)))
          (org-link (concat "ref:" filepath))
-         (full-filepath (concat (expand-file-name leslie/cortex/reference-directory) filepath)))
-    (leslie/ensure-file full-filepath)
+         (full-filepath (concat (expand-file-name circ/cortex/reference-directory) filepath)))
+    (circ/ensure-file full-filepath)
     (insert (org-make-link-string org-link description))))
 
-(defun leslie/ensure-file (filepath)
+(defun circ/ensure-file (filepath)
   (unless (file-exists-p full-filepath)
     (make-directory (file-name-directory full-filepath) t)
     (write-region "" nil full-filepath)))
@@ -947,24 +948,24 @@ The new slide is created with an incremented index."
 
 ** Surround
 #+BEGIN_SRC emacs-lisp
-(defun leslie/surround-parentheses () (interactive) (leslie/surround "(" ")"))
-(defun leslie/surround-brackets    () (interactive) (leslie/surround "[" "]"))
-(defun leslie/surround-braces      () (interactive) (leslie/surround "{" "}"))
-(defun leslie/surround-asterisk    () (interactive) (leslie/surround "*" "*"))
-(defun leslie/surround-d-quote     () (interactive) (leslie/surround "\"" "\""))
-(defun leslie/surround-s-quote     () (interactive) (leslie/surround "'" "'"))
-(defun leslie/surround-slash       () (interactive) (leslie/surround "/" "/"))
-(defun leslie/surround-equals      () (interactive) (leslie/surround "=" "="))
-(defun leslie/surround-plus        () (interactive) (leslie/surround "+" "+"))
-(defun leslie/surround-minus       () (interactive) (leslie/surround "-" "-"))
+(defun circ/surround-parentheses () (interactive) (circ/surround "(" ")"))
+(defun circ/surround-brackets    () (interactive) (circ/surround "[" "]"))
+(defun circ/surround-braces      () (interactive) (circ/surround "{" "}"))
+(defun circ/surround-asterisk    () (interactive) (circ/surround "*" "*"))
+(defun circ/surround-d-quote     () (interactive) (circ/surround "\"" "\""))
+(defun circ/surround-s-quote     () (interactive) (circ/surround "'" "'"))
+(defun circ/surround-slash       () (interactive) (circ/surround "/" "/"))
+(defun circ/surround-equals      () (interactive) (circ/surround "=" "="))
+(defun circ/surround-plus        () (interactive) (circ/surround "+" "+"))
+(defun circ/surround-minus       () (interactive) (circ/surround "-" "-"))
 
-(defun leslie/surround-region ()
+(defun circ/surround-region ()
   (interactive)
   (let* ((start (read-string "Beginning: "))
          (end (read-string "End: " start)))
-    (leslie/surround start end)))
+    (circ/surround start end)))
 
-(defun leslie/surround (start end)
+(defun circ/surround (start end)
   (let ((region (buffer-substring (region-beginning) (region-end))))
     (delete-region (region-beginning) (region-end))
     (insert (format "%s%s%s" start region end))))
@@ -972,32 +973,32 @@ The new slide is created with an incremented index."
 
 ** Insert org timestamp
 #+BEGIN_SRC emacs-lisp
-(defun leslie/insert-label-timestamp (label)
+(defun circ/insert-label-timestamp (label)
   (insert (format "%s: " label))
   (org-time-stamp-inactive))
 
-(defun leslie/insert-created-timestamp ()
+(defun circ/insert-created-timestamp ()
   (interactive)
-  (leslie/insert-label-timestamp "Created"))
+  (circ/insert-label-timestamp "Created"))
 #+END_SRC
 ** Term Mode Functions
 #+BEGIN_SRC emacs-lisp
-(defun leslie/term/delete-previous-word ()
+(defun circ/term/delete-previous-word ()
   "Simulates typical C-<backspace> behaviour by sending C-w instead."
   (interactive)
   (term-send-raw-string "\C-w"))
 
-(defun leslie/term/delete-next-word ()
+(defun circ/term/delete-next-word ()
   "Simulates typical C-<delete> behaviour by sending M-d instead."
   (interactive)
   (term-send-raw-string "\^[d"))
 
-(defun leslie/term/go-to-previous-word ()
+(defun circ/term/go-to-previous-word ()
   "Simulates typical C-<left> behaviour by sending M-b instead."
   (interactive)
   (term-send-raw-string "\^[b"))
 
-(defun leslie/term/go-to-next-word ()
+(defun circ/term/go-to-next-word ()
   "Simulates typical C-<right> behaviour by sending M-f instead."
   (interactive)
   (term-send-raw-string "\^[f"))
@@ -1005,23 +1006,23 @@ The new slide is created with an incremented index."
 
 ** Shell Command
 #+BEGIN_SRC emacs-lisp
-(defvar leslie/shell-line-history '())
+(defvar circ/shell-line-history '())
 
-(defun leslie/do-sh-cmd (input-list command &optional strip-newline)
+(defun circ/do-sh-cmd (input-list command &optional strip-newline)
   (let (output-list)
     (dolist (dirty-input input-list)
       (set-text-properties 0 (length dirty-input) nil dirty-input)
-      (let* ((input (leslie/escape-double-quotes
-                     (leslie/strip-last-newline
+      (let* ((input (circ/escape-double-quotes
+                     (circ/strip-last-newline
                       dirty-input)))
              (output (shell-command-to-string
                       (concat command " <<< \"" input "\""))))
         (setq output-list (cons (if strip-newline
-                                    (leslie/strip-last-newline output)
+                                    (circ/strip-last-newline output)
                                   output) output-list))))
     (reverse output-list)))
 
-(defun leslie/sh-cmd (&optional cmd whole-buffer split-lines)
+(defun circ/sh-cmd (&optional cmd whole-buffer split-lines)
   "Execute CMD on the buffer. If CMD is nil, ask the user what
 command to use. If split-lines is non-nil, split the input by
 newlines and send each line into the command individually.
@@ -1035,14 +1036,14 @@ A history of executed commands is kept."
   (interactive)
   (let ((command (cond (cmd cmd)
                        (t (completing-read "Command (C-M-j to done): "
-                                           leslie/shell-line-history)))))
-    (add-to-list 'leslie/shell-line-history command)
+                                           circ/shell-line-history)))))
+    (add-to-list 'circ/shell-line-history command)
     (cond ((eq evil-this-type 'block)
            ;; Case when region is an evil block
            (let* ((rb (region-beginning))
                   (re (region-end))
                   (input-list (extract-rectangle rb re))
-                  (output-list (leslie/do-sh-cmd input-list command t))
+                  (output-list (circ/do-sh-cmd input-list command t))
                   (start (= (point) rb)))
              (goto-char rb)
              (delete-rectangle rb re)
@@ -1062,7 +1063,7 @@ A history of executed commands is kept."
                   (input (buffer-substring rb re))
                   (input-list (cond (split-lines (split-string input "\n"))
                                     (t (list input))))
-                  (output-list (leslie/do-sh-cmd input-list command (not whole-buffer))))
+                  (output-list (circ/do-sh-cmd input-list command (not whole-buffer))))
              (delete-region rb re)
              (dolist (line output-list)
                (insert line)))))))
@@ -1070,7 +1071,7 @@ A history of executed commands is kept."
 ** Org agenda habits
 Force habit graphs to be drawn everywhere
 #+BEGIN_SRC emacs-lisp
-(defvar leslie/org-habit-show-graphs-everywhere t
+(defvar circ/org-habit-show-graphs-everywhere t
   "If non-nil, show habit graphs in all types of agenda buffers.
 
 Normally, habits display consistency graphs only in
@@ -1078,18 +1079,18 @@ Normally, habits display consistency graphs only in
 buffers.  Set this variable to any non-nil variable to show
 consistency graphs in all Org mode agendas.")
 
-(defun leslie/org-agenda-mark-habits ()
+(defun circ/org-agenda-mark-habits ()
   "Mark all habits in current agenda for graph display.
 
-This function enforces `leslie/org-habit-show-graphs-everywhere' by
+This function enforces `circ/org-habit-show-graphs-everywhere' by
 marking all habits in the current agenda as such.  When run just
 before `org-agenda-finalize' (such as by advice; unfortunately,
 `org-agenda-finalize-hook' is run too late), this has the effect
 of displaying consistency graphs for these habits.
 
-When `leslie/org-habit-show-graphs-everywhere' is nil, this function
+When `circ/org-habit-show-graphs-everywhere' is nil, this function
 has no effect."
-  (when (and leslie/org-habit-show-graphs-everywhere
+  (when (and circ/org-habit-show-graphs-everywhere
          (not (get-text-property (point) 'org-series)))
     (let ((cursor (point))
           item data)
@@ -1102,11 +1103,11 @@ has no effect."
                              (next-single-property-change cursor 'org-marker)
                              'org-habit-p data))))))
 
-(advice-add #'org-agenda-finalize :before #'leslie/org-agenda-mark-habits)
+(advice-add #'org-agenda-finalize :before #'circ/org-agenda-mark-habits)
 #+END_SRC
 ** VC annotate in current window
 #+BEGIN_SRC emacs-lisp
-(defun leslie/vc-annotate-current-window ()
+(defun circ/vc-annotate-current-window ()
   "A bad implementation of vc-annotate-current-window"
   (interactive)
   (vc-ensure-vc-buffer)
@@ -1118,15 +1119,15 @@ has no effect."
 #+END_SRC
 ** Org agenda setup
 #+BEGIN_SRC emacs-lisp
-(defun leslie/setup-agenda-view()
+(defun circ/setup-agenda-view()
   (interactive)
-  (leslie/alias-org-agenda-tasks)
+  (circ/alias-org-agenda-tasks)
   (split-window-right)
-  (leslie/alias-org-agenda-agenda))
+  (circ/alias-org-agenda-agenda))
 #+END_SRC
 ** Org agenda templates
 #+BEGIN_SRC emacs-lisp
-(setq leslie/org-template-alist
+(setq circ/org-template-alist
       '(("Is this useful?" . "*Is this useful?*
 /What do you think you could use it for?/
 
@@ -1139,32 +1140,32 @@ has no effect."
 
 /How could such features solve your problem?/")))
 
-(defun leslie/org-template-insert ()
+(defun circ/org-template-insert ()
   (interactive)
   (let ((template (completing-read "Template: "
-                                   leslie/org-template-alist)))
-    (insert (cdr (assoc template leslie/org-template-alist)))))
+                                   circ/org-template-alist)))
+    (insert (cdr (assoc template circ/org-template-alist)))))
 
-(message "%s" leslie/org-template-alist)
+(message "%s" circ/org-template-alist)
 #+END_SRC
 ** Org sort headlines
 Sorts the level 0 headlines by todo state
 #+BEGIN_SRC emacs-lisp
-(defun leslie/org-hide-all ()
+(defun circ/org-hide-all ()
   (interactive)
   (org-map-entries
    (lambda () (outline-hide-subtree))
    nil 'file))
 
-(defun leslie/org-sort-headlines ()
+(defun circ/org-sort-headlines ()
   (interactive)
   (mark-whole-buffer)
   (org-sort-entries nil ?o)
-  (leslie/org-hide-all))
+  (circ/org-hide-all))
 #+END_SRC
 ** Bash history
 #+BEGIN_SRC emacs-lisp
-(defun leslie/bash-history ()
+(defun circ/bash-history ()
   (reverse
    (remove-if (lambda (string) (string-match-p "^#[0-9]*$" string))
               (split-string
@@ -1173,14 +1174,14 @@ Sorts the level 0 headlines by todo state
                  (buffer-substring-no-properties (point-min) (point-max)))
                "\n" t))))
 
-(defun leslie/bash-history-search()
+(defun circ/bash-history-search()
   (interactive)
   (if (string-equal major-mode "term-mode")
       (progn
         (let* (;; Hacky fix for ivy sorting. Does not work with default
                ;; completing-read function
                (ivy-sort-functions-alist nil)
-               (string (completing-read "History: " (leslie/bash-history))))
+               (string (completing-read "History: " (circ/bash-history))))
           (term-send-raw-string string)
           (term-send-raw-string "\n")))
     (message "Not in term-mode")))
@@ -1188,13 +1189,13 @@ Sorts the level 0 headlines by todo state
 * Local variables
 ** Safe Local Eval Aliases
 #+BEGIN_SRC emacs-lisp
-(defun leslie/file-local-eval-safe-auto-revert ()
+(defun circ/file-local-eval-safe-auto-revert ()
   (interactive)
   (auto-revert-mode t))
 #+END_SRC
 ** Safe Local Eval List
 #+BEGIN_SRC emacs-lisp
-(add-to-list 'safe-local-eval-forms '(leslie/file-local-eval-safe-auto-revert))
+(add-to-list 'safe-local-eval-forms '(circ/file-local-eval-safe-auto-revert))
 #+END_SRC
 
 * Package Specific
@@ -1206,16 +1207,16 @@ Sorts the level 0 headlines by todo state
 
 Restore previous window config.
 #+BEGIN_SRC emacs-lisp
-(defvar leslie/ediff-last-window-configuration nil)
+(defvar circ/ediff-last-window-configuration nil)
 
-(defun leslie/ediff-store-window-configuration ()
-  (setq leslie/ediff-last-window-configuration (current-window-configuration)))
+(defun circ/ediff-store-window-configuration ()
+  (setq circ/ediff-last-window-configuration (current-window-configuration)))
 
-(defun leslie/ediff-restore-window-configuration ()
-  (set-window-configuration leslie/ediff-last-window-configuration))
+(defun circ/ediff-restore-window-configuration ()
+  (set-window-configuration circ/ediff-last-window-configuration))
 
-(add-hook 'ediff-before-setup-hook #'leslie/ediff-store-window-configuration)
-(add-hook 'ediff-quit-hook #'leslie/ediff-restore-window-configuration)
+(add-hook 'ediff-before-setup-hook #'circ/ediff-store-window-configuration)
+(add-hook 'ediff-quit-hook #'circ/ediff-restore-window-configuration)
 #+END_SRC
 
 ** which-key
@@ -1438,8 +1439,8 @@ I want relative numbers to display when in evil operator mode.
 
 ** erlang
 #+BEGIN_SRC emacs-lisp
-(defvar leslie/enable-erlang t)
-(when leslie/enable-erlang
+(defvar circ/enable-erlang t)
+(when circ/enable-erlang
   (setq load-path (cons  "~/.emacs.d/packages/erlang-2.8.4" load-path))
   (setq erlang-root-dir "~/erl_rel/18.3")
   (setq exec-path (cons "~/erl_rel/18.3/bin" exec-path))
@@ -1449,7 +1450,7 @@ I want relative numbers to display when in evil operator mode.
 
 *** Use regular indenting for single '%' comments
 #+BEGIN_SRC emacs-lisp
-(defun leslie/erlang-comment-indent ()
+(defun circ/erlang-comment-indent ()
   (cond ((looking-at "%%%") 0)
         ((looking-at "%%")
          (or (erlang-calculate-indent)
@@ -1466,7 +1467,7 @@ I want relative numbers to display when in evil operator mode.
 (advice-add
    'erlang-comment-indent
    :override
-   (lambda (&rest r) (leslie/erlang-comment-indent))
+   (lambda (&rest r) (circ/erlang-comment-indent))
    '((name . "erlang-comment-indent-advice")))
 #+END_SRC
 
@@ -1550,64 +1551,64 @@ Open man pages in current window
 ** Aliases
 To keep the code nice and clean.
 #+BEGIN_SRC emacs-lisp
-(defun leslie/alias-text-scale-down () (interactive) (text-scale-adjust -1))
-(defun leslie/alias-text-scale-up   () (interactive) (text-scale-adjust +1))
+(defun circ/alias-text-scale-down () (interactive) (text-scale-adjust -1))
+(defun circ/alias-text-scale-up   () (interactive) (text-scale-adjust +1))
 
-(defun leslie/alias-search-buffer () (interactive) (swiper (ivy-thing-at-point)))
+(defun circ/alias-search-buffer () (interactive) (swiper (ivy-thing-at-point)))
 
-(defun leslie/alias-transpose-buffer-left  () (interactive) (leslie/transpose-buffers-left t))
-(defun leslie/alias-transpose-buffer-down  () (interactive) (leslie/transpose-buffers-down t))
-(defun leslie/alias-transpose-buffer-up    () (interactive) (leslie/transpose-buffers-up t))
-(defun leslie/alias-transpose-buffer-right () (interactive) (leslie/transpose-buffers-right t))
+(defun circ/alias-transpose-buffer-left  () (interactive) (circ/transpose-buffers-left t))
+(defun circ/alias-transpose-buffer-down  () (interactive) (circ/transpose-buffers-down t))
+(defun circ/alias-transpose-buffer-up    () (interactive) (circ/transpose-buffers-up t))
+(defun circ/alias-transpose-buffer-right () (interactive) (circ/transpose-buffers-right t))
 
-(defun leslie/alias-cast-buffer-left  () (interactive) (leslie/cast-buffer-left t))
-(defun leslie/alias-cast-buffer-down  () (interactive) (leslie/cast-buffer-down t))
-(defun leslie/alias-cast-buffer-up    () (interactive) (leslie/cast-buffer-up t))
-(defun leslie/alias-cast-buffer-right () (interactive) (leslie/cast-buffer-right t))
+(defun circ/alias-cast-buffer-left  () (interactive) (circ/cast-buffer-left t))
+(defun circ/alias-cast-buffer-down  () (interactive) (circ/cast-buffer-down t))
+(defun circ/alias-cast-buffer-up    () (interactive) (circ/cast-buffer-up t))
+(defun circ/alias-cast-buffer-right () (interactive) (circ/cast-buffer-right t))
 
-(defun leslie/alias-duplicate-buffer-left  () (interactive) (leslie/duplicate-buffer-left t))
-(defun leslie/alias-duplicate-buffer-down  () (interactive) (leslie/duplicate-buffer-down t))
-(defun leslie/alias-duplicate-buffer-up    () (interactive) (leslie/duplicate-buffer-up t))
-(defun leslie/alias-duplicate-buffer-right () (interactive) (leslie/duplicate-buffer-right t))
+(defun circ/alias-duplicate-buffer-left  () (interactive) (circ/duplicate-buffer-left t))
+(defun circ/alias-duplicate-buffer-down  () (interactive) (circ/duplicate-buffer-down t))
+(defun circ/alias-duplicate-buffer-up    () (interactive) (circ/duplicate-buffer-up t))
+(defun circ/alias-duplicate-buffer-right () (interactive) (circ/duplicate-buffer-right t))
 
-(defun leslie/alias-erlang-find-tag () (interactive) (erlang-find-tag (erlang-default-function-or-module)))
+(defun circ/alias-erlang-find-tag () (interactive) (erlang-find-tag (erlang-default-function-or-module)))
 
-(defun leslie/alias-bash-shell () (interactive) (ansi-term "/bin/bash"))
-(defun leslie/alias-clip-shell () (interactive) (ansi-term "/usr/bin/clisp"))
-(defun leslie/alias-python-shell () (interactive) (ansi-term "/usr/bin/python"))
+(defun circ/alias-bash-shell () (interactive) (ansi-term "/bin/bash"))
+(defun circ/alias-clip-shell () (interactive) (ansi-term "/usr/bin/clisp"))
+(defun circ/alias-python-shell () (interactive) (ansi-term "/usr/bin/python"))
 
-(defun leslie/alias-org-force-publish () (interactive) (org-publish-current-project t))
+(defun circ/alias-org-force-publish () (interactive) (org-publish-current-project t))
 
-(defun leslie/alias-org-agenda-agenda () (interactive) (org-agenda nil "A"))
-(defun leslie/alias-org-agenda-tasks () (interactive) (org-agenda nil "T"))
+(defun circ/alias-org-agenda-agenda () (interactive) (org-agenda nil "A"))
+(defun circ/alias-org-agenda-tasks () (interactive) (org-agenda nil "T"))
 
-(defun leslie/alias-sh-cmd-whole-buffer () (interactive) (leslie/sh-cmd nil t nil))
-(defun leslie/alias-sh-cmd-split-lines () (interactive) (leslie/sh-cmd nil nil t))
-(defun leslie/alias-sh-cmd-whole-buffer-split-lines () (interactive) (leslie/sh-cmd nil t t))
+(defun circ/alias-sh-cmd-whole-buffer () (interactive) (circ/sh-cmd nil t nil))
+(defun circ/alias-sh-cmd-split-lines () (interactive) (circ/sh-cmd nil nil t))
+(defun circ/alias-sh-cmd-whole-buffer-split-lines () (interactive) (circ/sh-cmd nil t t))
 #+END_SRC
 
 ** Helper Functions
 #+BEGIN_SRC emacs-lisp
-(setq leslie/p1-prefix-normal   "C-M-S-")
-(setq leslie/p1-prefix-special  "C-M-")
-(setq leslie/p1-prefix-standard "M-f")
+(setq circ/p1-prefix-normal   "C-M-S-")
+(setq circ/p1-prefix-special  "C-M-")
+(setq circ/p1-prefix-standard "M-f")
 
-(setq leslie/p2-prefix-normal   "s-M-S-")
-(setq leslie/p2-prefix-special  "s-M-")
-(setq leslie/p2-prefix-standard "M-d")
+(setq circ/p2-prefix-normal   "s-M-S-")
+(setq circ/p2-prefix-special  "s-M-")
+(setq circ/p2-prefix-standard "M-d")
 
-(setq leslie/p3-prefix-normal   "s-C-S-")
-(setq leslie/p3-prefix-special  "s-C-")
-(setq leslie/p3-prefix-standard "M-s")
+(setq circ/p3-prefix-normal   "s-C-S-")
+(setq circ/p3-prefix-special  "s-C-")
+(setq circ/p3-prefix-standard "M-s")
 
-(setq leslie/p4-prefix-normal   "s-C-M-")
-(setq leslie/p4-prefix-special  "s-C-M-")
-(setq leslie/p4-prefix-standard "M-a")
+(setq circ/p4-prefix-normal   "s-C-M-")
+(setq circ/p4-prefix-special  "s-C-M-")
+(setq circ/p4-prefix-standard "M-a")
 
-(defun leslie/p1 (key command description &optional keymap)
-  (let* ((prefix-normal   leslie/p1-prefix-normal)
-         (prefix-special  leslie/p1-prefix-special)
-         (standard-prefix leslie/p1-prefix-standard)
+(defun circ/p1 (key command description &optional keymap)
+  (let* ((prefix-normal   circ/p1-prefix-normal)
+         (prefix-special  circ/p1-prefix-special)
+         (standard-prefix circ/p1-prefix-standard)
          (prefix-key (cond ((string= key ";") (concat prefix-special ":"))
                            ((string= key "-") (concat prefix-special "_"))
                            ((string= key "=") (concat prefix-special "+"))
@@ -1616,41 +1617,41 @@ To keep the code nice and clean.
                            ((string= key "/") (concat prefix-special "?"))
                            (t (concat prefix-normal key))))
          (standard-prefix-key (concat standard-prefix " " key)))
-    (leslie/set-keys prefix-key standard-prefix-key command description keymap)))
+    (circ/set-keys prefix-key standard-prefix-key command description keymap)))
 
-(defun leslie/p2 (key command description &optional keymap)
-  (let* ((prefix-normal   leslie/p2-prefix-normal)
-         (prefix-special  leslie/p2-prefix-special)
-         (standard-prefix leslie/p2-prefix-standard)
+(defun circ/p2 (key command description &optional keymap)
+  (let* ((prefix-normal   circ/p2-prefix-normal)
+         (prefix-special  circ/p2-prefix-special)
+         (standard-prefix circ/p2-prefix-standard)
          (prefix-key (cond (t (concat prefix-special (upcase (substring key 0 1)) (substring key 1)))))
          (standard-prefix-key (concat standard-prefix " " key)))
-    (leslie/set-keys prefix-key standard-prefix-key command description keymap)))
+    (circ/set-keys prefix-key standard-prefix-key command description keymap)))
 
-(defun leslie/p3 (key command description &optional keymap)
-  (let* ((prefix-normal   leslie/p3-prefix-normal)
-         (prefix-special  leslie/p3-prefix-special)
-         (standard-prefix leslie/p3-prefix-standard)
+(defun circ/p3 (key command description &optional keymap)
+  (let* ((prefix-normal   circ/p3-prefix-normal)
+         (prefix-special  circ/p3-prefix-special)
+         (standard-prefix circ/p3-prefix-standard)
          (prefix-key (cond (t (concat prefix-special (upcase (substring key 0 1)) (substring key 1)))))
          (standard-prefix-key (concat standard-prefix " " key)))
-    (leslie/set-keys prefix-key standard-prefix-key command description keymap)))
+    (circ/set-keys prefix-key standard-prefix-key command description keymap)))
 
-(defun leslie/p4 (key command description &optional keymap)
-  (let* ((prefix-normal   leslie/p4-prefix-normal)
-         (prefix-special  leslie/p4-prefix-special)
-         (standard-prefix leslie/p4-prefix-standard)
+(defun circ/p4 (key command description &optional keymap)
+  (let* ((prefix-normal   circ/p4-prefix-normal)
+         (prefix-special  circ/p4-prefix-special)
+         (standard-prefix circ/p4-prefix-standard)
          (prefix-key (cond (t (concat prefix-normal key ))))
          (standard-prefix-key (concat standard-prefix " " key)))
-    (leslie/set-keys prefix-key standard-prefix-key command description keymap)))
+    (circ/set-keys prefix-key standard-prefix-key command description keymap)))
 
-(defun leslie/set-keys (prefix-key standard-prefix-key command description &optional keymap)
+(defun circ/set-keys (prefix-key standard-prefix-key command description &optional keymap)
   (cond (command
-         (leslie/set-key prefix-key command description keymap)
-         (leslie/set-key standard-prefix-key command description keymap))
+         (circ/set-key prefix-key command description keymap)
+         (circ/set-key standard-prefix-key command description keymap))
         (t
-         (leslie/set-prefix prefix-key description keymap)
-         (leslie/set-prefix standard-prefix-key description keymap))))
+         (circ/set-prefix prefix-key description keymap)
+         (circ/set-prefix standard-prefix-key description keymap))))
 
-(defun leslie/set-prefix (key description &optional keymap)
+(defun circ/set-prefix (key description &optional keymap)
   (cond (keymap
          (general-define-key
            :keymaps keymap
@@ -1661,7 +1662,7 @@ To keep the code nice and clean.
            :states '(normal insert visual operator motion emacs)
            key (list :ignore t :which-key description)))))
 
-(defun leslie/set-key (key command description &optional keymap)
+(defun circ/set-key (key command description &optional keymap)
   (cond (keymap
          (general-define-key
           :keymaps keymap
@@ -1747,7 +1748,7 @@ Already built-in.
 *** C-r - Search history
 #+BEGIN_SRC emacs-lisp
 ;(evil-define-key 'insert term-raw-map (kbd "C-r") 'term-send-raw)
-(evil-define-key 'insert term-raw-map (kbd "C-r") 'leslie/bash-history-search)
+(evil-define-key 'insert term-raw-map (kbd "C-r") 'circ/bash-history-search)
 #+END_SRC
 
 *** C-<backspace> - Delete prevous word
@@ -1755,7 +1756,7 @@ Not strictly a bash thing, but I'm putting it in anyway.
 Simply send C-w instead
 #+BEGIN_SRC emacs-lisp
 (evil-define-key 'insert term-raw-map (kbd "C-<backspace>")
-  'leslie/term/delete-previous-word)
+  'circ/term/delete-previous-word)
 #+END_SRC
 
 *** C-<delete> - Delete next word
@@ -1763,7 +1764,7 @@ Not strictly a bash thing, but I'm putting it in anyway.
 Simply send M-d instead
 #+BEGIN_SRC emacs-lisp
 (evil-define-key 'insert term-raw-map (kbd "C-<delete>")
-  'leslie/term/delete-next-word)
+  'circ/term/delete-next-word)
 #+END_SRC
 
 *** C-<left> - Go to previous word
@@ -1771,7 +1772,7 @@ Not strictly a bash thing, but I'm putting it in anyway.
 Simply send M-b instead
 #+BEGIN_SRC emacs-lisp
 (evil-define-key 'insert term-raw-map (kbd "C-<left>")
-  'leslie/term/go-to-previous-word)
+  'circ/term/go-to-previous-word)
 #+END_SRC
 
 *** C-<right> - Go to next word
@@ -1779,7 +1780,7 @@ Not strictly a bash thing, but I'm putting it in anyway.
 Simply send M-f instead
 #+BEGIN_SRC emacs-lisp
 (evil-define-key 'insert term-raw-map (kbd "C-<right>")
-  'leslie/term/go-to-next-word)
+  'circ/term/go-to-next-word)
 #+END_SRC
 
 ** Unbinding Keys
@@ -1805,240 +1806,240 @@ Simply send M-f instead
 ** P1
 #+BEGIN_SRC emacs-lisp
 ;;FUN      KEY    FUNCTION                              DESCRIPTION                           MODE
-(leslie/p1 ","    'previous-buffer                      "prev buffer")
-(leslie/p1 "-"    'leslie/alias-text-scale-down         "text scale down")
-(leslie/p1 "."    'next-buffer                          "next buffer")
-(leslie/p1 "/"    'leslie/alias-search-buffer           "search buffer")
-(leslie/p1 ";"    'counsel-M-x                          "M-x")
-(leslie/p1 "="    'leslie/alias-text-scale-up           "text scale up")
-(leslie/p1 "a t"  'nil                                  "terminals")
-(leslie/p1 "b b"  'ivy-switch-buffer                    "switch buffers")
-(leslie/p1 "b c"  'nil                                  "cast buffers")
-(leslie/p1 "b ch" 'leslie/alias-cast-buffer-left        "cast buffer left")
-(leslie/p1 "b cj" 'leslie/alias-cast-buffer-down        "cast buffer down")
-(leslie/p1 "b ck" 'leslie/alias-cast-buffer-up          "cast buffer up")
-(leslie/p1 "b cl" 'leslie/alias-cast-buffer-right       "cast buffer right")
-(leslie/p1 "b d"  'nil                                  "duplicate buffers")
-(leslie/p1 "b dh" 'leslie/alias-duplicate-buffer-left   "duplicate buffer left")
-(leslie/p1 "b dj" 'leslie/alias-duplicate-buffer-down   "duplicate buffer down")
-(leslie/p1 "b dk" 'leslie/alias-duplicate-buffer-up     "duplicate buffer up")
-(leslie/p1 "b dl" 'leslie/alias-duplicate-buffer-right  "duplicate buffer right")
-(leslie/p1 "b f"  'leslie/show-file-path                "show file path")
-(leslie/p1 "b o"  'open-in-new-config                   "open buffer in a new window config")
-(leslie/p1 "b p"  'leslie/buffer-paste                  "paste buffer")
-(leslie/p1 "b r"  'rename-buffer                        "rename buffer")
-(leslie/p1 "b t"  'nil                                  "transpose buffers")
-(leslie/p1 "b th" 'leslie/alias-transpose-buffer-left   "transpose windows left")
-(leslie/p1 "b tj" 'leslie/alias-transpose-buffer-down   "transpose windows down")
-(leslie/p1 "b tk" 'leslie/alias-transpose-buffer-up     "transpose windows up")
-(leslie/p1 "b tl" 'leslie/alias-transpose-buffer-right  "transpose windows right")
-(leslie/p1 "b x"  'leslie/smart-clear-buffer            "clear buffer")
-(leslie/p1 "b y"  'leslie/buffer-yank                   "yank buffer")
-(leslie/p1 "b"    'nil                                  "buffers")
-(leslie/p1 "c"    'delete-window                        "close window")
-(leslie/p1 "c"    'ranger-disable                       "close ranger"                        'ranger-mode-map)
-(leslie/p1 "d"    'evil-goto-definition                 "goto definition")
-(leslie/p1 "d"    'leslie/alias-erlang-find-tag         "goto definition"                     'erlang-mode-map)
-(leslie/p1 "d"    'org-open-at-point                    "open link"                           'org-mode-map)
-(leslie/p1 "d"    'org-open-at-point                    "open link"                           'org-agenda-mode-map)
-(leslie/p1 "e a"  'nil                                  "align")
-(leslie/p1 "e aH" 'leslie/align-repeat-head             "regex ahead of match repeatedly")
-(leslie/p1 "e aT" 'leslie/align-repeat-tail             "regex to tail of match repeatedly")
-(leslie/p1 "e aa" 'erlang-align-arrows                  "align arrows"                        'erlang-mode-map)
-(leslie/p1 "e ah" 'leslie/align-once-head               "regex ahead of match")
-(leslie/p1 "e at" 'leslie/align-once-tail               "regex to tail of match")
-(leslie/p1 "e c"  'dabbrev-completion                   "dabbrev completion")
-(leslie/p1 "e d"  'erlang-clone-arguments               "duplicate arguments"                 'erlang-mode-map)
-(leslie/p1 "e f"  'nil                                  "formatting")
-(leslie/p1 "e fb" 'json-mode-beautify                   "json beautify"                       'json-mode-map)
-(leslie/p1 "e fi" 'indent-region                        "indent region")
-(leslie/p1 "e fp" 'fill-paragraph                       "fill paragraph")
-(leslie/p1 "e fr" 'fill-region                          "fill region")
-(leslie/p1 "e i"  'erlang-indent-region                 "indent region"                       'erlang-mode-map)
-(leslie/p1 "e j"  'erlang-generate-new-clause           "new clause"                          'erlang-mode-map)
-(leslie/p1 "e l"  'org-insert-link                      "edit link"                           'org-mode-map)
-(leslie/p1 "e s"  'nil                                  "surround")
-(leslie/p1 "e s'" 'leslie/surround-s-quote              "single quote '")
-(leslie/p1 "e s(" 'leslie/surround-parentheses          "parentheses ( )")
-(leslie/p1 "e s)" 'leslie/surround-parentheses          "parentheses ( )")
-(leslie/p1 "e s*" 'leslie/surround-asterisk             "asterisk *")
-(leslie/p1 "e s+" 'leslie/surround-plus                 "plus +")
-(leslie/p1 "e s-" 'leslie/surround-minus                "minus -")
-(leslie/p1 "e s/" 'leslie/surround-slash                "slash /")
-(leslie/p1 "e s=" 'leslie/surround-equals               "equals =")
-(leslie/p1 "e s[" 'leslie/surround-brackets             "brackets [ ]")
-(leslie/p1 "e s\"" 'leslie/surround-d-quote             "double quote \"")
-(leslie/p1 "e s]" 'leslie/surround-brackets             "brackets [ ]")
-(leslie/p1 "e ss" 'leslie/surround-region               "surround region")
-(leslie/p1 "e s{" 'leslie/surround-braces               "braces { }")
-(leslie/p1 "e s}" 'leslie/surround-braces               "braces { }")
-(leslie/p1 "e"    'nil                                  "edits")
-(leslie/p1 "f b"  'ivy-switch-buffer                    "buffers")
-(leslie/p1 "f d"  'dired-create-directory               "create directory"                    'ranger-mode-map)
-(leslie/p1 "f f"  'counsel-find-file                    "find file")
-(leslie/p1 "f h"  'org-html-export-to-html              "export to html"                      'org-mode-map)
-(leslie/p1 "f r"  'counsel-recentf                      "find recent file")
-(leslie/p1 "f"    'nil                                  "files")
-(leslie/p1 "h"    'windmove-left                        "win left")
-(leslie/p1 "j"    'windmove-down                        "win down")
-(leslie/p1 "k"    'windmove-up                          "win up")
-(leslie/p1 "l"    'windmove-right                       "wind right")
-(leslie/p1 "o i"  'leslie/open-in-intellij              "open in intellij")
-(leslie/p1 "o r"  'ranger                               "ranger")
-(leslie/p1 "o tc" 'leslie/alias-clisp-shell             "clisp")
-(leslie/p1 "o te" 'erlang-shell                         "erlang")
-(leslie/p1 "o tp" 'leslie/alias-python-shell            "python")
-(leslie/p1 "o tt" 'leslie/alias-bash-shell              "bash")
-(leslie/p1 "o"    'nil                                  "applications")
-(leslie/p1 "p ?"  'projectile-command-map               "other")
-(leslie/p1 "p O"  'leslie/alias-org-force-publish       "force org publish project"           'org-mode-map)
-(leslie/p1 "p b"  'projectile-switch-to-buffer          "switch project buffer")
-(leslie/p1 "p c"  'leslie/check-project                 "check / compile project")
-(leslie/p1 "p f"  'counsel-projectile-find-file         "find project file")
-(leslie/p1 "p g"  'counsel-projectile-grep              "find instances in project")
-(leslie/p1 "p i"  'org-insert-link                      "insert link")
-(leslie/p1 "p o"  'org-publish-current-project          "org publish project"                 'org-mode-map)
-(leslie/p1 "p p"  'counsel-projectile-switch-project    "switch project")
-(leslie/p1 "p r"  'leslie/revert-project-buffers        "revert project buffers")
-(leslie/p1 "p s"  'org-store-link                       "copy link")
-(leslie/p1 "p t"  'leslie/regenerate-tags               "regenerate tags")
-(leslie/p1 "p w"  'leslie/save-project-buffers          "save all project buffers")
-(leslie/p1 "p w"  'org-save-all-org-buffers             "save all org buffers"                'org-mode-map)
-(leslie/p1 "p"    'nil                                  "projects")
-(leslie/p1 "q"    'leslie/kill-this-buffer              "kill buffer")
-(leslie/p1 "r n"  'nil                                  "numbers")
-(leslie/p1 "r ni" 'increment-register                   "increment register with number")
-(leslie/p1 "r np" 'insert-register                      "paste number from register")
-(leslie/p1 "r ny" 'number-to-register                   "yank number to register")
-(leslie/p1 "r p"  'nil                                  "positions")
-(leslie/p1 "r pp" 'jump-to-register                     "goto register position")
-(leslie/p1 "r py" 'point-to-register                    "yank current position to register")
-(leslie/p1 "r r"  'nil                                  "rectangle")
-(leslie/p1 "r rp" 'insert-register                      "paste rectangle from register")
-(leslie/p1 "r ry" 'copy-rectangle-to-register           "yank rectangle to register")
-(leslie/p1 "r t"  'nil                                  "text")
-(leslie/p1 "r ta" 'append-to-register                   "append text to register")
-(leslie/p1 "r tb" 'prepend-to-register                  "prepend text to register (before)")
-(leslie/p1 "r tp" 'insert-register                      "paste text register")
-(leslie/p1 "r ty" 'copy-to-register                     "yank text to register")
-(leslie/p1 "r"    'nil                                  "registers")
-(leslie/p1 "t R"  'auto-revert-mode                     "toggle auto revert mode")
-(leslie/p1 "t W"  'leslie/toggle-whitespace-full        "toggle whitespace full")
-(leslie/p1 "t c"  'comment-line                         "toggle comment line")
-(leslie/p1 "t f"  'font-lock-mode                       "toggle auto font formatting")
-(leslie/p1 "t h"  'hl-line-mode                         "toggle highight line mode")
-(leslie/p1 "t h"  'ranger-toggle-dotfiles               "toggle hidden"                       'ranger-mode-map)
-(leslie/p1 "t i"  'org-toggle-inline-images             "toggle images"                       'org-mode-map)
-(leslie/p1 "t l"  'nlinum-mode                          "toggle relative line numbers")
-(leslie/p1 "t p"  'projectile-mode                      "toggle projectile mode")
-(leslie/p1 "t r"  'rainbow-delimiters-mode              "toggle rainbow delimiters")
-(leslie/p1 "t t"  'nil                                  "tables"                              'org-mode-map)
-(leslie/p1 "t tr" 'org-table-toggle-coordinate-overlay  "toggle table coords"                 'org-mode-map)
-(leslie/p1 "t w"  'whitespace-mode                      "toggle whitespace display")
-(leslie/p1 "t"    'nil                                  "toggles")
-(leslie/p1 "v D"  'vc-ediff                             "ediff")
-(leslie/p1 "v a"  'leslie/vc-annotate-current-window    "annotate")
-(leslie/p1 "v b"  'vc-retrieve-tag                      "change branch")
-(leslie/p1 "v d"  'vc-version-ediff                     "version ediff")
-(leslie/p1 "v"    'nil                                  "version control")
-(leslie/p1 "w e"  'balance-windows                      "balance windows")
-(leslie/p1 "w h"  'split-window-right                   "split horizontal")
-(leslie/p1 "w o"  'delete-other-windows                 "delete other windows")
-(leslie/p1 "w r"  'revert-buffer                        "reload from disk")
-(leslie/p1 "w v"  'split-window-below                   "split vertical")
-(leslie/p1 "w z"  'maximize-window                      "maximize")
-(leslie/p1 "w"    'nil                                  "windows")
-(leslie/p1 "x"    'nil                                  "sh cmd")
-(leslie/p1 "x x"  'leslie/sh-cmd                        "sh cmd")
-(leslie/p1 "x X"  'leslie/alias-sh-cmd-whole-buffer     "sh cmd whole buffer")
-(leslie/p1 "x s"  'leslie/alias-sh-cmd-split-lines      "sh cmd split lines")
-(leslie/p1 "x S"  'leslie/alias-sh-cmd-whole-buffer-split-lines "sh cmd whole buffer split lines")
+(circ/p1 ","    'previous-buffer                      "prev buffer")
+(circ/p1 "-"    'circ/alias-text-scale-down         "text scale down")
+(circ/p1 "."    'next-buffer                          "next buffer")
+(circ/p1 "/"    'circ/alias-search-buffer           "search buffer")
+(circ/p1 ";"    'counsel-M-x                          "M-x")
+(circ/p1 "="    'circ/alias-text-scale-up           "text scale up")
+(circ/p1 "a t"  'nil                                  "terminals")
+(circ/p1 "b b"  'ivy-switch-buffer                    "switch buffers")
+(circ/p1 "b c"  'nil                                  "cast buffers")
+(circ/p1 "b ch" 'circ/alias-cast-buffer-left        "cast buffer left")
+(circ/p1 "b cj" 'circ/alias-cast-buffer-down        "cast buffer down")
+(circ/p1 "b ck" 'circ/alias-cast-buffer-up          "cast buffer up")
+(circ/p1 "b cl" 'circ/alias-cast-buffer-right       "cast buffer right")
+(circ/p1 "b d"  'nil                                  "duplicate buffers")
+(circ/p1 "b dh" 'circ/alias-duplicate-buffer-left   "duplicate buffer left")
+(circ/p1 "b dj" 'circ/alias-duplicate-buffer-down   "duplicate buffer down")
+(circ/p1 "b dk" 'circ/alias-duplicate-buffer-up     "duplicate buffer up")
+(circ/p1 "b dl" 'circ/alias-duplicate-buffer-right  "duplicate buffer right")
+(circ/p1 "b f"  'circ/show-file-path                "show file path")
+(circ/p1 "b o"  'open-in-new-config                   "open buffer in a new window config")
+(circ/p1 "b p"  'circ/buffer-paste                  "paste buffer")
+(circ/p1 "b r"  'rename-buffer                        "rename buffer")
+(circ/p1 "b t"  'nil                                  "transpose buffers")
+(circ/p1 "b th" 'circ/alias-transpose-buffer-left   "transpose windows left")
+(circ/p1 "b tj" 'circ/alias-transpose-buffer-down   "transpose windows down")
+(circ/p1 "b tk" 'circ/alias-transpose-buffer-up     "transpose windows up")
+(circ/p1 "b tl" 'circ/alias-transpose-buffer-right  "transpose windows right")
+(circ/p1 "b x"  'circ/smart-clear-buffer            "clear buffer")
+(circ/p1 "b y"  'circ/buffer-yank                   "yank buffer")
+(circ/p1 "b"    'nil                                  "buffers")
+(circ/p1 "c"    'delete-window                        "close window")
+(circ/p1 "c"    'ranger-disable                       "close ranger"                        'ranger-mode-map)
+(circ/p1 "d"    'evil-goto-definition                 "goto definition")
+(circ/p1 "d"    'circ/alias-erlang-find-tag         "goto definition"                     'erlang-mode-map)
+(circ/p1 "d"    'org-open-at-point                    "open link"                           'org-mode-map)
+(circ/p1 "d"    'org-open-at-point                    "open link"                           'org-agenda-mode-map)
+(circ/p1 "e a"  'nil                                  "align")
+(circ/p1 "e aH" 'circ/align-repeat-head             "regex ahead of match repeatedly")
+(circ/p1 "e aT" 'circ/align-repeat-tail             "regex to tail of match repeatedly")
+(circ/p1 "e aa" 'erlang-align-arrows                  "align arrows"                        'erlang-mode-map)
+(circ/p1 "e ah" 'circ/align-once-head               "regex ahead of match")
+(circ/p1 "e at" 'circ/align-once-tail               "regex to tail of match")
+(circ/p1 "e c"  'dabbrev-completion                   "dabbrev completion")
+(circ/p1 "e d"  'erlang-clone-arguments               "duplicate arguments"                 'erlang-mode-map)
+(circ/p1 "e f"  'nil                                  "formatting")
+(circ/p1 "e fb" 'json-mode-beautify                   "json beautify"                       'json-mode-map)
+(circ/p1 "e fi" 'indent-region                        "indent region")
+(circ/p1 "e fp" 'fill-paragraph                       "fill paragraph")
+(circ/p1 "e fr" 'fill-region                          "fill region")
+(circ/p1 "e i"  'erlang-indent-region                 "indent region"                       'erlang-mode-map)
+(circ/p1 "e j"  'erlang-generate-new-clause           "new clause"                          'erlang-mode-map)
+(circ/p1 "e l"  'org-insert-link                      "edit link"                           'org-mode-map)
+(circ/p1 "e s"  'nil                                  "surround")
+(circ/p1 "e s'" 'circ/surround-s-quote              "single quote '")
+(circ/p1 "e s(" 'circ/surround-parentheses          "parentheses ( )")
+(circ/p1 "e s)" 'circ/surround-parentheses          "parentheses ( )")
+(circ/p1 "e s*" 'circ/surround-asterisk             "asterisk *")
+(circ/p1 "e s+" 'circ/surround-plus                 "plus +")
+(circ/p1 "e s-" 'circ/surround-minus                "minus -")
+(circ/p1 "e s/" 'circ/surround-slash                "slash /")
+(circ/p1 "e s=" 'circ/surround-equals               "equals =")
+(circ/p1 "e s[" 'circ/surround-brackets             "brackets [ ]")
+(circ/p1 "e s\"" 'circ/surround-d-quote             "double quote \"")
+(circ/p1 "e s]" 'circ/surround-brackets             "brackets [ ]")
+(circ/p1 "e ss" 'circ/surround-region               "surround region")
+(circ/p1 "e s{" 'circ/surround-braces               "braces { }")
+(circ/p1 "e s}" 'circ/surround-braces               "braces { }")
+(circ/p1 "e"    'nil                                  "edits")
+(circ/p1 "f b"  'ivy-switch-buffer                    "buffers")
+(circ/p1 "f d"  'dired-create-directory               "create directory"                    'ranger-mode-map)
+(circ/p1 "f f"  'counsel-find-file                    "find file")
+(circ/p1 "f h"  'org-html-export-to-html              "export to html"                      'org-mode-map)
+(circ/p1 "f r"  'counsel-recentf                      "find recent file")
+(circ/p1 "f"    'nil                                  "files")
+(circ/p1 "h"    'windmove-left                        "win left")
+(circ/p1 "j"    'windmove-down                        "win down")
+(circ/p1 "k"    'windmove-up                          "win up")
+(circ/p1 "l"    'windmove-right                       "wind right")
+(circ/p1 "o i"  'circ/open-in-intellij              "open in intellij")
+(circ/p1 "o r"  'ranger                               "ranger")
+(circ/p1 "o tc" 'circ/alias-clisp-shell             "clisp")
+(circ/p1 "o te" 'erlang-shell                         "erlang")
+(circ/p1 "o tp" 'circ/alias-python-shell            "python")
+(circ/p1 "o tt" 'circ/alias-bash-shell              "bash")
+(circ/p1 "o"    'nil                                  "applications")
+(circ/p1 "p ?"  'projectile-command-map               "other")
+(circ/p1 "p O"  'circ/alias-org-force-publish       "force org publish project"           'org-mode-map)
+(circ/p1 "p b"  'projectile-switch-to-buffer          "switch project buffer")
+(circ/p1 "p c"  'circ/check-project                 "check / compile project")
+(circ/p1 "p f"  'counsel-projectile-find-file         "find project file")
+(circ/p1 "p g"  'counsel-projectile-grep              "find instances in project")
+(circ/p1 "p i"  'org-insert-link                      "insert link")
+(circ/p1 "p o"  'org-publish-current-project          "org publish project"                 'org-mode-map)
+(circ/p1 "p p"  'counsel-projectile-switch-project    "switch project")
+(circ/p1 "p r"  'circ/revert-project-buffers        "revert project buffers")
+(circ/p1 "p s"  'org-store-link                       "copy link")
+(circ/p1 "p t"  'circ/regenerate-tags               "regenerate tags")
+(circ/p1 "p w"  'circ/save-project-buffers          "save all project buffers")
+(circ/p1 "p w"  'org-save-all-org-buffers             "save all org buffers"                'org-mode-map)
+(circ/p1 "p"    'nil                                  "projects")
+(circ/p1 "q"    'circ/kill-this-buffer              "kill buffer")
+(circ/p1 "r n"  'nil                                  "numbers")
+(circ/p1 "r ni" 'increment-register                   "increment register with number")
+(circ/p1 "r np" 'insert-register                      "paste number from register")
+(circ/p1 "r ny" 'number-to-register                   "yank number to register")
+(circ/p1 "r p"  'nil                                  "positions")
+(circ/p1 "r pp" 'jump-to-register                     "goto register position")
+(circ/p1 "r py" 'point-to-register                    "yank current position to register")
+(circ/p1 "r r"  'nil                                  "rectangle")
+(circ/p1 "r rp" 'insert-register                      "paste rectangle from register")
+(circ/p1 "r ry" 'copy-rectangle-to-register           "yank rectangle to register")
+(circ/p1 "r t"  'nil                                  "text")
+(circ/p1 "r ta" 'append-to-register                   "append text to register")
+(circ/p1 "r tb" 'prepend-to-register                  "prepend text to register (before)")
+(circ/p1 "r tp" 'insert-register                      "paste text register")
+(circ/p1 "r ty" 'copy-to-register                     "yank text to register")
+(circ/p1 "r"    'nil                                  "registers")
+(circ/p1 "t R"  'auto-revert-mode                     "toggle auto revert mode")
+(circ/p1 "t W"  'circ/toggle-whitespace-full        "toggle whitespace full")
+(circ/p1 "t c"  'comment-line                         "toggle comment line")
+(circ/p1 "t f"  'font-lock-mode                       "toggle auto font formatting")
+(circ/p1 "t h"  'hl-line-mode                         "toggle highight line mode")
+(circ/p1 "t h"  'ranger-toggle-dotfiles               "toggle hidden"                       'ranger-mode-map)
+(circ/p1 "t i"  'org-toggle-inline-images             "toggle images"                       'org-mode-map)
+(circ/p1 "t l"  'nlinum-mode                          "toggle relative line numbers")
+(circ/p1 "t p"  'projectile-mode                      "toggle projectile mode")
+(circ/p1 "t r"  'rainbow-delimiters-mode              "toggle rainbow delimiters")
+(circ/p1 "t t"  'nil                                  "tables"                              'org-mode-map)
+(circ/p1 "t tr" 'org-table-toggle-coordinate-overlay  "toggle table coords"                 'org-mode-map)
+(circ/p1 "t w"  'whitespace-mode                      "toggle whitespace display")
+(circ/p1 "t"    'nil                                  "toggles")
+(circ/p1 "v D"  'vc-ediff                             "ediff")
+(circ/p1 "v a"  'circ/vc-annotate-current-window    "annotate")
+(circ/p1 "v b"  'vc-retrieve-tag                      "change branch")
+(circ/p1 "v d"  'vc-version-ediff                     "version ediff")
+(circ/p1 "v"    'nil                                  "version control")
+(circ/p1 "w e"  'balance-windows                      "balance windows")
+(circ/p1 "w h"  'split-window-right                   "split horizontal")
+(circ/p1 "w o"  'delete-other-windows                 "delete other windows")
+(circ/p1 "w r"  'revert-buffer                        "reload from disk")
+(circ/p1 "w v"  'split-window-below                   "split vertical")
+(circ/p1 "w z"  'maximize-window                      "maximize")
+(circ/p1 "w"    'nil                                  "windows")
+(circ/p1 "x"    'nil                                  "sh cmd")
+(circ/p1 "x x"  'circ/sh-cmd                        "sh cmd")
+(circ/p1 "x X"  'circ/alias-sh-cmd-whole-buffer     "sh cmd whole buffer")
+(circ/p1 "x s"  'circ/alias-sh-cmd-split-lines      "sh cmd split lines")
+(circ/p1 "x S"  'circ/alias-sh-cmd-whole-buffer-split-lines "sh cmd whole buffer split lines")
 #+END_SRC
 
 ** P2
 #+BEGIN_SRC emacs-lisp
 ;;         KEY    FUNCTION                              DESCRIPTION                           MODE
-(leslie/p2 "h"    'shrink-window-horizontally           "shrink horz"                         'override)
-(leslie/p2 "j"    'enlarge-window                       "enlarge vert"                        'override)
-(leslie/p2 "k"    'shrink-window                        "shrink vert"                         'override)
-(leslie/p2 "l"    'enlarge-window-horizontally          "enlarge horz"                        'override)
+(circ/p2 "h"    'shrink-window-horizontally           "shrink horz"                         'override)
+(circ/p2 "j"    'enlarge-window                       "enlarge vert"                        'override)
+(circ/p2 "k"    'shrink-window                        "shrink vert"                         'override)
+(circ/p2 "l"    'enlarge-window-horizontally          "enlarge horz"                        'override)
 #+END_SRC
 
 ** P3
 #+BEGIN_SRC emacs-lisp
 ;;         KEY    FUNCTION                              DESCRIPTION                           MODE
-(leslie/p3 "f r"  'set-frame-name                       "rename frame")
-(leslie/p3 "f c"  'make-frame                           "create new frame")
-(leslie/p3 "f o"  'pop-out-config-to-new-frame          "pop out to frame")
-(leslie/p3 "f"    'nil                                  "frames")
-(leslie/p3 "h"    'evil-jump-backward                   "jump back")
-(leslie/p3 "l"    'evil-jump-forward                    "jump forward")
+(circ/p3 "f r"  'set-frame-name                       "rename frame")
+(circ/p3 "f c"  'make-frame                           "create new frame")
+(circ/p3 "f o"  'pop-out-config-to-new-frame          "pop out to frame")
+(circ/p3 "f"    'nil                                  "frames")
+(circ/p3 "h"    'evil-jump-backward                   "jump back")
+(circ/p3 "l"    'evil-jump-forward                    "jump forward")
 #+END_SRC
 
 ** P4
 #+BEGIN_SRC emacs-lisp
 ;;         KEY    FUNCTION                              DESCRIPTION                           MODE
-(leslie/p4 "["    'org-previous-link                    "previous link"                       'org-mode-map)
-(leslie/p4 "]"    'org-next-link                        "next link"                           'org-mode-map)
-(leslie/p4 "["    'org-previous-link                    "previous link"                       'org-agenda-mode-map)
-(leslie/p4 "]"    'org-next-link                        "next link"                           'org-agenda-mode-map)
-(leslie/p4 "a"    'nil                                  "org-agenda")
-(leslie/p4 "a a"  'leslie/alias-org-agenda-agenda       "agenda")
-(leslie/p4 "a t"  'leslie/alias-org-agenda-tasks        "tasks")
-(leslie/p4 "a s"  'leslie/setup-agenda-view             "setup agenda view")
-(leslie/p4 "b c"  'leslie/open-calendar                 "calendar")
-(leslie/p4 "b i"  'leslie/open-inbox                    "inbox")
-(leslie/p4 "b r"  'leslie/open-read                     "read")
-(leslie/p4 "b s"  'leslie/open-someday                  "someday")
-(leslie/p4 "b t"  'leslie/open-todo                     "todo")
-(leslie/p4 "b vc" 'org-columns                          "columns"                             'org-mode-map)
-(leslie/p4 "b"    'nil                                  "buffer switching")
-(leslie/p4 "c c"  'leslie/cortex/continue               "continue in another slide"           'org-mode-map)
-(leslie/p4 "c f"  'leslie/cortex/search-slides          "search slides")
-(leslie/p4 "c l"  'leslie/cortex/link                   "cortex link"                         'org-mode-map)
-(leslie/p4 "c n"  'leslie/cortex/create-file            "create cortex file")
-(leslie/p4 "c r"  'leslie/cortex/rename-slide           "rename slide"                        'org-mode-map)
-(leslie/p4 "c"    'nil                                  "cortex"                              'org-mode-map)
-(leslie/p4 "e"    'nil                                  "org edit"                            'org-mode-map)
-(leslie/p4 "e s"  'leslie/org-sort-headlines            "sort headlines"                      'org-mode-map)
-(leslie/p4 "f m"  'leslie/org-file-reference            "file reference"                      'org-mode-map)
-(leslie/p4 "f p"  'leslie/pims/set-project              "set as project"                      'org-mode-map)
-(leslie/p4 "f r"  'org-refile                           "org refile"                          'org-mode-map)
-(leslie/p4 "f t"  'leslie/pims/set-todo                 "set as todo"                         'org-mode-map)
-(leslie/p4 "f"    'nil                                  "filing"                              'org-mode-map)
-(leslie/p4 "h"    'outline-backward-same-level          "back same level")
-(leslie/p4 "i"    'org-clock-in                         "clock in"                            'org-mode-map)
-(leslie/p4 "j"    'outline-next-visible-heading         "next visible heading")
-(leslie/p4 "k"    'outline-previous-visible-heading     "prev visible heading")
-(leslie/p4 "l"    'outline-forward-same-level           "forward same level")
-(leslie/p4 "m"    'org-archive-subtree-default          "archive"                             'org-mode-map)
-(leslie/p4 "n"    'org-capture                          "org capture")
-(leslie/p4 "o"    'org-clock-out                        "clock out"                           'org-mode-map)
-(leslie/p4 "p d"  'org-deadline                         "deadline"                            'org-mode-map)
-(leslie/p4 "p p"  'org-set-property                     "set property"                        'org-mode-map)
-(leslie/p4 "p s"  'org-schedule                         "schedule"                            'org-mode-map)
-(leslie/p4 "p t"  'org-set-tags-command                 "set tags"                            'org-mode-map)
-(leslie/p4 "p"    'nil                                  "property"                            'org-mode-map)
-(leslie/p4 "r"    'nil                                  "references"                          'org-mode-map)
-(leslie/p4 "r f"  'leslie/cortex/find-reference         "find reference")
-(leslie/p4 "r l"  'leslie/cortex/insert-reference-link  "insert reference link"               'org-mode-map)
-(leslie/p4 "t c"  'org-table-create-or-convert-from-region "create / convert table"           'org-mode-map)
-(leslie/p4 "t d"  'nil                                  "delete"                              'org-mode-map)
-(leslie/p4 "t dc" 'org-table-delete-column              "delete column"                       'org-mode-map)
-(leslie/p4 "t dr" 'org-table-kill-row                   "delete row"                          'org-mode-map)
-(leslie/p4 "t i"  'nil                                  "insert"                              'org-mode-map)
-(leslie/p4 "t ic" 'org-table-insert-column              "insert column"                       'org-mode-map)
-(leslie/p4 "t ih" 'org-table-insert-hline               "insert horizontal line"              'org-mode-map)
-(leslie/p4 "t ir" 'org-table-insert-row                 "insert row"                          'org-mode-map)
-(leslie/p4 "t"    'nil                                  "tables"                              'org-mode-map)
-(leslie/p4 "u"    'outline-up-heading                   "up heading")
-(leslie/p4 "v c"  'leslie/insert-created-timestamp      "created date"                        'org-mode-map)
-(leslie/p4 "v d"  'org-time-stamp                       "time stamp"                          'org-mode-map)
-(leslie/p4 "v p"  'counsel-yank-pop                     "paste selector")
-(leslie/p4 "v t"  'leslie/org-template-insert           "template"                            'org-mode-map)
-(leslie/p4 "v"    'nil                                  "insert items"                        'org-mode-map)
-(leslie/p4 "x"    'nil                                  "none")
-(leslie/p4 "x"    'org-toggle-checkbox                  "toggle checkbox"                     'org-mode-map)
+(circ/p4 "["    'org-previous-link                    "previous link"                       'org-mode-map)
+(circ/p4 "]"    'org-next-link                        "next link"                           'org-mode-map)
+(circ/p4 "["    'org-previous-link                    "previous link"                       'org-agenda-mode-map)
+(circ/p4 "]"    'org-next-link                        "next link"                           'org-agenda-mode-map)
+(circ/p4 "a"    'nil                                  "org-agenda")
+(circ/p4 "a a"  'circ/alias-org-agenda-agenda       "agenda")
+(circ/p4 "a t"  'circ/alias-org-agenda-tasks        "tasks")
+(circ/p4 "a s"  'circ/setup-agenda-view             "setup agenda view")
+(circ/p4 "b c"  'circ/open-calendar                 "calendar")
+(circ/p4 "b i"  'circ/open-inbox                    "inbox")
+(circ/p4 "b r"  'circ/open-read                     "read")
+(circ/p4 "b s"  'circ/open-someday                  "someday")
+(circ/p4 "b t"  'circ/open-todo                     "todo")
+(circ/p4 "b vc" 'org-columns                          "columns"                             'org-mode-map)
+(circ/p4 "b"    'nil                                  "buffer switching")
+(circ/p4 "c c"  'circ/cortex/continue               "continue in another slide"           'org-mode-map)
+(circ/p4 "c f"  'circ/cortex/search-slides          "search slides")
+(circ/p4 "c l"  'circ/cortex/link                   "cortex link"                         'org-mode-map)
+(circ/p4 "c n"  'circ/cortex/create-file            "create cortex file")
+(circ/p4 "c r"  'circ/cortex/rename-slide           "rename slide"                        'org-mode-map)
+(circ/p4 "c"    'nil                                  "cortex"                              'org-mode-map)
+(circ/p4 "e"    'nil                                  "org edit"                            'org-mode-map)
+(circ/p4 "e s"  'circ/org-sort-headlines            "sort headlines"                      'org-mode-map)
+(circ/p4 "f m"  'circ/org-file-reference            "file reference"                      'org-mode-map)
+(circ/p4 "f p"  'circ/pims/set-project              "set as project"                      'org-mode-map)
+(circ/p4 "f r"  'org-refile                           "org refile"                          'org-mode-map)
+(circ/p4 "f t"  'circ/pims/set-todo                 "set as todo"                         'org-mode-map)
+(circ/p4 "f"    'nil                                  "filing"                              'org-mode-map)
+(circ/p4 "h"    'outline-backward-same-level          "back same level")
+(circ/p4 "i"    'org-clock-in                         "clock in"                            'org-mode-map)
+(circ/p4 "j"    'outline-next-visible-heading         "next visible heading")
+(circ/p4 "k"    'outline-previous-visible-heading     "prev visible heading")
+(circ/p4 "l"    'outline-forward-same-level           "forward same level")
+(circ/p4 "m"    'org-archive-subtree-default          "archive"                             'org-mode-map)
+(circ/p4 "n"    'org-capture                          "org capture")
+(circ/p4 "o"    'org-clock-out                        "clock out"                           'org-mode-map)
+(circ/p4 "p d"  'org-deadline                         "deadline"                            'org-mode-map)
+(circ/p4 "p p"  'org-set-property                     "set property"                        'org-mode-map)
+(circ/p4 "p s"  'org-schedule                         "schedule"                            'org-mode-map)
+(circ/p4 "p t"  'org-set-tags-command                 "set tags"                            'org-mode-map)
+(circ/p4 "p"    'nil                                  "property"                            'org-mode-map)
+(circ/p4 "r"    'nil                                  "references"                          'org-mode-map)
+(circ/p4 "r f"  'circ/cortex/find-reference         "find reference")
+(circ/p4 "r l"  'circ/cortex/insert-reference-link  "insert reference link"               'org-mode-map)
+(circ/p4 "t c"  'org-table-create-or-convert-from-region "create / convert table"           'org-mode-map)
+(circ/p4 "t d"  'nil                                  "delete"                              'org-mode-map)
+(circ/p4 "t dc" 'org-table-delete-column              "delete column"                       'org-mode-map)
+(circ/p4 "t dr" 'org-table-kill-row                   "delete row"                          'org-mode-map)
+(circ/p4 "t i"  'nil                                  "insert"                              'org-mode-map)
+(circ/p4 "t ic" 'org-table-insert-column              "insert column"                       'org-mode-map)
+(circ/p4 "t ih" 'org-table-insert-hline               "insert horizontal line"              'org-mode-map)
+(circ/p4 "t ir" 'org-table-insert-row                 "insert row"                          'org-mode-map)
+(circ/p4 "t"    'nil                                  "tables"                              'org-mode-map)
+(circ/p4 "u"    'outline-up-heading                   "up heading")
+(circ/p4 "v c"  'circ/insert-created-timestamp      "created date"                        'org-mode-map)
+(circ/p4 "v d"  'org-time-stamp                       "time stamp"                          'org-mode-map)
+(circ/p4 "v p"  'counsel-yank-pop                     "paste selector")
+(circ/p4 "v t"  'circ/org-template-insert           "template"                            'org-mode-map)
+(circ/p4 "v"    'nil                                  "insert items"                        'org-mode-map)
+(circ/p4 "x"    'nil                                  "none")
+(circ/p4 "x"    'org-toggle-checkbox                  "toggle checkbox"                     'org-mode-map)
 #+END_SRC
 
 ** Other
