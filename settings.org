@@ -83,6 +83,7 @@ Settings that only work on my home computer. They will probably break other setu
                                                      "Habits\nBlue:   Not to be done          !: Today\nGreen:  Could have been done    *: Done that day\nYellow: Overdue the next day\nRed:    Overdue that day                                                                       Today V")))
                       (tags "STYLE=\"timebucket\"" ((org-agenda-overriding-header "Time Buckets")))
                       (tags "+TODO=\"PROJECT\"&+CATEGORY=\"todo\"" ((org-agenda-overriding-header "Projects Without Category")))
+                      (tags "+CATEGORY=\"inbox\"" ((org-agenda-overriding-header "Inbox")))
                       (tags "+TODO=\"INPROGRESS\"" ((org-agenda-overriding-header "In Progress")))
                       (tags "+TODO=\"NEXT\"" ((org-agenda-overriding-header "Next")))
                       (tags "+TODO=\"WAIT\"" ((org-agenda-overriding-header "Wait")))))
