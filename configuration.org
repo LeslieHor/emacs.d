@@ -182,6 +182,48 @@ Set up nice fonts
 ))
 #+END_SRC
 
+** Notifications
+Send agenda appointment desktop notifications.
+
+#+BEGIN_SRC emacs-lisp
+(setq appt-message-warning-time 15)
+(setq appt-display-interval 5)
+(setq appt-display-mode-line nil)
+(setq appt-disp-window-function 'circ/appt-display)
+(setq appt-delete-window-function (lambda () t))
+
+(defun circ/refresh-appointments ()
+  (interactive)
+  (setq appt-time-msg-list nil)
+  (org-agenda-to-appt))
+
+(defun circ/appt-display (mins-to-appt curr-time msg)
+  "Sends a notification to the noticiation daemon. Has a
+hardcoded 200ms timeout in case no notification service is alive"
+  (let* ((message (format "%s: %s in %s mins" curr-time msg mins-to-appt))
+         (command (format "timeout 0.2 notify-send -t 0 \"%s\"" message)))
+    (when (< 0 (shell-command command))
+      (user-error "Appointment notification failed"))
+    (message "Notification: %s" message)))
+
+(defun circ/expanded-org-agenda-files ()
+  (mapcar 'expand-file-name org-agenda-files))
+
+(defun circ/org-agenda-file-p (&optional file)
+  (member (or file (buffer-file-name)) (circ/expanded-org-agenda-files)))
+
+(defun circ/maybe-refresh-appts ()
+  (when (circ/org-agenda-file-p)
+    (circ/refresh-appointments)))
+
+;; Generate appointments on startup
+(circ/refresh-appointments)
+;; Regenerate at 00:05, so you can leave emacs open over night
+(run-at-time "00:05" (* 60 60 24) 'circ/refresh-appointments)
+;; Generate appointments when you save an agenda file
+(add-hook 'after-save-hook
+          'circ/maybe-refresh-appts)
+#+END_SRC
 * Mode Line
 #+BEGIN_SRC emacs-lisp
 (column-number-mode 1) ; show column number
@@ -191,13 +233,6 @@ Set up nice fonts
 (set-face-attribute 'mode-line-buffer-id nil ; Set buffer id colour
                     :foreground "white"
                     :background "black")
-#+END_SRC
-
-* Enable disabled commands
-
-#+BEGIN_SRC emacs-lisp
-(put 'narrow-to-region 'disabled nil)
-(setq safe-local-variable-values '((eval leslie/file-local-eval-safe-auto-revert)))
 #+END_SRC
 
 * Custom Functions
