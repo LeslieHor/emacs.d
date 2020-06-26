@@ -234,7 +234,7 @@ hardcoded 200ms timeout in case no notification service is alive"
                      circ/format-appt-notify-cmd message)))
       (when (< 0 (shell-command command))
         (user-error "Appointment notification failed"))
-      (message "Notification: %s" message)))
+      (message "Notification: %s" message))))
 
 (defun circ/expanded-org-agenda-files ()
   (mapcar 'expand-file-name org-agenda-files))
