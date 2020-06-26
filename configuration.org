@@ -2123,3 +2123,28 @@ Simply send M-f instead
   "C-h f" 'counsel-describe-function
 )
 #+END_SRC
+* Custom Command Line Options
+These are for easy launching of emacs.
+
+To automagically open emacsclient or emacs do so in the format:
+#+BEGIN_SRC sh
+emacsclient -c -a 'false' --no-wait --eval "(circ/startup/agenda)" || emacs --agenda
+#+END_SRC
+This will open an emacsclient and automatically launch an emacsclient if emacs
+is already running, and run the =circ/startup/agenda= function. If emacs is not
+running, it will open a new instance and use the =--agenda= flag to launch
+=circ/startup/agenda=.
+
+#+BEGIN_SRC emacs-lisp
+(defun circ/startup/inbox (switch) (circ/open-inbox))
+(add-to-list 'command-switch-alist '("--inbox" . circ/startup/inbox))
+
+(defun circ/startup/agenda (switch) (circ/alias-org-agenda-agenda))
+(add-to-list 'command-switch-alist '("--agenda" . circ/startup/agenda))
+
+(defun circ/startup/tasks (switch) (circ/alias-org-agenda-tasks))
+(add-to-list 'command-switch-alist '("--tasks" . circ/startup/tasks))
+
+(defun circ/startup/pims (switch) (circ/set-up-agenda-view))
+(add-to-list 'command-switch-alist '("--pims" . circ/startup/pims))
+#+END_SRC
