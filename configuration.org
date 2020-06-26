@@ -16,8 +16,13 @@
                                         ; overrides the old "emacs@HOST" title
 (set-frame-font "Liberation Mono 7" t t)
 (menu-bar-mode -1)
-(tool-bar-mode -1)
-(scroll-bar-mode -1)
+
+;; Disable these in termux mode
+(defvar circ/termux-p 'nil)
+(unless circ/termux-p
+  (tool-bar-mode -1)
+  (scroll-bar-mode -1))
+
 (load-theme 'wheatgrass)
 ; Split vertically by default
 (setq split-width-threshold 160)
@@ -97,10 +102,18 @@ Highlights:
 (setq org-habit-show-all-today nil)
 
 ;; Set up languages for running code blocks in org
+;; In version 9.0.9, ob-sh was renamed to ob-shell
 (org-babel-do-load-languages
- 'org-babel-load-languages '((python . t)
-                             (sh . t)
-                             (emacs-lisp . t)))
+ 'org-babel-load-languages
+ (cond
+  ((version< org-version "9.0.9")
+   '((python . t)
+     (sh . t)
+     (emacs-lisp . t)))
+  (t
+   '((python . t)
+     (shell . t)
+     (emacs-lisp . t)))))
 
 ;; Set clock checks
 (setq org-agenda-clock-consistency-checks
