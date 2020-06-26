@@ -192,6 +192,19 @@ Send agenda appointment desktop notifications.
 (setq appt-disp-window-function 'circ/appt-display)
 (setq appt-delete-window-function (lambda () t))
 
+;; Pre-defined functions for formatting
+(defun circ/format-appt-notify-msg-simple (mins-to-appt curr-time msg)
+  (format "%s: %s in %s mins" curr-time msg mins-to-appt))
+
+;; Pre-defined functions for different notification systems
+(defun circ/format-appt-notify-cmd-desktop (message)
+  (format "timeout 0.2 notify-send -t 0 \"%s\"" message))
+(defun circ/format-appt-notify-cmd-termux (message)
+  (format "timeout 0.2 termux-notification -t \"%s\"" message))
+
+(defvar circ/format-appt-notify-msg nil)
+(defvar circ/format-appt-notify-cmd nil)
+
 (defun circ/refresh-appointments ()
   (interactive)
   (setq appt-time-msg-list nil)
@@ -200,11 +213,15 @@ Send agenda appointment desktop notifications.
 (defun circ/appt-display (mins-to-appt curr-time msg)
   "Sends a notification to the noticiation daemon. Has a
 hardcoded 200ms timeout in case no notification service is alive"
-  (let* ((message (format "%s: %s in %s mins" curr-time msg mins-to-appt))
-         (command (format "timeout 0.2 notify-send -t 0 \"%s\"" message)))
-    (when (< 0 (shell-command command))
-      (user-error "Appointment notification failed"))
-    (message "Notification: %s" message)))
+  (when (and circ/format-appt-notify-msg
+             circ/format-appt-notify-cmd)
+    (let* ((message (funcall
+                     circ/format-appt-notify-msg curr-time msg mins-to-appt))
+           (command (funcall
+                     circ/format-appt-notify-cmd message)))
+      (when (< 0 (shell-command command))
+        (user-error "Appointment notification failed"))
+      (message "Notification: %s" message)))
 
 (defun circ/expanded-org-agenda-files ()
   (mapcar 'expand-file-name org-agenda-files))
@@ -1267,6 +1284,8 @@ Load evil, and its dependencies in it comes with.
 #+BEGIN_SRC emacs-lisp
 (add-to-list 'load-path "~/.emacs.d/packages/evil-1.2.14")
 (add-to-list 'load-path "~/.emacs.d/packages/evil-1.2.14/lib")
+; Required for TAB to work in terminal mode to cycle org tree visibility
+(setq evil-want-C-i-jump nil)
 (require 'evil)
 (evil-mode 1)
 #+END_SRC
