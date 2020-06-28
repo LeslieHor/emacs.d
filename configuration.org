@@ -229,7 +229,7 @@ hardcoded 200ms timeout in case no notification service is alive"
   (when (and circ/format-appt-notify-msg
              circ/format-appt-notify-cmd)
     (let* ((message (funcall
-                     circ/format-appt-notify-msg curr-time msg mins-to-appt))
+                     circ/format-appt-notify-msg mins-to-appt curr-time msg))
            (command (funcall
                      circ/format-appt-notify-cmd message)))
       (when (< 0 (shell-command command))
@@ -2136,15 +2136,15 @@ running, it will open a new instance and use the =--agenda= flag to launch
 =circ/startup/agenda=.
 
 #+BEGIN_SRC emacs-lisp
-(defun circ/startup/inbox (switch) (circ/open-inbox))
+(defun circ/startup/inbox (&optional switch) (circ/open-inbox))
 (add-to-list 'command-switch-alist '("--inbox" . circ/startup/inbox))
 
-(defun circ/startup/agenda (switch) (circ/alias-org-agenda-agenda))
+(defun circ/startup/agenda (&optional switch) (circ/alias-org-agenda-agenda))
 (add-to-list 'command-switch-alist '("--agenda" . circ/startup/agenda))
 
-(defun circ/startup/tasks (switch) (circ/alias-org-agenda-tasks))
+(defun circ/startup/tasks (&optional switch) (circ/alias-org-agenda-tasks))
 (add-to-list 'command-switch-alist '("--tasks" . circ/startup/tasks))
 
-(defun circ/startup/pims (switch) (circ/set-up-agenda-view))
+(defun circ/startup/pims (&optional switch) (circ/set-up-agenda-view))
 (add-to-list 'command-switch-alist '("--pims" . circ/startup/pims))
 #+END_SRC
