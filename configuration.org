@@ -229,7 +229,7 @@ hardcoded 200ms timeout in case no notification service is alive"
   (when (and circ/format-appt-notify-msg
              circ/format-appt-notify-cmd)
     (let* ((message (funcall
-                     circ/format-appt-notify-msg curr-time msg mins-to-appt))
+                     circ/format-appt-notify-msg mins-to-appt msg curr-time))
            (command (funcall
                      circ/format-appt-notify-cmd message)))
       (when (< 0 (shell-command command))
@@ -1377,6 +1377,10 @@ Set initial states
 ;; Setting up more ivy completion
 (setq org-outline-path-complete-in-steps nil)
 (setq org-completion-use-ido nil)
+
+;; Remove the Shift-SPACE shortcut.
+;; I keep accidentally activating it.
+(define-key ivy-minibuffer-map (kbd "S-SPC") nil)
 #+END_SRC
 
 ** projectile

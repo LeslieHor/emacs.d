@@ -110,13 +110,13 @@ Settings that only work on my home computer. They will probably break other setu
          entry (file+datetree "~/pims/microblog.org")
          "*%U\n%?\n")))
 
-(setq org-agenda-prefix-format '((agenda . " %i %-20:c%?-12t% s")
+(setq org-agenda-prefix-format '((agenda   . " %i %-12:c%?-12t% s")
                                  (timeline . "  % s")
-                                 (todo . " %i %-20:c")
-                                 (tags . " %i %-20:c")
-                                 (search . " %i %-20:c")))
-(setq org-agenda-tags-column -110)
-(setq org-habit-graph-column 80)
+                                 (todo     . " %i %-12:c")
+                                 (tags     . " %i %-12:c")
+                                 (search   . " %i %-12:c")))
+(setq org-agenda-tags-column -80)
+(setq org-habit-graph-column 50)
 
 ;; Functions to open org files
 (defun circ/open-inbox    () (interactive) (find-file "~/pims/inbox.org"))
