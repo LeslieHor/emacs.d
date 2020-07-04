@@ -1297,8 +1297,6 @@ Load evil, and its dependencies in it comes with.
 #+BEGIN_SRC emacs-lisp
 (add-to-list 'load-path "~/.emacs.d/packages/evil-1.2.14")
 (add-to-list 'load-path "~/.emacs.d/packages/evil-1.2.14/lib")
-; Required for TAB to work in terminal mode to cycle org tree visibility
-(setq evil-want-C-i-jump nil)
 (require 'evil)
 (evil-mode 1)
 #+END_SRC
@@ -1345,10 +1343,19 @@ Set initial states
 (add-hook 'org-mode-hook 'evil-org-mode)
 (evil-org-set-key-theme '(navigation insert textobjects additional calendar shift todo heading))
 (add-hook 'org-mode-hook
-          (lambda ()
-          (setq evil-auto-indent nil)))
+          (lambda () (setq evil-auto-indent nil)))
 (require 'evil-org-agenda)
 (evil-org-agenda-set-keys)
+
+;; When using emacs in a terminal, many keys do not work.
+;; Fix them here
+(evil-define-key 'motion org-agenda-mode-map
+  (kbd "RET") 'org-agenda-switch-to
+  (kbd "TAB") 'org-agenda-goto)
+
+(evil-define-key '(normal visual) evil-org-mode-map
+  (kbd "TAB") 'org-cycle
+  (kbd "<backtab>") 'org-shifttab)
 #+END_SRC
 
 ** evil-numbers
