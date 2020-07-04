@@ -29,6 +29,9 @@
 (setq split-height-threshold 100)
 (setq-default fill-column 80)
 (setq calendar-week-start-day 1)
+
+;; Keep point in same position relative to window when scrolling
+(setq scroll-preserve-screen-position t)
 #+END_SRC
 
 ** Tab Behaviour
