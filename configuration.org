@@ -262,7 +262,7 @@ hardcoded 200ms timeout in case no notification service is alive"
 (column-number-mode 1) ; show column number
 (set-face-attribute 'mode-line nil ; Set active mode line colour
                     :foreground "white"
-                    :background "blue")
+                    :background "darkgreen")
 (set-face-attribute 'mode-line-buffer-id nil ; Set buffer id colour
                     :foreground "white"
                     :background "black")
@@ -1254,6 +1254,17 @@ Sorts the level 0 headlines by todo state
           (term-send-raw-string "\n")))
     (message "Not in term-mode")))
 #+END_SRC
+** Set Frame Name
+A wrapper around the =set-frame-name= function to automatically append " - Emacs"
+to the title and pre-fill the default input as the current frame name.
+
+#+BEGIN_SRC emacs-lisp
+(defun circ/set-frame-name (&optional name)
+  (interactive)
+  (let ((title (cond (name name)
+                     (t (read-string "Title: " (frame-parameter nil 'name))))))
+    (set-frame-name (concat title " - Emacs"))))
+#+END_SRC
 * Local variables
 ** Safe Local Eval Aliases
 #+BEGIN_SRC emacs-lisp
@@ -2052,7 +2063,7 @@ Simply send M-f instead
 ** P3
 #+BEGIN_SRC emacs-lisp
 ;;       KEY    FUNCTION                              DESCRIPTION                           MODE
-(circ/p3 "f r"  'set-frame-name                       "rename frame")
+(circ/p3 "f r"  'circ/set-frame-name                  "rename frame")
 (circ/p3 "f c"  'make-frame                           "create new frame")
 (circ/p3 "f o"  'pop-out-config-to-new-frame          "pop out to frame")
 (circ/p3 "f"    'nil                                  "frames")
