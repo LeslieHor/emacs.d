@@ -14,7 +14,7 @@
 (setq ring-bell-function 'ignore) ; silent bell when you make a mistake
 (setq-default frame-title-format '("%b - Emacs")) ; set the emacs title.
                                         ; overrides the old "emacs@HOST" title
-(set-frame-font "Liberation Mono 7" t t)
+(set-frame-font "Liberation Mono 9" t t)
 (menu-bar-mode -1)
 
 ;; Disable these in termux mode
@@ -1213,8 +1213,6 @@ has no effect."
   (let ((template (completing-read "Template: "
                                    circ/org-template-alist)))
     (insert (cdr (assoc template circ/org-template-alist)))))
-
-(message "%s" circ/org-template-alist)
 #+END_SRC
 ** Org sort headlines
 Sorts the level 0 headlines by todo state
@@ -1262,8 +1260,39 @@ to the title and pre-fill the default input as the current frame name.
 (defun circ/set-frame-name (&optional name)
   (interactive)
   (let ((title (cond (name name)
-                     (t (read-string "Title: " (frame-parameter nil 'name))))))
+                     (t (read-string "Title: "
+                                     (replace-regexp-in-string
+                                      " - Emacs$" ""
+                                      (frame-parameter nil 'name)))))))
     (set-frame-name (concat title " - Emacs"))))
+#+END_SRC
+** New Scratch Modes
+#+BEGIN_SRC emacs-lisp
+(defun new-scratch-with-mode (mode &optional idx)
+  "Opens a new scratch buffer in given mode. If one already exists,
+creates a new one"
+  (interactive)
+  (let* ((index (cond (idx idx) (t 1)))
+         (buffer-name (concat "*" (symbol-name mode) "-scratch-"
+                              (int-to-string index) "*")))
+    (cond ((not (get-buffer buffer-name))
+           (switch-to-buffer buffer-name)
+           (funcall mode))
+          (t
+           (new-scratch-with-mode mode (+ 1 index))))))
+
+;; Add new scratch modes below
+(defun new-scratch-json-mode ()
+  (interactive)
+  (new-scratch-with-mode 'json-mode))
+
+(defun new-scratch-org-mode ()
+  (interactive)
+  (new-scratch-with-mode 'org-mode))
+
+(defun new-scratch-text-mode ()
+  (interactive)
+  (new-scratch-with-mode 'text-mode))
 #+END_SRC
 * Local variables
 ** Safe Local Eval Aliases
@@ -1677,6 +1706,16 @@ To keep the code nice and clean.
 (defun circ/alias-sh-cmd-whole-buffer () (interactive) (circ/sh-cmd nil t nil))
 (defun circ/alias-sh-cmd-split-lines () (interactive) (circ/sh-cmd nil nil t))
 (defun circ/alias-sh-cmd-whole-buffer-split-lines () (interactive) (circ/sh-cmd nil t t))
+
+(setq circ/vert-resize-delta 5)
+(setq circ/horz-resize-delta 10)
+
+(defvar circ/vert-resize-delta 1)
+(defvar circ/horz-resize-delta 1)
+(defun circ/alias-shrink-win-horz  () (interactive) (shrink-window-horizontally circ/horz-resize-delta))
+(defun circ/alias-enlarge-win-horz () (interactive) (enlarge-window-horizontally circ/horz-resize-delta))
+(defun circ/alias-shrink-win-vert  () (interactive) (shrink-window circ/vert-resize-delta))
+(defun circ/alias-enlarge-win-vert () (interactive) (enlarge-window circ/vert-resize-delta))
 #+END_SRC
 
 ** Helper Functions
@@ -1974,6 +2013,10 @@ Simply send M-f instead
 (circ/p1 "f f"  'counsel-find-file                    "find file")
 (circ/p1 "f h"  'org-html-export-to-html              "export to html"                      'org-mode-map)
 (circ/p1 "f r"  'counsel-recentf                      "find recent file")
+(circ/p1 "f s"  'nil                                  "scratch buffers")
+(circ/p1 "f sj" 'new-scratch-json-mode                "json scratch buffer")
+(circ/p1 "f st" 'new-scratch-text-mode                "text scratch buffer")
+(circ/p1 "f so" 'new-scratch-org-mode                 "org scratch buffer")
 (circ/p1 "f"    'nil                                  "files")
 (circ/p1 "h"    'windmove-left                        "win left")
 (circ/p1 "j"    'windmove-down                        "win down")
@@ -2054,10 +2097,10 @@ Simply send M-f instead
 ** P2
 #+BEGIN_SRC emacs-lisp
 ;;       KEY    FUNCTION                              DESCRIPTION                           MODE
-(circ/p2 "h"    'shrink-window-horizontally           "shrink horz"                         'override)
-(circ/p2 "j"    'enlarge-window                       "enlarge vert"                        'override)
-(circ/p2 "k"    'shrink-window                        "shrink vert"                         'override)
-(circ/p2 "l"    'enlarge-window-horizontally          "enlarge horz"                        'override)
+(circ/p2 "h"    'circ/alias-shrink-win-horz           "shrink horz"                         'override)
+(circ/p2 "j"    'circ/alias-enlarge-win-vert          "enlarge vert"                        'override)
+(circ/p2 "k"    'circ/alias-shrink-win-vert           "shrink vert"                         'override)
+(circ/p2 "l"    'circ/alias-enlarge-win-horz          "enlarge horz"                        'override)
 #+END_SRC
 
 ** P3
