@@ -223,6 +223,11 @@ Send agenda appointment desktop notifications.
 (defvar circ/format-appt-notify-msg nil)
 (defvar circ/format-appt-notify-cmd nil)
 
+; Notifcations not working? Try using some of these
+; (setq circ/format-appt-notify-msg 'circ/format-appt-notify-msg-simple)
+; (setq circ/format-appt-notify-cmd 'circ/format-appt-notify-cmd-desktop)
+; (setq circ/format-appt-notify-cmd 'circ/format-appt-notify-cmd-termux)
+
 (defun circ/refresh-appointments ()
   (interactive)
   (setq appt-time-msg-list nil)
@@ -232,14 +237,21 @@ Send agenda appointment desktop notifications.
   "Sends a notification to the noticiation daemon. Has a
 hardcoded 200ms timeout in case no notification service is alive"
   (when (and circ/format-appt-notify-msg
-             circ/format-appt-notify-cmd)
-    (let* ((message (funcall
-                     circ/format-appt-notify-msg mins-to-appt curr-time msg))
+             circ/format-appt-notify-cmd
+             msg)
+    (let* ((head-msg (cond ((listp msg) (car msg))
+                           (t msg)))
+           (head-mins (cond ((listp mins-to-appt) (car mins-to-appt))
+                            (t mins-to-appt)))
+           (message (funcall
+                     circ/format-appt-notify-msg head-mins curr-time head-msg))
            (command (funcall
                      circ/format-appt-notify-cmd message)))
       (when (< 0 (shell-command command))
         (user-error "Appointment notification failed"))
-      (message "Notification: %s" message))))
+      (message "Notification: %s" message))
+    (when (and (listp msg) msg)
+      (circ/appt-display (cdr mins-to-appt) curr-time (cdr msg)))))
 
 (defun circ/expanded-org-agenda-files ()
   (mapcar 'expand-file-name org-agenda-files))
@@ -2110,6 +2122,7 @@ Simply send M-f instead
 ;;       KEY    FUNCTION                              DESCRIPTION                           MODE
 (circ/p3 "f r"  'circ/set-frame-name                  "rename frame")
 (circ/p3 "f c"  'make-frame                           "create new frame")
+(circ/p3 "f q"  'delete-frame                         "close frame")
 (circ/p3 "f o"  'pop-out-config-to-new-frame          "pop out to frame")
 (circ/p3 "f"    'nil                                  "frames")
 (circ/p3 "h"    'evil-jump-backward                   "jump back")
