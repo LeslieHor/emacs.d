@@ -1662,7 +1662,7 @@ Source: https://oremacs.com/2015/01/01/three-ansi-term-tips/
     (set-process-sentinel
      proc
      `(lambda (process event)
-        (if (string= event "finished\n")
+        (if (not (process-live-p process))
             (kill-buffer ,buff))))))
 
 (add-hook 'term-exec-hook 'auto-exit-term-exec-hook)
