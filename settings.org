@@ -119,11 +119,12 @@ Settings that only work on my home computer. They will probably break other setu
 (setq org-habit-graph-column 50)
 
 ;; Functions to open org files
-(defun circ/open-inbox    () (interactive) (find-file "~/pims/inbox.org"))
-(defun circ/open-todo     () (interactive) (find-file "~/pims/todo.org"))
-(defun circ/open-calendar () (interactive) (find-file "~/pims/calendar.org"))
-(defun circ/open-someday  () (interactive) (find-file "~/pims/someday.org"))
-(defun circ/open-read     () (interactive) (find-file "~/pims/read.org"))
+(defun circ/open-inbox      () (interactive) (find-file "~/pims/inbox.org"))
+(defun circ/open-todo       () (interactive) (find-file "~/pims/todo.org"))
+(defun circ/open-calendar   () (interactive) (find-file "~/pims/calendar.org"))
+(defun circ/open-checklists () (interactive) (find-file "~/pims/checklists.org"))
+(defun circ/open-someday    () (interactive) (find-file "~/pims/someday.org"))
+(defun circ/open-read       () (interactive) (find-file "~/pims/read.org"))
 
 ;; Stuck projects search
 (setq org-stuck-projects '("/PROJECT" ("NEXT" "WAIT" "INPROGRESS") nil ""))

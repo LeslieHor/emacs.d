@@ -2141,6 +2141,7 @@ Simply send M-f instead
 (circ/p4 "a t"  'circ/alias-org-agenda-tasks          "tasks")
 (circ/p4 "a s"  'circ/setup-agenda-view               "setup agenda view")
 (circ/p4 "b c"  'circ/open-calendar                   "calendar")
+(circ/p4 "b l"  'circ/open-checklists                 "checklists")
 (circ/p4 "b i"  'circ/open-inbox                      "inbox")
 (circ/p4 "b r"  'circ/open-read                       "read")
 (circ/p4 "b s"  'circ/open-someday                    "someday")
