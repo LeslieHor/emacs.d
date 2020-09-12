@@ -1680,6 +1680,17 @@ Open man pages in current window
 (require 'mpccp)
 (setq mpccp-playlist-directory "/mnt/slave/playlists")
 #+END_SRC
+** Dashboard
+#+BEGIN_SRC emacs-lisp
+(add-to-list 'load-path "~/.emacs.d/packages/dashboard")
+(require 'dashboard)
+(setq dashboard-persistent-links
+      '("file:~/.emacs.d/configuration.org"
+        "file:~/.emacs.d/settings.org"
+        "file:~/.emacs.d/personalsettings.org"
+        "url:http://duckduckgo.com"))
+(setq initial-buffer-choice 'dashboard)
+#+END_SRC
 ** eww
 Evil bindings for =eww=.
 #+BEGIN_SRC emacs-lisp
