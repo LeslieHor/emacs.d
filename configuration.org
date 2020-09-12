@@ -1673,6 +1673,39 @@ Open man pages in current window
 #+BEGIN_SRC emacs-lisp
 (setq Man-notify-method 'pushy)
 #+END_SRC
+
+** mpccp
+#+BEGIN_SRC emacs-lisp
+(add-to-list 'load-path "~/.emacs.d/packages/mpccp")
+(require 'mpccp)
+(setq mpccp-playlist-directory "/mnt/slave/playlists")
+#+END_SRC
+** eww
+Evil bindings for =eww=.
+#+BEGIN_SRC emacs-lisp
+(evil-define-key 'normal eww-mode-map
+  (kbd "H") 'eww-back-url
+  (kbd "L") 'eww-forward-url
+  (kbd "[") 'shr-previous-link
+  (kbd "]") 'shr-next-link
+  (kbd "o") 'eww
+  (kbd "r") 'eww-reload
+  (kbd "R") 'eww-readable
+  (kbd "q") 'kill-this-buffer
+)
+#+END_SRC
+
+Rename buffers to allow for more than one =eww= buffer.
+#+BEGIN_SRC emacs-lisp
+(defun circ/rename-eww-hook ()
+  "Rename eww buffer with page title for easier buffer finding and to allow
+multiple eww buffers to be open"
+  (let ((current-title (plist-get eww-data :title)))
+    (rename-buffer (concat "*" "eww" " " "(" current-title ")" "*" )
+                   t)))
+(add-hook 'eww-mode-hook #'circ/rename-eww-hook)
+(add-hook 'eww-after-render-hook #'circ/rename-eww-hook)
+#+END_SRC
 ** general
 #+BEGIN_SRC emacs-lisp
 (add-to-list
@@ -2037,6 +2070,7 @@ Simply send M-f instead
 (circ/p1 "k"    'windmove-up                          "win up")
 (circ/p1 "l"    'windmove-right                       "wind right")
 (circ/p1 "o i"  'circ/open-in-intellij                "open in intellij")
+(circ/p1 "o m"  'mpccp                                "mpccp")
 (circ/p1 "o r"  'ranger                               "ranger")
 (circ/p1 "o tc" 'circ/alias-clisp-shell               "clisp")
 (circ/p1 "o te" 'erlang-shell                         "erlang")
@@ -2201,6 +2235,13 @@ Simply send M-f instead
 #+BEGIN_SRC emacs-lisp
 (evil-define-key 'motion org-agenda-mode-map "ci" 'org-agenda-show-clocking-issues)
 (evil-define-key 'motion org-agenda-mode-map "cl" 'org-agenda-log-mode)
+;; F1 is reserved for some special cases when "C-h" isn't available
+(general-define-key
+  "<f2>" 'circ/alias-org-agenda-agenda
+  "<f3>" 'circ/alias-org-agenda-tasks
+  "<f4>" 'circ/open-inbox
+  "<f5>" 'circ/open-checklists
+)
 #+END_SRC
 
 *** Help
