@@ -23,6 +23,18 @@
   (mouse-avoidance-mode 'animate)
   (tool-bar-mode -1)
   (scroll-bar-mode -1))
+(when circ/termux-p
+  (defun circ/termux-open (args)
+    (interactive)
+    (if (not (listp args))
+        (setq args (list args)))
+    (apply 'call-process "termux-open" nil nil nil args))
+  (defun circ/browse-url-browser-function (url &rest args)
+    (interactive)
+    (circ/termux-open url))
+
+  (setq browse-url-browser-function
+    'circ/browse-url-browser-function))
 
 (load-theme 'wheatgrass)
 ; Split vertically by default
