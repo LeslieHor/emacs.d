@@ -139,7 +139,7 @@ will call `find-file' with \"~/.emacs.d/init.el\" as the arg")
       (recentf-load-list)
       (insert (propertize "Dashboard\n" 'face 'dashboard-header-1)
               "\n"
-              " [o] Open link       [r] Reload          [q] Quic\n"
+              " [o] Open link       [r] Reload          [q] Quit\n"
               "\n"
               (propertize "Shortcuts\n" 'face 'dashboard-header-2)
               " [a] Agenda          [t] Tasks           [i] Inbox           [l] Checklists\n"
@@ -151,10 +151,10 @@ will call `find-file' with \"~/.emacs.d/init.el\" as the arg")
               (dashboard-print-links-list (dashboard-get-recentf-list))
               )
       (dashboard-mode)
-      (hl-line-mode)
       (switch-to-buffer buf)
       (goto-char (point-min))
       (search-forward "Persistent Links")
-      (move-beginning-of-line 2))))
+      (move-beginning-of-line 2)
+      (hl-line-mode))))
 
 (provide 'dashboard)
