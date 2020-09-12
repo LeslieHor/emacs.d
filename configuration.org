@@ -141,6 +141,7 @@ Line wrap mode
   (evil-quickscope-mode 0))
 
 (add-hook 'org-agenda-mode-hook 'org-agenda-mode-startup-functions)
+(add-hook 'org-agenda-mode-hook 'circ/disable-evil-quickscope-mode)
 #+END_SRC
 
 Fix the =\emsp= bug in clock tables.
@@ -1308,6 +1309,11 @@ creates a new one"
   (interactive)
   (new-scratch-with-mode 'text-mode))
 #+END_SRC
+** Disable evil quickscope
+#+BEGIN_SRC emacs-lisp
+(defun circ/disable-evil-quickscope-mode ()
+  (evil-quickscope-mode -1))
+#+END_SRC
 * Local variables
 ** Safe Local Eval Aliases
 #+BEGIN_SRC emacs-lisp
@@ -1690,6 +1696,7 @@ Open man pages in current window
         "file:~/.emacs.d/personalsettings.org"
         "url:http://duckduckgo.com"))
 (setq initial-buffer-choice 'dashboard)
+(add-hook 'dashboard-mode-hook 'circ/disable-evil-quickscope-mode)
 #+END_SRC
 ** eww
 Evil bindings for =eww=.
@@ -2082,6 +2089,7 @@ Simply send M-f instead
 (circ/p1 "l"    'windmove-right                       "wind right")
 (circ/p1 "o i"  'circ/open-in-intellij                "open in intellij")
 (circ/p1 "o m"  'mpccp                                "mpccp")
+(circ/p1 "o d"  'dashboard                            "dashboard")
 (circ/p1 "o r"  'ranger                               "ranger")
 (circ/p1 "o tc" 'circ/alias-clisp-shell               "clisp")
 (circ/p1 "o te" 'erlang-shell                         "erlang")
