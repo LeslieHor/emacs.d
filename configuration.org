@@ -1796,6 +1796,10 @@ Open in eww readable
   (interactive)
   (elfeed-db-save)
   (kill-this-buffer))
+(defun circ/elfeed-db-reload ()
+  (interactive)
+  (elfeed-db-load)
+  (elfeed-search-update--force))
 #+END_SRC
 
 Evil Keybindings
@@ -1811,6 +1815,7 @@ Evil Keybindings
   (kbd "S-SPC") 'scroll-down-command
   "/" 'elfeed-search-live-filter
   "r" 'elfeed-search-update--force
+  "R" 'circ/elfeed-db-reload
   "gr" 'elfeed-search-update--force
   "gR" 'elfeed-search-fetch
   "s" 'circ/elfeed-search-tag-saved
