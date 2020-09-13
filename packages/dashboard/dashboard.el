@@ -76,6 +76,8 @@
     (kbd "t") 'circ/alias-org-agenda-tasks
     (kbd "i") 'circ/open-inbox
     (kbd "l") 'circ/open-checklists
+    (kbd "e") 'elfeed
+    (kbd "m") 'mpccp
     )
   )
 (evil-dashboard-set-keys)
@@ -155,6 +157,7 @@ will call `find-file' with \"~/.emacs.d/init.el\" as the arg")
               "\n"
               (propertize "Shortcuts\n" 'face 'dashboard-header-2)
               " [a] Agenda          [t] Tasks           [i] Inbox           [l] Checklists\n"
+              " [e] Elfeed          [m] Mpccp\n"
               "\n"
               (propertize "Persistent Links\n" 'face 'dashboard-header-2)
               (dashboard-print-links-list dashboard-persistent-links)

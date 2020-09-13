@@ -284,6 +284,7 @@ hardcoded 200ms timeout in case no notification service is alive"
 (add-hook 'after-save-hook
           'circ/maybe-refresh-appts)
 #+END_SRC
+
 * Mode Line
 #+BEGIN_SRC emacs-lisp
 (column-number-mode 1) ; show column number
@@ -1736,6 +1737,116 @@ multiple eww buffers to be open"
 (add-hook 'eww-mode-hook #'circ/rename-eww-hook)
 (add-hook 'eww-after-render-hook #'circ/rename-eww-hook)
 #+END_SRC
+** elfeed
+#+BEGIN_SRC emacs-lisp
+(add-to-list 'load-path "~/.emacs.d/packages/elfeed-7b2b6fadaa498fef2ba212a50da4a8afa2a5d305")
+(require 'elfeed)
+(setq elfeed-db-directory "~/pims/rss_elfeed/elfeed/")
+#+END_SRC
+
+#+BEGIN_SRC emacs-lisp
+;; Dependencies
+(add-to-list 'load-path "~/.emacs.d/packages/dash.el-2.16.0")
+(add-to-list 'load-path "~/.emacs.d/packages/s.el-43ba8b563bee3426cead0e6d4ddc09398e1a349d")
+
+(add-to-list 'load-path "~/.emacs.d/packages/elfeed-org-77b6bbf222487809813de260447d31c4c59902c9")
+(require 'elfeed-org)
+(elfeed-org)
+(setq rmh-elfeed-org-files (list "~/pims/rss_elfeed/rss_feeds.org"))
+#+END_SRC
+
+Open in eww readable
+#+BEGIN_SRC emacs-lisp
+(defun circ/eww-readable (url &rest args)
+  (interactive)
+  (eww url)
+  (add-hook 'eww-after-render-hook 'eww-readable nil t))
+
+(defun circ/open-in-mpv (url &rest args)
+  (message "Opening in mpv: %s" url)
+  (call-process "mpv" nil 0 nil url))
+
+(defun circ/elfeed-open-in-mpv ()
+  (interactive)
+  (let ((browse-url-browser-function 'circ/open-in-mpv))
+    (elfeed-show-visit)))
+
+(defun circ/elfeed-open-eww-readable()
+  (interactive)
+  (let ((browse-url-browser-function 'circ/eww-readable))
+    (elfeed-show-visit)))
+
+(defun circ/elfeed-open-eww()
+  (interactive)
+  (let ((browse-url-browser-function 'eww-browse-url))
+    (elfeed-show-visit)))
+
+(defun circ/elfeed-search-tag-saved ()
+  (interactive)
+  (elfeed-search-tag-all 'saved))
+(defun circ/elfeed-search-untag-saved ()
+  (interactive)
+  (elfeed-search-untag-all 'saved))
+(defun circ/elfeed-show-tag-saved ()
+  (interactive)
+  (elfeed-show-tag 'saved))
+(defun circ/elfeed-show-untag-saved ()
+  (interactive)
+  (elfeed-show-untag 'saved))
+#+END_SRC
+
+Evil Keybindings
+#+BEGIN_SRC emacs-lisp
+(evil-set-initial-state 'elfeed-search-mode 'motion)
+(evil-define-key 'motion elfeed-search-mode-map
+  (kbd "RET") 'elfeed-search-show-entry
+  (kbd "S-<return>") 'elfeed-search-browse-url
+  "o" 'elfeed-search-show-entry
+  "b" 'elfeed-search-browse-url
+  "y" 'elfeed-search-yank
+  (kbd "SPC") 'scroll-up-command
+  (kbd "S-SPC") 'scroll-down-command
+  "/" 'elfeed-search-live-filter
+  "r" 'elfeed-search-update--force
+  "gr" 'elfeed-search-update--force
+  "gR" 'elfeed-search-fetch
+  "s" 'circ/elfeed-search-tag-saved
+  "S" 'circ/elfeed-search-untag-saved
+  "q" 'quit-window)
+
+(evil-define-key '(motion visual) elfeed-search-mode-map
+  "+" 'elfeed-search-tag-all
+  "-" 'elfeed-search-untag-all
+  "U" 'elfeed-search-tag-all-unread
+  "u" 'elfeed-search-untag-all-unread)
+
+(evil-set-initial-state 'elfeed-show-mode 'motion)
+(evil-define-key 'motion elfeed-show-mode-map
+  "b" 'elfeed-show-visit
+  (kbd "SPC") 'scroll-up-command
+  (kbd "S-SPC") 'scroll-down-command
+  (kbd "<tab>") 'elfeed-show-next-link
+  "/" 'elfeed-show-new-live-search
+  "+" 'elfeed-show-tag
+  "-" 'elfeed-show-untag
+  "]]" 'elfeed-show-next
+  "[[" 'elfeed-show-prev
+  "J" 'elfeed-show-next
+  "K" 'elfeed-show-prev
+  "n" 'elfeed-show-next
+  "p" 'elfeed-show-prev
+  "r" 'elfeed-show-refresh
+  "q" 'elfeed-kill-buffer
+  "o" 'nil
+  "or" 'circ/elfeed-open-eww-readable
+  "oe" 'circ/elfeed-open-eww
+  "ob" 'elfeed-show-visit
+  "om" 'circ/elfeed-open-in-mpv
+  "y" 'elfeed-show-yank
+  "s" 'circ/elfeed-show-tag-saved
+  "S" 'circ/elfeed-show-untag-saved
+)
+#+END_SRC
 ** general
 #+BEGIN_SRC emacs-lisp
 (add-to-list
@@ -2101,8 +2212,8 @@ Simply send M-f instead
 (circ/p1 "l"    'windmove-right                       "wind right")
 (circ/p1 "o i"  'circ/open-in-intellij                "open in intellij")
 (circ/p1 "o m"  'mpccp                                "mpccp")
+(circ/p1 "o r"  'elfeed                               "elfeed")
 (circ/p1 "o d"  'dashboard                            "dashboard")
-(circ/p1 "o r"  'ranger                               "ranger")
 (circ/p1 "o tc" 'circ/alias-clisp-shell               "clisp")
 (circ/p1 "o te" 'erlang-shell                         "erlang")
 (circ/p1 "o tp" 'circ/alias-python-shell              "python")
