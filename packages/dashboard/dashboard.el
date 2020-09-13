@@ -82,7 +82,8 @@
 
 (defvar dashboard-link-abbrev-alist
   '(("file" . find-file)
-    ("url" . browse-url))
+    ("url" . browse-url)
+    ("buf" . switch-to-buffer))
   "How to parse links.
 Each item is a cons in the form (ABBREV, FUN).
 
@@ -109,6 +110,16 @@ will call `find-file' with \"~/.emacs.d/init.el\" as the arg")
                             "~/" file)))
                  recentf-list))
         (t '())))
+
+(defun dashboard-get-buffer-list ()
+  (mapcar (lambda (buffer)
+            (concat "buf" ":" (buffer-name buffer)))
+          ;; Remove buffers whose name are prefixed with a space.
+          (remove-if (lambda (buffer)
+                       (string= (substring (buffer-name buffer)
+                                           0 1)
+                                " "))
+                     (buffer-list))))
 
 (defun dashboard-print-links-list (list)
   (concat (string-join
@@ -149,6 +160,9 @@ will call `find-file' with \"~/.emacs.d/init.el\" as the arg")
               "\n"
               (propertize "Recent Files\n" 'face 'dashboard-header-2)
               (dashboard-print-links-list (dashboard-get-recentf-list))
+              "\n"
+              (propertize "Buffer List\n" 'face 'dashboard-header-2)
+              (dashboard-print-links-list (dashboard-get-buffer-list))
               )
       (dashboard-mode)
       (switch-to-buffer buf)
