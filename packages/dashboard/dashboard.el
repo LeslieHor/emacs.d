@@ -83,7 +83,8 @@
 (defvar dashboard-link-abbrev-alist
   '(("file" . find-file)
     ("url" . browse-url)
-    ("buf" . switch-to-buffer))
+    ("buf" . switch-to-buffer)
+    ("dir" . find-file))
   "How to parse links.
 Each item is a cons in the form (ABBREV, FUN).
 
