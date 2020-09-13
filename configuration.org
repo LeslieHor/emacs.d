@@ -1484,12 +1484,6 @@ Set initial states
                                         ; from commit a07ddc8
 #+END_SRC
 
-** ranger
-#+BEGIN_SRC emacs-lisp
-(add-to-list 'load-path "~/.emacs.d/packages/ranger.el-0.9.8.5")
-(require 'ranger)
-#+END_SRC
-
 ** rainbow-delimiters
 #+BEGIN_SRC emacs-lisp
 (add-to-list 'load-path "~/.emacs.d/packages/rainbow-delimiters-2.1.3")
