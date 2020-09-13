@@ -68,7 +68,6 @@
 (defun evil-dashboard-set-keys ()
   (evil-set-initial-state 'dashboard-mode 'motion)
   (evil-define-key 'motion dashboard-mode-map
-    (kbd "r") 'dashboard
     (kbd "o") 'dashboard-open-link
     (kbd "RET") 'dashboard-open-link
 
@@ -76,7 +75,7 @@
     (kbd "t") 'circ/alias-org-agenda-tasks
     (kbd "i") 'circ/open-inbox
     (kbd "l") 'circ/open-checklists
-    (kbd "e") 'elfeed
+    (kbd "r") 'circ/elfeed-load-and-open
     (kbd "m") 'mpccp
     )
   )
@@ -153,11 +152,11 @@ will call `find-file' with \"~/.emacs.d/init.el\" as the arg")
       (recentf-load-list)
       (insert (propertize "Dashboard\n" 'face 'dashboard-header-1)
               "\n"
-              " [o] Open link       [r] Reload          [q] Quit\n"
+              " [o] Open link       [q] Quit\n"
               "\n"
               (propertize "Shortcuts\n" 'face 'dashboard-header-2)
               " [a] Agenda          [t] Tasks           [i] Inbox           [l] Checklists\n"
-              " [e] Elfeed          [m] Mpccp\n"
+              " [r] Elfeed          [m] Mpccp\n"
               "\n"
               (propertize "Persistent Links\n" 'face 'dashboard-header-2)
               (dashboard-print-links-list dashboard-persistent-links)

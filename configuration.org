@@ -1787,6 +1787,15 @@ Open in eww readable
 (defun circ/elfeed-show-untag-saved ()
   (interactive)
   (elfeed-show-untag 'saved))
+
+(defun circ/elfeed-load-and-open ()
+  (interactive)
+  (elfeed-db-load)
+  (elfeed))
+(defun circ/elfeed-save-and-close ()
+  (interactive)
+  (elfeed-db-save)
+  (kill-this-buffer))
 #+END_SRC
 
 Evil Keybindings
@@ -1806,7 +1815,7 @@ Evil Keybindings
   "gR" 'elfeed-search-fetch
   "s" 'circ/elfeed-search-tag-saved
   "S" 'circ/elfeed-search-untag-saved
-  "q" 'quit-window)
+  "q" 'circ/elfeed-save-and-close)
 
 (evil-define-key '(motion visual) elfeed-search-mode-map
   "+" 'elfeed-search-tag-all
@@ -2206,7 +2215,7 @@ Simply send M-f instead
 (circ/p1 "l"    'windmove-right                       "wind right")
 (circ/p1 "o i"  'circ/open-in-intellij                "open in intellij")
 (circ/p1 "o m"  'mpccp                                "mpccp")
-(circ/p1 "o r"  'elfeed                               "elfeed")
+(circ/p1 "o r"  'circ/elfeed-load-and-open            "elfeed")
 (circ/p1 "o d"  'dashboard                            "dashboard")
 (circ/p1 "o tc" 'circ/alias-clisp-shell               "clisp")
 (circ/p1 "o te" 'erlang-shell                         "erlang")
