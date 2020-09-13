@@ -117,7 +117,7 @@ will call `find-file' with \"~/.emacs.d/init.el\" as the arg")
                            (location (dashboard-get-location item)))
                        (concat
                         (propertize abbrev 'face 'dashboard-abbrev)
-                        ":"
+                        (propertize ":" 'face 'dashboard-abbrev)
                         (propertize location 'face 'dashboard-location))))
                    list)
            "\n") "\n"))
