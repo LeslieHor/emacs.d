@@ -1327,6 +1327,50 @@ creates a new one"
 (defun circ/disable-evil-quickscope-mode ()
   (evil-quickscope-mode -1))
 #+END_SRC
+** run-proc-and-fun
+A function to run a shell program in the background and run a function on the
+resulting buffer output.
+#+BEGIN_SRC emacs-lisp
+(defun circ/run-proc-and-fun (process-name buffer-name directory arg-list
+                                           &optional erase-buffer fun)
+  "Call ARG-LIST and run FUN in the results buffer.
+Calls `start-process' with PROCESS-NAME BUFFER-NAME and ARG-LIST.
+DIRECTORY sets the directory the process is run in.
+ERASE-BUFFER, if non-nil will erase the results buffer before running
+the process.
+FUN, if a function, will be run after the process has finished.
+
+Example
+
+(circ/run-proc-and-fun \"test\" \"*test*\" \"~/Downloads\" (list \"ls\" \"-lh\") t
+             (lambda ()
+               (insert \"test4\\n\")))
+
+NOTE: I use `list' because I don't know how to show a real
+apostrophe in the doc"
+  (interactive)
+  (let* ((buf (get-buffer-create buffer-name)))
+    (with-current-buffer buf
+      (when erase-buffer
+        (erase-buffer))
+      (setq-local process-name process-name)
+      (setq-local process-directory directory)
+      (setq-local post-process-fun fun)
+      (set-process-sentinel
+       (let ((process-fun (append
+                           (list process-name (current-buffer))
+                           arg-list))
+             (default-directory process-directory))
+         (apply 'start-process process-fun))
+       (lambda (process event)
+         (unless (process-live-p process)
+           (with-current-buffer (process-buffer process)
+             (goto-char (point-max))
+             (when (functionp post-process-fun)
+               (funcall post-process-fun))
+             (goto-char (point-max))))))))
+  (message "Process started: %s" arg-list))
+#+END_SRC
 * Local variables
 ** Safe Local Eval Aliases
 #+BEGIN_SRC emacs-lisp
@@ -1760,20 +1804,25 @@ Open in eww readable
   (message "Opening in mpv: %s" url)
   (call-process "mpv" nil 0 nil url))
 
-(defun circ/elfeed-open-in-mpv ()
+(defun circ/elfeed-show-open-in-mpv ()
   (interactive)
-  (let ((browse-url-browser-function 'circ/open-in-mpv))
-    (elfeed-show-visit)))
+  (let ((browse-url-browser-function 'circ/open-in-mpv)) (elfeed-show-visit)))
+(defun circ/elfeed-show-open-eww-readable()
+  (interactive)
+  (let ((browse-url-browser-function 'circ/eww-readable)) (elfeed-show-visit)))
+(defun circ/elfeed-show-open-eww()
+  (interactive)
+  (let ((browse-url-browser-function 'eww-browse-url)) (elfeed-show-visit)))
 
-(defun circ/elfeed-open-eww-readable()
+(defun circ/elfeed-search-open-in-mpv ()
   (interactive)
-  (let ((browse-url-browser-function 'circ/eww-readable))
-    (elfeed-show-visit)))
-
-(defun circ/elfeed-open-eww()
+  (let ((browse-url-browser-function 'circ/open-in-mpv)) (elfeed-search-browse-url)))
+(defun circ/elfeed-search-open-eww-readable()
   (interactive)
-  (let ((browse-url-browser-function 'eww-browse-url))
-    (elfeed-show-visit)))
+  (let ((browse-url-browser-function 'circ/eww-readable)) (elfeed-search-browse-url)))
+(defun circ/elfeed--search-open-eww()
+  (interactive)
+  (let ((browse-url-browser-function 'eww-browse-url)) (elfeed-search-browse-url)))
 
 (defun circ/elfeed-search-tag-saved ()
   (interactive)
@@ -1808,7 +1857,6 @@ Evil Keybindings
 (evil-define-key 'motion elfeed-search-mode-map
   (kbd "RET") 'elfeed-search-show-entry
   (kbd "S-<return>") 'elfeed-search-browse-url
-  "o" 'elfeed-search-show-entry
   "b" 'elfeed-search-browse-url
   "y" 'elfeed-search-yank
   (kbd "SPC") 'scroll-up-command
@@ -1820,6 +1868,11 @@ Evil Keybindings
   "gR" 'elfeed-search-fetch
   "s" 'circ/elfeed-search-tag-saved
   "S" 'circ/elfeed-search-untag-saved
+  "o" 'nil
+  "or" 'circ/elfeed-search-open-eww-readable
+  "oe" 'circ/elfeed-search-open-eww
+  "om" 'circ/elfeed-search-open-in-mpv
+  "ob" 'elfeed-search-browse-url
   "q" 'circ/elfeed-save-and-close)
 
 (evil-define-key '(motion visual) elfeed-search-mode-map
@@ -1846,14 +1899,13 @@ Evil Keybindings
   "r" 'elfeed-show-refresh
   "q" 'elfeed-kill-buffer
   "o" 'nil
-  "or" 'circ/elfeed-open-eww-readable
-  "oe" 'circ/elfeed-open-eww
+  "or" 'circ/elfeed-show-open-eww-readable
+  "oe" 'circ/elfeed-show-open-eww
+  "om" 'circ/elfeed-show-open-in-mpv
   "ob" 'elfeed-show-visit
-  "om" 'circ/elfeed-open-in-mpv
   "y" 'elfeed-show-yank
   "s" 'circ/elfeed-show-tag-saved
-  "S" 'circ/elfeed-show-untag-saved
-)
+  "S" 'circ/elfeed-show-untag-saved)
 #+END_SRC
 ** general
 #+BEGIN_SRC emacs-lisp
