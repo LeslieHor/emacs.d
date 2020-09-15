@@ -1826,7 +1826,10 @@ Open in eww readable
 
 (defun circ/elfeed-search-tag-saved ()
   (interactive)
-  (elfeed-search-tag-all 'saved))
+  (let ((elfeed-search-remain-on-entry t))
+    (elfeed-search-tag-all 'saved)
+    (elfeed-search-untag-all 'unread))
+  (forward-line))
 (defun circ/elfeed-search-untag-saved ()
   (interactive)
   (elfeed-search-untag-all 'saved))
