@@ -45,6 +45,9 @@
 
 ;; Keep point in same position relative to window when scrolling
 (setq scroll-preserve-screen-position t)
+
+;; Don't use proportional fonts in eww
+(setq shr-use-fonts nil)
 #+END_SRC
 
 ** Tab Behaviour
