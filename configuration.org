@@ -1299,18 +1299,14 @@ to the title and pre-fill the default input as the current frame name.
 #+END_SRC
 ** New Scratch Modes
 #+BEGIN_SRC emacs-lisp
-(defun new-scratch-with-mode (mode &optional idx)
+(defun new-scratch-with-mode (mode)
   "Opens a new scratch buffer in given mode. If one already exists,
 creates a new one"
   (interactive)
-  (let* ((index (cond (idx idx) (t 1)))
-         (buffer-name (concat "*" (symbol-name mode) "-scratch-"
-                              (int-to-string index) "*")))
-    (cond ((not (get-buffer buffer-name))
-           (switch-to-buffer buffer-name)
-           (funcall mode))
-          (t
-           (new-scratch-with-mode mode (+ 1 index))))))
+  (let ((name (concat "*" (symbol-name mode) "-scratch*")))
+    (switch-to-buffer (get-buffer-create "*new-scratch-mode*"))
+    (rename-buffer name t)
+    (funcall mode)))
 
 ;; Add new scratch modes below
 (defun new-scratch-json-mode ()
