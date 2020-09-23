@@ -96,6 +96,7 @@
     (kbd "r") 'mpccp-queue-reload
     (kbd "q") 'circ/kill-this-buffer
     (kbd "e") 'mpccp-queue-edit
+    (kbd "c") 'mpccp-clear-queue
     (kbd "RET") 'mpccp-queue-play-line
     )
 

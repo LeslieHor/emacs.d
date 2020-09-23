@@ -14,7 +14,7 @@
 (setq ring-bell-function 'ignore) ; silent bell when you make a mistake
 (setq-default frame-title-format '("%b - Emacs")) ; set the emacs title.
                                         ; overrides the old "emacs@HOST" title
-(set-frame-font "Liberation Mono 7" t t)
+(set-frame-font "Liberation Mono 9" t t)
 (menu-bar-mode -1)
 
 ;; Disable these in termux mode
@@ -259,10 +259,8 @@ hardcoded 200ms timeout in case no notification service is alive"
                            (t msg)))
            (head-mins (cond ((listp mins-to-appt) (car mins-to-appt))
                             (t mins-to-appt)))
-           (message (funcall
-                     circ/format-appt-notify-msg head-mins curr-time head-msg))
-           (command (funcall
-                     circ/format-appt-notify-cmd message)))
+           (message (funcall circ/format-appt-notify-msg head-mins curr-time head-msg))
+           (command (funcall circ/format-appt-notify-cmd message)))
       (when (< 0 (shell-command command))
         (user-error "Appointment notification failed"))
       (message "Notification: %s" message))
@@ -1370,6 +1368,88 @@ apostrophe in the doc"
              (goto-char (point-max))))))))
   (message "Process started: %s" arg-list))
 #+END_SRC
+** RSS Feed Functions
+Subscribe to subreddits
+#+BEGIN_SRC emacs-lisp
+(defun circ/generate-subreddit-feed ()
+  (interactive)
+  (let* ((subreddit (read-string "subreddit: r/"))
+         (type (completing-read "Feed Type: "
+                                '("Hot"
+                                  "New"
+                                  "Rising"
+                                  "Controversial"
+                                  "Top of the Past Hour"
+                                  "Top of the Past Day"
+                                  "Top of the Past Week"
+                                  "Top of the Past Month"
+                                  "Top of the Past Year"
+                                  "Top of All Time")))
+         (url (concat "https://www.reddit.com/r/" subreddit "/"
+                      (cond ((string= type "Hot")                   "")
+                            ((string= type "New")                   "new/")
+                            ((string= type "Rising")                "rising/")
+                            ((string= type "Controversial")         "controversial/")
+                            ((string= type "Top of the Past Hour")  "top/")
+                            ((string= type "Top of the Past Day")   "top/")
+                            ((string= type "Top of the Past Week")  "top/")
+                            ((string= type "Top of the Past Month") "top/")
+                            ((string= type "Top of the Past Year")  "top/")
+                            ((string= type "Top of All Time")       "top/"))
+                      ".rss"
+                      (cond ((string= type "Top of the Past Hour")  "?t=hour")
+                            ((string= type "Top of the Past Day")   "?t=day")
+                            ((string= type "Top of the Past Week")  "?t=month")
+                            ((string= type "Top of the Past Month") "?t=month")
+                            ((string= type "Top of the Past Year")  "?t=year")
+                            ((string= type "Top of All Time")       "?t=all"))))
+         (title (concat subreddit
+                        (cond ((string= type "Hot")                   "")
+                              ((string= type "New")                   " (new)")
+                              ((string= type "Rising")                " (rising)")
+                              ((string= type "Controversial")         " (controversial)")
+                              ((string= type "Top of the Past Hour")  " (hourly)")
+                              ((string= type "Top of the Past Day")   " (daily)")
+                              ((string= type "Top of the Past Week")  " (weekly)")
+                              ((string= type "Top of the Past Month") " (monthly)")
+                              ((string= type "Top of the Past Year")  " (yearly)")
+                              ((string= type "Top of All Time")       " (all time)"))))
+         (org-link (format "[[%s][%s]]" url title)))
+    (kill-new org-link)
+    (message "Copied to clipboard: %s" org-link)))
+#+END_SRC
+
+Subscribe to youtube channel
+#+BEGIN_SRC emacs-lisp
+(defun circ/generate-youtube-channel-feed ()
+  (interactive)
+  (let* ((youtube-url (read-string "Youtube Channel Link: "))
+         (channel-name (read-string "Youtube Channel Name: "))
+         (channel-id (replace-regexp-in-string ".*channel/" "" youtube-url))
+         (url (concat "https://www.youtube.com/feeds/videox.xml?channel_id="
+                      channel-id))
+         (org-link (format "[[%s][%s]]" url channel-name)))
+    (kill-new org-link)
+    (message "Copied to clipboard: %s" org-link)))
+#+END_SRC
+** Desktop notifications
+#+BEGIN_SRC emacs-lisp
+(defvar circ/notify-command nil)
+
+(defun circ/desktop-notify (message timeout)
+  (format "timeout 0.2 notify-send -t %s \"%s\"" timeout message))
+(defun circ/termux-notify (message timeout)
+  (format "timeout 5 termux-notification -t \"%s\"" message))
+
+(defun circ/notify (message &optional timeout)
+  (interactive)
+  (let ((timeout-secs (cond (timeout (* 1000 timeout))
+                            (t 0))))
+    (when (functionp circ/notify-command)
+      (when (< 0 (shell-command (funcall circ/notify-command message timeout-secs)))
+        (user-error "Notification failure: %s" message)))
+    (message "Notification: %s" message)))
+#+END_SRC
 * Local variables
 ** Safe Local Eval Aliases
 #+BEGIN_SRC emacs-lisp
@@ -1778,7 +1858,8 @@ multiple eww buffers to be open"
 #+BEGIN_SRC emacs-lisp
 (add-to-list 'load-path "~/.emacs.d/packages/elfeed-7b2b6fadaa498fef2ba212a50da4a8afa2a5d305")
 (require 'elfeed)
-(setq elfeed-db-directory "~/pims/rss_elfeed/elfeed/")
+(setq elfeed-db-directory "~/rss_elfeed/elfeed/")
+(add-hook 'elfeed-search-mode-hook 'circ/disable-evil-quickscope-mode)
 #+END_SRC
 
 #+BEGIN_SRC emacs-lisp
@@ -1789,7 +1870,7 @@ multiple eww buffers to be open"
 (add-to-list 'load-path "~/.emacs.d/packages/elfeed-org-77b6bbf222487809813de260447d31c4c59902c9")
 (require 'elfeed-org)
 (elfeed-org)
-(setq rmh-elfeed-org-files (list "~/pims/rss_elfeed/rss_feeds.org"))
+(setq rmh-elfeed-org-files (list "~/rss_elfeed/rss_feeds.org"))
 #+END_SRC
 
 Open in eww readable
@@ -1853,6 +1934,39 @@ Open in eww readable
   (elfeed-search-update--force))
 #+END_SRC
 
+Completing read tag editing
+#+BEGIN_SRC emacs-lisp
+(defun circ/elfeed-add-search-filter-tag ()
+  (interactive)
+  (unwind-protect
+      (let* ((tags (elfeed-db-get-all-tags))
+             (current-filter elfeed-search-filter)
+             (current-tags (plist-get (elfeed-search-parse-filter current-filter)
+                                      :must-have))
+             (tag-candidates (set-difference tags current-tags)) ; Order of lists matter
+             (new-tag (completing-read "Add tag: " tag-candidates))
+             (new-filter (concat current-filter " +" new-tag)))
+        (setq elfeed-search-filter new-filter)
+        (elfeed-search-update :force))))
+
+(defun circ/elfeed-remove-search-filter-tag ()
+  (interactive)
+  (unwind-protect
+      (let* ((tags (elfeed-db-get-all-tags))
+             (current-filter elfeed-search-filter)
+             (current-tags (plist-get (elfeed-search-parse-filter current-filter)
+                                      :must-have))
+             (tag-candidates (intersection tags current-tags))
+             (remove-tag (completing-read "Remove tag: " tag-candidates))
+             (new-filter (string-trim
+                          (replace-regexp-in-string
+                           (regexp-quote "  ") " "
+                           (replace-regexp-in-string
+                            (regexp-quote (concat "+" remove-tag)) "" current-filter)))))
+        (setq elfeed-search-filter new-filter)
+        (elfeed-search-update :force))))
+#+END_SRC
+
 Evil Keybindings
 #+BEGIN_SRC emacs-lisp
 (evil-set-initial-state 'elfeed-search-mode 'motion)
@@ -1870,10 +1984,12 @@ Evil Keybindings
   "gR" 'elfeed-search-fetch
   "s" 'circ/elfeed-search-tag-saved
   "S" 'circ/elfeed-search-untag-saved
+  "t" 'circ/elfeed-add-search-filter-tag
+  "T" 'circ/elfeed-remove-search-filter-tag
   "o" 'nil
   "or" 'circ/elfeed-search-open-eww-readable
   "oe" 'circ/elfeed-search-open-eww
-  "om" 'circ/elfeed-search-open-in-mpv
+  "ov" 'circ/elfeed-search-open-in-mpv
   "ob" 'elfeed-search-browse-url
   "q" 'circ/elfeed-save-and-close)
 
@@ -1903,11 +2019,212 @@ Evil Keybindings
   "o" 'nil
   "or" 'circ/elfeed-show-open-eww-readable
   "oe" 'circ/elfeed-show-open-eww
-  "om" 'circ/elfeed-show-open-in-mpv
+  "ov" 'circ/elfeed-show-open-in-mpv
   "ob" 'elfeed-show-visit
   "y" 'elfeed-show-yank
   "s" 'circ/elfeed-show-tag-saved
   "S" 'circ/elfeed-show-untag-saved)
+#+END_SRC
+** notmuch
+#+BEGIN_SRC emacs-lisp
+(unless circ/termux-p
+  (autoload 'notmuch "notmuch" "notmuch mail" t)
+  (add-to-list 'load-path "/usr/share/org-mode/lisp")
+
+  (setq send-mail-function 'sendmail-send-it
+        sendmail-program "/usr/bin/msmtp"
+        mail-specify-envelope-from t
+        message-sendmail-envelope-from 'header
+        mail-envelope-from 'header)
+
+  (setq notmuch-archive-tags '("-inbox" "+archive" "-unread"))
+  (setq notmuch-show-all-tags-list t) ; Always show the tags
+  (setq notmuch-show-logo nil) ; No image please
+
+  (add-hook 'notmuch-hello-mode-hook 'circ/disable-evil-quickscope-mode)
+  (add-hook 'notmuch-search-mode-hook 'circ/disable-evil-quickscope-mode)
+  (add-hook 'notmuch-show-mode-hook 'circ/disable-evil-quickscope-mode)
+  (add-hook 'notmuch-tree-mode-hook 'circ/disable-evil-quickscope-mode)
+
+  (setq notmuch-saved-searches
+        '((:name "inbox"
+                 :query "tag:inbox"
+                 :key "i")
+          (:name "unread"
+                 :query "tag:unread"
+                 :key "u")
+          (:name "flagged"
+                 :query "tag:flagged"
+                 :key "f")
+          (:name "sent"
+                 :query "tag:sent"
+                 :key "t")
+          (:name "drafts"
+                 :query "tag:draft"
+                 :key "d")
+          (:name "all mail"
+                 :query "*"
+                 :key "a")
+          (:name "gmail inbox"
+                 :query "path:gmail/** tag:inbox"
+                 :key "g")
+          (:name "mailbox inbox"
+                 :query "path:mailbox/** tag:inbox"
+                 :key "m")))
+  )
+#+END_SRC
+
+#+BEGIN_SRC emacs-lisp
+(unless circ/termux-p
+  (defun circ/notmuch-search ()
+    (interactive)
+    (let* ((search-history (cons "<NEW>" notmuch-search-history))
+           (ivy-sort-functions-alist nil) ; to disable sorting
+           (search-string (completing-read "Search: " search-history))
+           (user-search-string (read-string "Search: " (cond ((string= search-string "<NEW>") "")
+                                                             (t search-string)))))
+      (push user-search-string notmuch-search-history)
+      (notmuch-search user-search-string)))
+
+  (defun circ/message-set-sender ()
+    (interactive)
+    (let* ((curr-sender (message-fetch-field "from"))
+           (desired-sender (completing-read "From: " circ/message-from-addresses))
+           (curr-point (point)))
+      (message-remove-header "From")
+      (goto-char (point-min))
+      (insert "From: " desired-sender "\n")
+      (goto-char (- curr-point (- (length curr-sender) (length desired-sender))))))
+
+  (defun circ/notmuch-search-mark-delete ()
+    (interactive)
+    (notmuch-search-tag
+     (notmuch-tag-change-list '("-inbox" "-unread" "+deleted"))))
+
+  (defun circ/notmuch-search-mark-read ()
+    (interactive)
+    (notmuch-search-tag
+     (notmuch-tag-change-list '("-unread"))))
+
+  (defun circ/notmuch-search-mark-unread ()
+    (interactive)
+    (notmuch-search-tag
+     (notmuch-tag-change-list '("+unread"))))
+
+  (defun circ/notmuch-show-mark-delete ()
+    (interactive)
+    (notmuch-show-tag
+     (notmuch-tag-change-list '("-inbox" "-unread" "+deleted"))))
+
+  (defun circ/notmuch-show-mark-read ()
+    (interactive)
+    (notmuch-show-tag
+     (notmuch-tag-change-list '("-unread"))))
+
+  (defun circ/notmuch-show-mark-unread ()
+    (interactive)
+    (notmuch-show-tag
+     (notmuch-tag-change-list '("+unread"))))
+  )
+#+END_SRC
+
+#+BEGIN_SRC emacs-lisp
+(unless circ/termux-p
+  (defun circ/notmuch-update-emails ()
+    (interactive)
+    (circ/notify "Email update started" 10)
+    (circ/run-proc-and-fun
+     "email-update" "*email-update*" "~/"
+     '("mbsync" "-a") t
+     (lambda ()
+       (circ/run-proc-and-fun
+        "email-update" "*email-update*" "~/"
+        '("notmuch" "new") t
+        (lambda ()
+          (circ/notify "Email update finished" 10)
+          (notmuch-refresh-all-buffers))))))
+  )
+#+END_SRC
+
+#+BEGIN_SRC emacs-lisp
+(unless circ/termux-p
+  (evil-set-initial-state 'notmuch-hello-mode 'motion)
+  (evil-set-initial-state 'notmuch-search-mode 'motion)
+  (evil-set-initial-state 'notmuch-show-mode 'motion)
+  (evil-set-initial-state 'notmuch-tree-mode 'motion)
+
+  (defun circ/evil-set-notmuch-keys ()
+    (interactive)
+    (evil-define-key 'motion notmuch-common-keymap
+      "?" 'notmuch-help
+      "q" 'notmuch-bury-or-kill-this-buffer
+      "r" 'notmuch-refresh-this-buffer
+      "R" 'circ/notmuch-update-emails
+      "J" 'notmuch-jump-search
+      "/" 'circ/notmuch-search
+      "m" 'notmuch-mua-new-mail
+      )
+
+    (evil-define-key 'motion notmuch-hello-mode-map
+      (kbd "TAB") 'widget-forward
+      (kbd "S-TAB") 'widget-backward
+      )
+
+    (evil-define-key '(motion visual) notmuch-search-mode-map
+      "*" 'notmuch-search-tag-all
+      "o" 'notmuch-search-toggle-order
+      "r" 'notmuch-search-reply-to-thread-sender
+      "R" 'circ/notmuch-update-emails
+      [mouse-1] 'notmuch-search-show-thread
+      "-" 'notmuch-search-remove-tag
+      "+" 'notmuch-search-add-tag
+      (kbd "RET") 'notmuch-search-show-thread
+      "t" 'notmuch-search-filter-by-tag
+      "f" 'notmuch-search-filter
+      "a" 'notmuch-search-archive-thread
+      "d" 'circ/notmuch-search-mark-delete
+      "u" 'circ/notmuch-search-mark-read
+      "U" 'circ/notmuch-search-mark-unread
+      "zv" 'notmuch-tree-from-search-current-query
+      )
+
+    (evil-define-key 'motion notmuch-show-mode-map
+      "p" 'notmuch-show-save-attachments
+      "gd" 'goto-address-at-point
+      "A" 'notmuch-show-archive-thread-then-next
+      "r" 'notmuch-show-reply-sender
+      "R" 'notmuch-show-reply
+      "a" 'notmuch-show-archive-message-then-next-or-next-thread
+      "d" 'circ/notmuch-show-mark-delete
+      "u" 'circ/notmuch-show-mark-read
+      "U" 'circ/notmuch-show-mark-unread
+      "]]" 'notmuch-show-next-thread-show
+      "[[" 'notmuch-show-previous-thread-show
+      "J" 'notmuch-show-next-message
+      "K" 'notmuch-show-previous-message
+      "-" 'notmuch-show-remove-tag
+      "+" 'notmuch-show-add-tag
+      "*" 'notmuch-show-tag-all
+      "H" 'notmuch-show-toggle-visibility-headers
+      "o" 'notmuch-show-part-map
+      (kbd "RET") 'notmuch-show-toggle-message
+      (kbd "TAB") 'notmuch-show-next-button
+      (kbd "<backtab>") 'notmuch-show-previous-button
+      "zv" 'notmuch-tree-from-show-current-query
+      )
+
+    (evil-define-key 'motion notmuch-tree-mode-map
+      "q" 'notmuch-tree-quit
+      )
+    )
+
+  (circ/evil-set-notmuch-keys)
+  )
+#+END_SRC
+** emux
+#+BEGIN_SRC emacs-lisp
+(add-to-list 'load-path "~/.emacs.d/packages/emux")
+(require 'emux)
 #+END_SRC
 ** general
 #+BEGIN_SRC emacs-lisp
@@ -2275,6 +2592,8 @@ Simply send M-f instead
 (circ/p1 "o i"  'circ/open-in-intellij                "open in intellij")
 (circ/p1 "o m"  'mpccp                                "mpccp")
 (circ/p1 "o r"  'circ/elfeed-load-and-open            "elfeed")
+(circ/p1 "o e"  'notmuch                              "notmuch")
+(circ/p1 "o x"  'emux                                 "emux")
 (circ/p1 "o d"  'dashboard                            "dashboard")
 (circ/p1 "o tc" 'circ/alias-clisp-shell               "clisp")
 (circ/p1 "o te" 'erlang-shell                         "erlang")

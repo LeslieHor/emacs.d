@@ -76,6 +76,7 @@
     (kbd "i") 'circ/open-inbox
     (kbd "l") 'circ/open-checklists
     (kbd "r") 'circ/elfeed-load-and-open
+    (kbd "e") 'notmuch
     (kbd "m") 'mpccp
     )
   )
@@ -156,7 +157,7 @@ will call `find-file' with \"~/.emacs.d/init.el\" as the arg")
               "\n"
               (propertize "Shortcuts\n" 'face 'dashboard-header-2)
               " [a] Agenda          [t] Tasks           [i] Inbox           [l] Checklists\n"
-              " [r] Elfeed          [m] Mpccp\n"
+              " [r] Elfeed          [m] Mpccp           [e] Notmuch\n"
               "\n"
               (propertize "Persistent Links\n" 'face 'dashboard-header-2)
               (dashboard-print-links-list dashboard-persistent-links)
