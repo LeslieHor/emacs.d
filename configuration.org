@@ -1977,6 +1977,7 @@ Evil Keybindings
   "y" 'elfeed-search-yank
   (kbd "SPC") 'scroll-up-command
   (kbd "S-SPC") 'scroll-down-command
+  (kbd "TAB") 'elfeed-show-next-link
   "/" 'elfeed-search-live-filter
   "r" 'elfeed-search-update--force
   "R" 'circ/elfeed-db-reload
