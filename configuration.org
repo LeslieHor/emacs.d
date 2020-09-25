@@ -1450,6 +1450,14 @@ Subscribe to youtube channel
         (user-error "Notification failure: %s" message)))
     (message "Notification: %s" message)))
 #+END_SRC
+** vc shortcuts
+#+BEGIN_SRC emacs-lisp
+(defun circ/vc-diff-master-current ()
+"Compare current file against HEAD"
+  (interactive)
+  (message "%s" (buffer-file-name))
+  (vc-version-ediff (list (buffer-file-name)) "HEAD" nil))
+#+END_SRC
 * Local variables
 ** Safe Local Eval Aliases
 #+BEGIN_SRC emacs-lisp
@@ -1483,6 +1491,22 @@ Restore previous window config.
 (add-hook 'ediff-quit-hook #'circ/ediff-restore-window-configuration)
 #+END_SRC
 
+Expand org files when comparing
+#+BEGIN_SRC emacs-lisp
+(add-hook 'ediff-prepare-buffer-hook #'outline-show-all)
+#+END_SRC
+
+Colours
+#+BEGIN_SRC emacs-lisp
+(custom-set-faces
+ '(ediff-even-diff-A ((t (:background "dim gray"))))
+ '(ediff-even-diff-B ((t (:background "dim gray"))))
+ '(ediff-even-diff-C ((t (:background "dim gray"))))
+ '(ediff-odd-diff-A ((t (:background "dim gray"))))
+ '(ediff-odd-diff-B ((t (:background "dim gray"))))
+ '(ediff-odd-diff-C ((t (:background "dim gray"))))
+ )
+#+END_SRC
 ** which-key
 #+BEGIN_SRC emacs-lisp
 (add-to-list 'load-path "~/.emacs.d/packages/which-key-3.3.1")
@@ -2647,10 +2671,12 @@ Simply send M-f instead
 (circ/p1 "t tr" 'org-table-toggle-coordinate-overlay  "toggle table coords"                 'org-mode-map)
 (circ/p1 "t w"  'whitespace-mode                      "toggle whitespace display")
 (circ/p1 "t"    'nil                                  "toggles")
-(circ/p1 "v D"  'vc-ediff                             "ediff")
 (circ/p1 "v a"  'circ/vc-annotate-current-window      "annotate")
 (circ/p1 "v b"  'vc-retrieve-tag                      "change branch")
-(circ/p1 "v d"  'vc-version-ediff                     "version ediff")
+(circ/p1 "v d"  'nil                                  "diff")
+(circ/p1 "v dd" 'vc-version-ediff                     "version ediff")
+(circ/p1 "v dm" 'circ/vc-diff-master-current          "compare current to master")
+(circ/p1 "v D"  'vc-ediff                             "ediff")
 (circ/p1 "v"    'nil                                  "version control")
 (circ/p1 "w e"  'balance-windows                      "balance windows")
 (circ/p1 "w h"  'split-window-right                   "split horizontal")
@@ -2694,6 +2720,7 @@ Simply send M-f instead
 (circ/p4 "]"    'org-next-link                        "next link"                           'org-mode-map)
 (circ/p4 "["    'org-previous-link                    "previous link"                       'org-agenda-mode-map)
 (circ/p4 "]"    'org-next-link                        "next link"                           'org-agenda-mode-map)
+(circ/p4 "/"    'counsel-org-goto                     "org goto"                            'org-mode-map)
 (circ/p4 "a"    'nil                                  "org-agenda")
 (circ/p4 "a a"  'circ/alias-org-agenda-agenda         "agenda")
 (circ/p4 "a t"  'circ/alias-org-agenda-tasks          "tasks")
