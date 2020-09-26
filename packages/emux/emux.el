@@ -63,12 +63,18 @@
   (evil-define-key 'normal emux-mode-map
     "q" 'emux-quit
     "a" 'emux-add-buffer
+    "r" 'emux-remove-buffer
     "A" 'emux-add-all-visible-terms
     "c" 'emux-reset-buffer-list
     "l" 'emux-load-group
+    "s" 'emux-split-frame
+    "S" 'emux-split-frame-new-frame
+    "v" 'emux-load-terms-with-vars
+    "V" 'emux-load-terms-with-vars-new-frame
     )
   (evil-define-key 'insert emux-mode-map
     (kbd "C-d") 'emux-send-to-all-exit
+    (kbd "TAB") 'emux-send-to-all-raw
     )
   )
 
@@ -119,11 +125,12 @@
     (with-current-buffer buf
       (rename-buffer "*emux*" t)
       (insert "Emux Mode\n\n"
-              "[q] quit    "
-              "[a] add buffers    "
-              "[c] clear buffers    "
-              "[l] load value groups\n"
-              "[A] add all visible terms"
+              "[q] quit\n"
+              "[c] clear buffers         [l] load value groups\n"
+              "[a] add buffers           [A] add all visible terms\n"
+              "[r] remove buffer\n"
+              "[s] split frame           [S] split new frame\n"
+              "[v] split with vars       [V] split with var new frame\n"
               "\n\n")
       (emux-mode)
       (switch-to-buffer buf))))
@@ -153,6 +160,20 @@
 (defun emux-print-buffers ()
   (insert "Buffer list: \n" (format "%s" (reverse emux-buffer-list)) "\n"))
 
+(defun emux-remove-buffer ()
+  (interactive)
+  (let* ((buf-alist (mapcar (lambda (buf)
+                              (cons (buffer-name buf) buf))
+                            emux-buffer-list))
+         (buf-name (completing-read "Buffer: " buf-alist))
+         (buf (cdr (assoc buf-name buf-alist))))
+    (message "%s" buf)
+    (with-current-buffer buf
+      (rename-buffer emux-original-buffer-name t))
+    (setq emux-buffer-list
+          (seq-remove (lambda (b) (eq b buf)) emux-buffer-list))
+    (emux-print-buffers)))
+
 (defun emux-add-buffer ()
   (interactive)
   (let* ((term-buffers-alist (cons (cons "FINISH" nil) (emux-get-term-buffers-alist emux-buffer-list)))
@@ -163,7 +184,7 @@
       (emux-print-buffers)
       (emux-add-buffer))))
 
-(defun emux--add-buffer-to-list (buffer)
+(defun emux--add-buffer-to-list (buf)
   (push buf emux-buffer-list)
   (let ((group-name (buffer-name)))
     (with-current-buffer buf
@@ -266,8 +287,8 @@
     emux-buffer-list))
   (emux-print-buffers))
 
-(defun emux-set-up-new-frame (n)
-  (with-selected-frame (make-frame)
+(defun emux-set-up-frame (n &optional use-current-frame)
+  (with-selected-frame (if use-current-frame (selected-frame) (make-frame))
     (let* ((arrangement (nth (- n 1) emux--frame-arrangements))
            (start-win (selected-window))
            (emux-buffer-height (max 3 emux-frame-emux-window-size))
@@ -284,9 +305,10 @@
         (balance-windows))
 
       ;; Launch terminal in all windows (except the emux window)
-      (dolist (win (set-difference (window-list) (list emux-win)))
-        (with-selected-window win
-          (ansi-term "/bin/bash")))
+      (with-selected-window start-win
+        (dolist (win (set-difference (window-list) (list emux-win)))
+          (with-selected-window win
+            (ansi-term "/bin/bash"))))
 
       ;; Set the emux win size
       (minimize-window emux-win)
@@ -301,23 +323,40 @@
             (window-resize win delta))))
 
       (select-window emux-win)
-      (with-current-buffer (emux)
+      (with-current-buffer (if use-current-frame (window-buffer emux-win) (emux))
         (emux-add-all-visible-terms))
       emux-win)))
 
-(defun emux-new-frame-group ()
+(defun emux-new-frame-group (&optional use-current-frame)
   (interactive)
-  (emux-set-up-new-frame
+  (emux-set-up-frame
    (string-to-number (read-string
-                      (format "How many terms (%s max)? " (length emux--frame-arrangements))))))
+                      (format "How many terms (%s max)? " (length emux--frame-arrangements))))
+   use-current-frame))
 
-(defun emux-launch-frame-group-with-variables ()
+(defun emux-launch-frame-group-with-variables (&optional use-current-frame)
   (interactive)
   (let* ((group (completing-read "Group: " emux-groups))
          (group-values (cadadr (assoc group emux-groups)))
          (num-of-terms (length group-values))
-         (emux-win (emux-set-up-new-frame num-of-terms)))
+         (emux-win (emux-set-up-frame num-of-terms use-current-frame)))
     (with-current-buffer (window-buffer emux-win)
       (emux-load-group group))))
+
+(defun emux-load-terms-with-vars ()
+  (interactive)
+  (emux-launch-frame-group-with-variables 't))
+
+(defun emux-load-terms-with-vars-new-frame ()
+  (interactive)
+  (emux-launch-frame-group-with-variables))
+
+(defun emux-split-frame ()
+  (interactive)
+  (emux-new-frame-group 't))
+
+(defun emux-split-frame-new-frame ()
+  (interactive)
+  (emux-new-frame-group))
 
 (provide 'emux)

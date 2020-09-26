@@ -14,7 +14,7 @@
 (setq ring-bell-function 'ignore) ; silent bell when you make a mistake
 (setq-default frame-title-format '("%b - Emacs")) ; set the emacs title.
                                         ; overrides the old "emacs@HOST" title
-(set-frame-font "Liberation Mono 9" t t)
+(set-frame-font "Liberation Mono 7" t t)
 (menu-bar-mode -1)
 
 ;; Disable these in termux mode
@@ -2053,199 +2053,191 @@ Evil Keybindings
 #+END_SRC
 ** notmuch
 #+BEGIN_SRC emacs-lisp
-(unless circ/termux-p
-  (autoload 'notmuch "notmuch" "notmuch mail" t)
-  (add-to-list 'load-path "/usr/share/org-mode/lisp")
+(autoload 'notmuch "notmuch" "notmuch mail" t)
+(add-to-list 'load-path "/usr/share/org-mode/lisp")
 
-  (setq send-mail-function 'sendmail-send-it
-        sendmail-program "/usr/bin/msmtp"
-        mail-specify-envelope-from t
-        message-sendmail-envelope-from 'header
-        mail-envelope-from 'header)
+(setq send-mail-function 'sendmail-send-it
+      sendmail-program "/usr/bin/msmtp"
+      mail-specify-envelope-from t
+      message-sendmail-envelope-from 'header
+      mail-envelope-from 'header)
 
-  (setq notmuch-archive-tags '("-inbox" "+archive" "-unread"))
-  (setq notmuch-show-all-tags-list t) ; Always show the tags
-  (setq notmuch-show-logo nil) ; No image please
+(setq notmuch-archive-tags '("-inbox" "+archive" "-unread"))
+(setq notmuch-show-all-tags-list t) ; Always show the tags
+(setq notmuch-show-logo nil) ; No image please
 
-  (add-hook 'notmuch-hello-mode-hook 'circ/disable-evil-quickscope-mode)
-  (add-hook 'notmuch-search-mode-hook 'circ/disable-evil-quickscope-mode)
-  (add-hook 'notmuch-show-mode-hook 'circ/disable-evil-quickscope-mode)
-  (add-hook 'notmuch-tree-mode-hook 'circ/disable-evil-quickscope-mode)
+(add-hook 'notmuch-hello-mode-hook 'circ/disable-evil-quickscope-mode)
+(add-hook 'notmuch-search-mode-hook 'circ/disable-evil-quickscope-mode)
+(add-hook 'notmuch-show-mode-hook 'circ/disable-evil-quickscope-mode)
+(add-hook 'notmuch-tree-mode-hook 'circ/disable-evil-quickscope-mode)
 
-  (setq notmuch-saved-searches
-        '((:name "inbox"
-                 :query "tag:inbox"
-                 :key "i")
-          (:name "unread"
-                 :query "tag:unread"
-                 :key "u")
-          (:name "flagged"
-                 :query "tag:flagged"
-                 :key "f")
-          (:name "sent"
-                 :query "tag:sent"
-                 :key "t")
-          (:name "drafts"
-                 :query "tag:draft"
-                 :key "d")
-          (:name "all mail"
-                 :query "*"
-                 :key "a")
-          (:name "gmail inbox"
-                 :query "path:gmail/** tag:inbox"
-                 :key "g")
-          (:name "mailbox inbox"
-                 :query "path:mailbox/** tag:inbox"
-                 :key "m")))
-  )
+(setq notmuch-saved-searches
+      '((:name "inbox"
+               :query "tag:inbox"
+               :key "i")
+        (:name "unread"
+               :query "tag:unread"
+               :key "u")
+        (:name "flagged"
+               :query "tag:flagged"
+               :key "f")
+        (:name "sent"
+               :query "tag:sent"
+               :key "t")
+        (:name "drafts"
+               :query "tag:draft"
+               :key "d")
+        (:name "all mail"
+               :query "*"
+               :key "a")
+        (:name "gmail inbox"
+               :query "path:gmail/** tag:inbox"
+               :key "g")
+        (:name "mailbox inbox"
+               :query "path:mailbox/** tag:inbox"
+               :key "m")))
 #+END_SRC
 
 #+BEGIN_SRC emacs-lisp
-(unless circ/termux-p
-  (defun circ/notmuch-search ()
-    (interactive)
-    (let* ((search-history (cons "<NEW>" notmuch-search-history))
-           (ivy-sort-functions-alist nil) ; to disable sorting
-           (search-string (completing-read "Search: " search-history))
-           (user-search-string (read-string "Search: " (cond ((string= search-string "<NEW>") "")
-                                                             (t search-string)))))
-      (push user-search-string notmuch-search-history)
-      (notmuch-search user-search-string)))
+(defun circ/notmuch-search ()
+  (interactive)
+  (let* ((search-history (cons "<NEW>" notmuch-search-history))
+         (ivy-sort-functions-alist nil) ; to disable sorting
+         (search-string (completing-read "Search: " search-history))
+         (user-search-string (read-string "Search: " (cond ((string= search-string "<NEW>") "")
+                                                           (t search-string)))))
+    (push user-search-string notmuch-search-history)
+    (notmuch-search user-search-string)))
 
-  (defun circ/message-set-sender ()
-    (interactive)
-    (let* ((curr-sender (message-fetch-field "from"))
-           (desired-sender (completing-read "From: " circ/message-from-addresses))
-           (curr-point (point)))
-      (message-remove-header "From")
-      (goto-char (point-min))
-      (insert "From: " desired-sender "\n")
-      (goto-char (- curr-point (- (length curr-sender) (length desired-sender))))))
+(defun circ/message-set-sender ()
+  (interactive)
+  (let* ((curr-sender (message-fetch-field "from"))
+         (desired-sender (completing-read "From: " circ/message-from-addresses))
+         (curr-point (point)))
+    (message-remove-header "From")
+    (goto-char (point-min))
+    (insert "From: " desired-sender "\n")
+    (goto-char (- curr-point (- (length curr-sender) (length desired-sender))))))
 
-  (defun circ/notmuch-search-mark-delete ()
-    (interactive)
-    (notmuch-search-tag
-     (notmuch-tag-change-list '("-inbox" "-unread" "+deleted"))))
+(defun circ/notmuch-search-mark-delete ()
+  (interactive)
+  (notmuch-search-tag
+   (notmuch-tag-change-list '("-inbox" "-unread" "+deleted"))))
 
-  (defun circ/notmuch-search-mark-read ()
-    (interactive)
-    (notmuch-search-tag
-     (notmuch-tag-change-list '("-unread"))))
+(defun circ/notmuch-search-mark-read ()
+  (interactive)
+  (notmuch-search-tag
+   (notmuch-tag-change-list '("-unread"))))
 
-  (defun circ/notmuch-search-mark-unread ()
-    (interactive)
-    (notmuch-search-tag
-     (notmuch-tag-change-list '("+unread"))))
+(defun circ/notmuch-search-mark-unread ()
+  (interactive)
+  (notmuch-search-tag
+   (notmuch-tag-change-list '("+unread"))))
 
-  (defun circ/notmuch-show-mark-delete ()
-    (interactive)
-    (notmuch-show-tag
-     (notmuch-tag-change-list '("-inbox" "-unread" "+deleted"))))
+(defun circ/notmuch-show-mark-delete ()
+  (interactive)
+  (notmuch-show-tag
+   (notmuch-tag-change-list '("-inbox" "-unread" "+deleted"))))
 
-  (defun circ/notmuch-show-mark-read ()
-    (interactive)
-    (notmuch-show-tag
-     (notmuch-tag-change-list '("-unread"))))
+(defun circ/notmuch-show-mark-read ()
+  (interactive)
+  (notmuch-show-tag
+   (notmuch-tag-change-list '("-unread"))))
 
-  (defun circ/notmuch-show-mark-unread ()
-    (interactive)
-    (notmuch-show-tag
-     (notmuch-tag-change-list '("+unread"))))
-  )
+(defun circ/notmuch-show-mark-unread ()
+  (interactive)
+  (notmuch-show-tag
+   (notmuch-tag-change-list '("+unread"))))
 #+END_SRC
 
 #+BEGIN_SRC emacs-lisp
-(unless circ/termux-p
-  (defun circ/notmuch-update-emails ()
-    (interactive)
-    (circ/notify "Email update started" 10)
-    (circ/run-proc-and-fun
-     "email-update" "*email-update*" "~/"
-     '("mbsync" "-a") t
-     (lambda ()
-       (circ/run-proc-and-fun
-        "email-update" "*email-update*" "~/"
-        '("notmuch" "new") t
-        (lambda ()
-          (circ/notify "Email update finished" 10)
-          (notmuch-refresh-all-buffers))))))
-  )
+(defun circ/notmuch-update-emails ()
+  (interactive)
+  (circ/notify "Email update started" 10)
+  (circ/run-proc-and-fun
+   "email-update" "*email-update*" "~/"
+   '("mbsync" "-a") t
+   (lambda ()
+     (circ/run-proc-and-fun
+      "email-update" "*email-update*" "~/"
+      '("notmuch" "new") t
+      (lambda ()
+        (circ/notify "Email update finished" 10)
+        (notmuch-refresh-all-buffers))))))
 #+END_SRC
 
 #+BEGIN_SRC emacs-lisp
-(unless circ/termux-p
-  (evil-set-initial-state 'notmuch-hello-mode 'motion)
-  (evil-set-initial-state 'notmuch-search-mode 'motion)
-  (evil-set-initial-state 'notmuch-show-mode 'motion)
-  (evil-set-initial-state 'notmuch-tree-mode 'motion)
+(evil-set-initial-state 'notmuch-hello-mode 'motion)
+(evil-set-initial-state 'notmuch-search-mode 'motion)
+(evil-set-initial-state 'notmuch-show-mode 'motion)
+(evil-set-initial-state 'notmuch-tree-mode 'motion)
 
-  (defun circ/evil-set-notmuch-keys ()
-    (interactive)
-    (evil-define-key 'motion notmuch-common-keymap
-      "?" 'notmuch-help
-      "q" 'notmuch-bury-or-kill-this-buffer
-      "r" 'notmuch-refresh-this-buffer
-      "R" 'circ/notmuch-update-emails
-      "J" 'notmuch-jump-search
-      "/" 'circ/notmuch-search
-      "m" 'notmuch-mua-new-mail
-      )
-
-    (evil-define-key 'motion notmuch-hello-mode-map
-      (kbd "TAB") 'widget-forward
-      (kbd "S-TAB") 'widget-backward
-      )
-
-    (evil-define-key '(motion visual) notmuch-search-mode-map
-      "*" 'notmuch-search-tag-all
-      "o" 'notmuch-search-toggle-order
-      "r" 'notmuch-search-reply-to-thread-sender
-      "R" 'circ/notmuch-update-emails
-      [mouse-1] 'notmuch-search-show-thread
-      "-" 'notmuch-search-remove-tag
-      "+" 'notmuch-search-add-tag
-      (kbd "RET") 'notmuch-search-show-thread
-      "t" 'notmuch-search-filter-by-tag
-      "f" 'notmuch-search-filter
-      "a" 'notmuch-search-archive-thread
-      "d" 'circ/notmuch-search-mark-delete
-      "u" 'circ/notmuch-search-mark-read
-      "U" 'circ/notmuch-search-mark-unread
-      "zv" 'notmuch-tree-from-search-current-query
-      )
-
-    (evil-define-key 'motion notmuch-show-mode-map
-      "p" 'notmuch-show-save-attachments
-      "gd" 'goto-address-at-point
-      "A" 'notmuch-show-archive-thread-then-next
-      "r" 'notmuch-show-reply-sender
-      "R" 'notmuch-show-reply
-      "a" 'notmuch-show-archive-message-then-next-or-next-thread
-      "d" 'circ/notmuch-show-mark-delete
-      "u" 'circ/notmuch-show-mark-read
-      "U" 'circ/notmuch-show-mark-unread
-      "]]" 'notmuch-show-next-thread-show
-      "[[" 'notmuch-show-previous-thread-show
-      "J" 'notmuch-show-next-message
-      "K" 'notmuch-show-previous-message
-      "-" 'notmuch-show-remove-tag
-      "+" 'notmuch-show-add-tag
-      "*" 'notmuch-show-tag-all
-      "H" 'notmuch-show-toggle-visibility-headers
-      "o" 'notmuch-show-part-map
-      (kbd "RET") 'notmuch-show-toggle-message
-      (kbd "TAB") 'notmuch-show-next-button
-      (kbd "<backtab>") 'notmuch-show-previous-button
-      "zv" 'notmuch-tree-from-show-current-query
-      )
-
-    (evil-define-key 'motion notmuch-tree-mode-map
-      "q" 'notmuch-tree-quit
-      )
+(defun circ/evil-set-notmuch-keys ()
+  (interactive)
+  (evil-define-key 'motion notmuch-common-keymap
+    "?" 'notmuch-help
+    "q" 'notmuch-bury-or-kill-this-buffer
+    "r" 'notmuch-refresh-this-buffer
+    "R" 'circ/notmuch-update-emails
+    "J" 'notmuch-jump-search
+    "/" 'circ/notmuch-search
+    "m" 'notmuch-mua-new-mail
     )
 
-  (circ/evil-set-notmuch-keys)
+  (evil-define-key 'motion notmuch-hello-mode-map
+    (kbd "TAB") 'widget-forward
+    (kbd "S-TAB") 'widget-backward
+    )
+
+  (evil-define-key '(motion visual) notmuch-search-mode-map
+    "*" 'notmuch-search-tag-all
+    "o" 'notmuch-search-toggle-order
+    "r" 'notmuch-search-reply-to-thread-sender
+    "R" 'circ/notmuch-update-emails
+    [mouse-1] 'notmuch-search-show-thread
+    "-" 'notmuch-search-remove-tag
+    "+" 'notmuch-search-add-tag
+    (kbd "RET") 'notmuch-search-show-thread
+    "t" 'notmuch-search-filter-by-tag
+    "f" 'notmuch-search-filter
+    "a" 'notmuch-search-archive-thread
+    "d" 'circ/notmuch-search-mark-delete
+    "u" 'circ/notmuch-search-mark-read
+    "U" 'circ/notmuch-search-mark-unread
+    "zv" 'notmuch-tree-from-search-current-query
+    )
+
+  (evil-define-key 'motion notmuch-show-mode-map
+    "p" 'notmuch-show-save-attachments
+    "gd" 'goto-address-at-point
+    "A" 'notmuch-show-archive-thread-then-next
+    "r" 'notmuch-show-reply-sender
+    "R" 'notmuch-show-reply
+    "a" 'notmuch-show-archive-message-then-next-or-next-thread
+    "d" 'circ/notmuch-show-mark-delete
+    "u" 'circ/notmuch-show-mark-read
+    "U" 'circ/notmuch-show-mark-unread
+    "]]" 'notmuch-show-next-thread-show
+    "[[" 'notmuch-show-previous-thread-show
+    "J" 'notmuch-show-next-message
+    "K" 'notmuch-show-previous-message
+    "-" 'notmuch-show-remove-tag
+    "+" 'notmuch-show-add-tag
+    "*" 'notmuch-show-tag-all
+    "H" 'notmuch-show-toggle-visibility-headers
+    "o" 'notmuch-show-part-map
+    (kbd "RET") 'notmuch-show-toggle-message
+    (kbd "TAB") 'notmuch-show-next-button
+    (kbd "<backtab>") 'notmuch-show-previous-button
+    "zv" 'notmuch-tree-from-show-current-query
+    )
+
+  (evil-define-key 'motion notmuch-tree-mode-map
+    "q" 'notmuch-tree-quit
+    )
   )
+
+(circ/evil-set-notmuch-keys)
 #+END_SRC
 ** emux
 #+BEGIN_SRC emacs-lisp
