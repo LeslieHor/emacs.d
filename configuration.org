@@ -2030,6 +2030,7 @@ Evil Keybindings
   (kbd "SPC") 'scroll-up-command
   (kbd "S-SPC") 'scroll-down-command
   (kbd "<tab>") 'elfeed-show-next-link
+  (kbd "TAB") 'elfeed-show-next-link
   "/" 'elfeed-show-new-live-search
   "+" 'elfeed-show-tag
   "-" 'elfeed-show-untag
