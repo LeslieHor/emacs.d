@@ -1860,6 +1860,8 @@ Evil bindings for =eww=.
   (kbd "L") 'eww-forward-url
   (kbd "[") 'shr-previous-link
   (kbd "]") 'shr-next-link
+  (kbd "d") 'evil-scroll-down
+  (kbd "u") 'evil-scroll-up
   (kbd "o") 'eww
   (kbd "r") 'eww-reload
   (kbd "R") 'eww-readable
@@ -1956,6 +1958,10 @@ Open in eww readable
   (interactive)
   (elfeed-db-load)
   (elfeed-search-update--force))
+
+(defun circ/open-rss-elfeed-file ()
+  (interactive)
+  (find-file "~/rss_elfeed/rss_feeds.org"))
 #+END_SRC
 
 Completing read tag editing
@@ -2016,13 +2022,16 @@ Evil Keybindings
   "oe" 'circ/elfeed-search-open-eww
   "ov" 'circ/elfeed-search-open-in-mpv
   "ob" 'elfeed-search-browse-url
+  "f" 'circ/open-rss-elfeed-file
+  "d" 'evil-scroll-down
+  "u" 'evil-scroll-up
   "q" 'circ/elfeed-save-and-close)
 
 (evil-define-key '(motion visual) elfeed-search-mode-map
   "+" 'elfeed-search-tag-all
   "-" 'elfeed-search-untag-all
-  "U" 'elfeed-search-tag-all-unread
-  "u" 'elfeed-search-untag-all-unread)
+  "M" 'elfeed-search-tag-all-unread
+  "m" 'elfeed-search-untag-all-unread)
 
 (evil-set-initial-state 'elfeed-show-mode 'motion)
 (evil-define-key 'motion elfeed-show-mode-map
@@ -2048,6 +2057,8 @@ Evil Keybindings
   "ov" 'circ/elfeed-show-open-in-mpv
   "ob" 'elfeed-show-visit
   "y" 'elfeed-show-yank
+  "d" 'evil-scroll-down
+  "u" 'evil-scroll-up
   "s" 'circ/elfeed-show-tag-saved
   "S" 'circ/elfeed-show-untag-saved)
 #+END_SRC
@@ -2181,12 +2192,16 @@ Evil Keybindings
     "R" 'circ/notmuch-update-emails
     "J" 'notmuch-jump-search
     "/" 'circ/notmuch-search
-    "m" 'notmuch-mua-new-mail
+    "c" 'notmuch-mua-new-mail
+    "d" 'evil-scroll-down
+    "u" 'evil-scroll-up
     )
 
   (evil-define-key 'motion notmuch-hello-mode-map
     (kbd "TAB") 'widget-forward
     (kbd "S-TAB") 'widget-backward
+    "d" 'evil-scroll-down
+    "u" 'evil-scroll-up
     )
 
   (evil-define-key '(motion visual) notmuch-search-mode-map
@@ -2200,10 +2215,12 @@ Evil Keybindings
     (kbd "RET") 'notmuch-search-show-thread
     "t" 'notmuch-search-filter-by-tag
     "f" 'notmuch-search-filter
+    "d" 'evil-scroll-down
+    "u" 'evil-scroll-up
     "a" 'notmuch-search-archive-thread
-    "d" 'circ/notmuch-search-mark-delete
-    "u" 'circ/notmuch-search-mark-read
-    "U" 'circ/notmuch-search-mark-unread
+    "x" 'circ/notmuch-search-mark-delete
+    "m" 'circ/notmuch-search-mark-read
+    "M" 'circ/notmuch-search-mark-unread
     "zv" 'notmuch-tree-from-search-current-query
     )
 
@@ -2214,9 +2231,11 @@ Evil Keybindings
     "r" 'notmuch-show-reply-sender
     "R" 'notmuch-show-reply
     "a" 'notmuch-show-archive-message-then-next-or-next-thread
-    "d" 'circ/notmuch-show-mark-delete
-    "u" 'circ/notmuch-show-mark-read
-    "U" 'circ/notmuch-show-mark-unread
+    "d" 'evil-scroll-down
+    "u" 'evil-scroll-up
+    "x" 'circ/notmuch-show-mark-delete
+    "m" 'circ/notmuch-show-mark-read
+    "M" 'circ/notmuch-show-mark-unread
     "]]" 'notmuch-show-next-thread-show
     "[[" 'notmuch-show-previous-thread-show
     "J" 'notmuch-show-next-message
@@ -2233,6 +2252,8 @@ Evil Keybindings
     )
 
   (evil-define-key 'motion notmuch-tree-mode-map
+    "d" 'evil-scroll-down
+    "u" 'evil-scroll-up
     "q" 'notmuch-tree-quit
     )
   )
@@ -2385,7 +2406,7 @@ To keep the code nice and clean.
           :states '(normal insert visual operator motion emacs)
           key (list command :which-key description)))
         (t
-         (general-define-key 
+         (general-define-key
           :states '(normal insert visual operator motion emacs)
           key (list command :which-key description)))))
 
@@ -2558,6 +2579,7 @@ Simply send M-f instead
 (circ/p1 "d"    'circ/alias-erlang-find-tag           "goto definition"                     'erlang-mode-map)
 (circ/p1 "d"    'org-open-at-point                    "open link"                           'org-mode-map)
 (circ/p1 "d"    'org-open-at-point                    "open link"                           'org-agenda-mode-map)
+(circ/p1 "d"    'goto-address-at-point                "open link"                           'notmuch-show-mode-map)
 (circ/p1 "e #"  'nil                                  "number increment / decrement")
 (circ/p1 "e #a" 'evil-numbers/inc-at-pt               "increment")
 (circ/p1 "e #x" 'evil-numbers/dec-at-pt               "decrement")
