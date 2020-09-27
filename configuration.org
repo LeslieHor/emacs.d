@@ -2054,7 +2054,7 @@ Evil Keybindings
 ** notmuch
 #+BEGIN_SRC emacs-lisp
 (add-to-list 'load-path circ/notmuch-load-path)
-(add-to-list 'load-path "/usr/share/org-mode/lisp")
+(require 'notmuch)
 
 (setq send-mail-function 'sendmail-send-it
       sendmail-program "/usr/bin/msmtp"
