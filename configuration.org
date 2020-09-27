@@ -14,7 +14,7 @@
 (setq ring-bell-function 'ignore) ; silent bell when you make a mistake
 (setq-default frame-title-format '("%b - Emacs")) ; set the emacs title.
                                         ; overrides the old "emacs@HOST" title
-(set-frame-font "Liberation Mono 7" t t)
+(set-frame-font "Liberation Mono 9" t t)
 (menu-bar-mode -1)
 
 ;; Disable these in termux mode
@@ -2053,7 +2053,7 @@ Evil Keybindings
 #+END_SRC
 ** notmuch
 #+BEGIN_SRC emacs-lisp
-(autoload 'notmuch "notmuch" "notmuch mail" t)
+(add-to-list 'load-path circ/notmuch-load-path)
 (add-to-list 'load-path "/usr/share/org-mode/lisp")
 
 (setq send-mail-function 'sendmail-send-it

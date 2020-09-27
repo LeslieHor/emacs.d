@@ -75,6 +75,7 @@
   (evil-define-key 'insert emux-mode-map
     (kbd "C-d") 'emux-send-to-all-exit
     (kbd "TAB") 'emux-send-to-all-raw
+    (kbd "C-c C-c") 'emux-send-to-all-raw
     )
   )
 
