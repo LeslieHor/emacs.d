@@ -116,6 +116,8 @@ Highlights:
 ;; Enable habit tracking in org-mode
 (require 'org-habit)
 (add-to-list 'org-modules 'org-habit)
+(add-to-list 'org-modules 'org-drill)
+;(require 'org-drill)
 ;; Don't show any habits in the agenda, there is a dedicated section for that.
 (setq org-habit-show-habits nil)
 (setq org-habit-show-habits-only-for-today nil)
@@ -1041,6 +1043,30 @@ The new slide is created with an incremented index."
   (unless (file-exists-p full-filepath)
     (make-directory (file-name-directory full-filepath) t)
     (write-region "" nil full-filepath)))
+
+(defun circ/cortex/reference-directories ()
+  (seq-uniq
+   (mapcar (lambda (f)
+             (replace-regexp-in-string "/$" ""
+                                       (file-name-directory f)))
+           (circ/cortex/list-reference-files))))
+
+
+(defun circ/cortex/file-web-page-archive ()
+  (interactive)
+  (dolist (file (directory-files (expand-file-name "~/Downloads/web_page_archive")
+                                 t directory-files-no-dot-files-regexp))
+    (let* ((filename (concat (file-name-base file)
+                             (file-name-extension file t)))
+           (directory (completing-read (format "File %s to: " filename)
+                                       (circ/cortex/reference-directories)))
+           (target-dir (file-name-as-directory
+                          (concat (expand-file-name circ/cortex/reference-directory)
+                                  directory)))
+           (target-path (concat target-dir filename)))
+      (message "Moving %s to %s" file target-path)
+      (make-directory target-dir t)
+      (rename-file file target-path))))
 #+END_SRC
 
 ** Surround
@@ -1452,7 +1478,7 @@ Subscribe to youtube channel
 #+END_SRC
 ** vc shortcuts
 #+BEGIN_SRC emacs-lisp
-(defun circ/vc-diff-master-current ()
+(defun circ/vc-diff-head-current ()
 "Compare current file against HEAD"
   (interactive)
   (message "%s" (buffer-file-name))
@@ -2010,9 +2036,8 @@ Evil Keybindings
   (kbd "TAB") 'elfeed-show-next-link
   "/" 'elfeed-search-live-filter
   "r" 'elfeed-search-update--force
-  "R" 'circ/elfeed-db-reload
-  "gr" 'elfeed-search-update--force
-  "gR" 'elfeed-search-fetch
+  "R" 'elfeed-search-fetch
+  "gR" 'circ/elfeed-db-reload
   "s" 'circ/elfeed-search-tag-saved
   "S" 'circ/elfeed-search-untag-saved
   "t" 'circ/elfeed-add-search-filter-tag
@@ -2690,7 +2715,7 @@ Simply send M-f instead
 (circ/p1 "v b"  'vc-retrieve-tag                      "change branch")
 (circ/p1 "v d"  'nil                                  "diff")
 (circ/p1 "v dd" 'vc-version-ediff                     "version ediff")
-(circ/p1 "v dm" 'circ/vc-diff-master-current          "compare current to master")
+(circ/p1 "v dm" 'circ/vc-diff-head-current            "compare current to head")
 (circ/p1 "v D"  'vc-ediff                             "ediff")
 (circ/p1 "v"    'nil                                  "version control")
 (circ/p1 "w e"  'balance-windows                      "balance windows")

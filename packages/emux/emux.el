@@ -179,7 +179,7 @@
   (interactive)
   (let* ((term-buffers-alist (cons (cons "FINISH" nil) (emux-get-term-buffers-alist emux-buffer-list)))
          (buf-name (completing-read "Buffer: " term-buffers-alist))
-         (buf (alist-get buf-name term-buffers-alist nil nil 'string=)))
+         (buf (cdr (assoc (buf-name term-buffers-alist nil nil 'string=)))))
     (when buf
       (emux--add-buffer-to-list buf)
       (emux-print-buffers)
