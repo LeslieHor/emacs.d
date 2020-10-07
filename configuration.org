@@ -1042,7 +1042,10 @@ The new slide is created with an incremented index."
 (defun circ/ensure-file (filepath)
   (unless (file-exists-p full-filepath)
     (make-directory (file-name-directory full-filepath) t)
-    (write-region "" nil full-filepath)))
+    (write-region (concat "#+TITLE: "
+                   (capitalize (replace-regexp-in-string
+                                "_" " " (file-name-base filepath))))
+                  nil full-filepath)))
 
 (defun circ/cortex/reference-directories ()
   (seq-uniq
@@ -2290,6 +2293,29 @@ Evil Keybindings
 (add-to-list 'load-path "~/.emacs.d/packages/emux")
 (require 'emux)
 #+END_SRC
+** abbrev
+#+BEGIN_SRC emacs-lisp
+(setq abbrev-file-name "~/.emacs.d/abbrev_defs.el")
+
+(defun circ/add-abbrev ()
+  (interactive)
+  (let ((num-of-words (cond ((region-active-p) (count-words-region
+                                                (region-beginning)
+                                                (region-end)))
+                            (t 1)))
+        (mode-specific (y-or-n-p "Specific to mode? ")))
+    (goto-char (region-end))
+    (deactivate-mark)
+    (if mode-specific
+        (add-mode-abbrev num-of-words)
+      (add-global-abbrev num-of-words)))
+  (write-abbrev-file abbrev-file-name t))
+
+(defun circ/reload-abbrevs ()
+  (interactive)
+  (kill-all-abbrevs)
+  (read-abbrev-file))
+#+END_SRC
 ** general
 #+BEGIN_SRC emacs-lisp
 (add-to-list
@@ -2574,7 +2600,7 @@ Simply send M-f instead
 (circ/p1 "/"    'circ/alias-search-buffer             "search buffer")
 (circ/p1 ";"    'counsel-M-x                          "M-x")
 (circ/p1 "="    'circ/alias-text-scale-up             "text scale up")
-(circ/p1 "a t"  'nil                                  "terminals")
+(circ/p1 "a"    'circ/add-abbrev                      "add abbrev")
 (circ/p1 "b b"  'ivy-switch-buffer                    "switch buffers")
 (circ/p1 "b c"  'nil                                  "cast buffers")
 (circ/p1 "b ch" 'circ/alias-cast-buffer-left          "cast buffer left")
@@ -2710,6 +2736,7 @@ Simply send M-f instead
 (circ/p1 "t t"  'nil                                  "tables"                              'org-mode-map)
 (circ/p1 "t tr" 'org-table-toggle-coordinate-overlay  "toggle table coords"                 'org-mode-map)
 (circ/p1 "t w"  'whitespace-mode                      "toggle whitespace display")
+(circ/p1 "t a"  'abbrev-mode                          "toggle abbrev mode")
 (circ/p1 "t"    'nil                                  "toggles")
 (circ/p1 "v a"  'circ/vc-annotate-current-window      "annotate")
 (circ/p1 "v b"  'vc-retrieve-tag                      "change branch")
