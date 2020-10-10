@@ -2312,7 +2312,7 @@ Evil Keybindings
 #+END_SRC
 ** abbrev
 #+BEGIN_SRC emacs-lisp
-(setq abbrev-file-name "~/.emacs.d/abbrev_defs.el")
+(setq abbrev-file-name "~/pims/abbrev_defs.el")
 (setq-default abbrev-mode t)
 
 (defun circ/add-abbrev ()
