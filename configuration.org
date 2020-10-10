@@ -284,8 +284,8 @@ hardcoded 200ms timeout in case no notification service is alive"
 ;; Regenerate at 00:05, so you can leave emacs open over night
 (run-at-time "00:05" (* 60 60 24) 'circ/refresh-appointments)
 ;; Generate appointments when you save an agenda file
-(add-hook 'after-save-hook
-          'circ/maybe-refresh-appts)
+(add-hook 'after-save-hook 'circ/maybe-refresh-appts)
+(add-hook 'after-revert-hook 'circ/maybe-refresh-appts)
 #+END_SRC
 
 * Mode Line
@@ -1487,6 +1487,23 @@ Subscribe to youtube channel
   (message "%s" (buffer-file-name))
   (vc-version-ediff (list (buffer-file-name)) "HEAD" nil))
 #+END_SRC
+** Reload all org agendas
+#+BEGIN_SRC emacs-lisp
+(defun circ/reload-all-org-agendas ()
+  (interactive)
+  (dolist (buffer (buffer-list))
+    (with-current-buffer buffer
+      (when (derived-mode-p 'org-agenda-mode)
+        (with-selected-window (get-buffer-window buffer t)
+          (org-agenda-redo))))))
+
+(defun circ/maybe-refresh-all-org-agendas ()
+  (when (circ/org-agenda-file-p)
+    (circ/reload-all-org-agendas)))
+
+(add-hook 'after-save-hook 'circ/maybe-refresh-all-org-agendas)
+(add-hook 'after-revert-hook 'circ/maybe-refresh-all-org-agendas)
+#+END_SRC
 * Local variables
 ** Safe Local Eval Aliases
 #+BEGIN_SRC emacs-lisp
@@ -2296,6 +2313,7 @@ Evil Keybindings
 ** abbrev
 #+BEGIN_SRC emacs-lisp
 (setq abbrev-file-name "~/.emacs.d/abbrev_defs.el")
+(setq-default abbrev-mode t)
 
 (defun circ/add-abbrev ()
   (interactive)
