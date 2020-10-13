@@ -1494,8 +1494,10 @@ Subscribe to youtube channel
   (dolist (buffer (buffer-list))
     (with-current-buffer buffer
       (when (derived-mode-p 'org-agenda-mode)
-        (with-selected-window (get-buffer-window buffer t)
-          (org-agenda-redo))))))
+        (let ((window (get-buffer-window buffer t)))
+          (when window
+            (with-selected-window window
+              (org-agenda-redo))))))))
 
 (defun circ/maybe-refresh-all-org-agendas ()
   (when (circ/org-agenda-file-p)

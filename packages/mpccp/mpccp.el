@@ -297,6 +297,7 @@
   (mpccp-call-mpc nil (list "load" playlist)))
 
 (defun mpccp-mpc-save-playlist (playlist)
+  (mpccp-call-mpc nil (list "rm" playlist))
   (mpccp-call-mpc nil (list "save" playlist)))
 
 (defvar mpccp-playlist-directory nil
