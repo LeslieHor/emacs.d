@@ -1506,6 +1506,41 @@ Subscribe to youtube channel
 (add-hook 'after-save-hook 'circ/maybe-refresh-all-org-agendas)
 (add-hook 'after-revert-hook 'circ/maybe-refresh-all-org-agendas)
 #+END_SRC
+** copy-buffer
+Major mode for copy buffer
+#+BEGIN_SRC emacs-lisp
+(defvar copy-buffer-mode-map
+  (let ((map (make-sparse-keymap)))
+    map)
+  "Keymap for `copy-buffer-mode'.")
+
+(define-derived-mode copy-buffer-mode org-mode "copy-buffer"
+  "Major mode for copy-buffer."
+  (set (make-local-variable 'revert-buffer-function) #'copy-buffer))
+
+(defvar copy-buffer-copy-function 'nil)
+
+(defun copy-buffer-copy-function-desktop (string)
+  (kill-new string))
+
+(defun copy-buffer-copy-function-termux (string)
+  (shell-command (concat "termux-clipboard-set" " "
+                         "\"" string "\"")))
+
+(defun copy-buffer-copy-quit ()
+  (interactive)
+  (when (functionp copy-buffer-copy-function)
+    (funcall copy-buffer-copy-function (buffer-string))
+    (circ/kill-this-buffer)))
+
+(defun copy-buffer ()
+  (interactive)
+  (let ((buf (get-buffer-create "*copy-buffer-new*")))
+    (with-current-buffer buf
+      (rename-buffer "*copy-buffer*" t)
+      (copy-buffer-mode)
+      (switch-to-buffer buf))))
+#+END_SRC
 * Local variables
 ** Safe Local Eval Aliases
 #+BEGIN_SRC emacs-lisp
@@ -2701,6 +2736,7 @@ Simply send M-f instead
 (circ/p1 "k"    'windmove-up                          "win up")
 (circ/p1 "l"    'windmove-right                       "wind right")
 (circ/p1 "o i"  'circ/open-in-intellij                "open in intellij")
+(circ/p1 "o c"  'copy-buffer                          "copy buffer")
 (circ/p1 "o m"  'mpccp                                "mpccp")
 (circ/p1 "o r"  'circ/elfeed-load-and-open            "elfeed")
 (circ/p1 "o e"  'notmuch                              "notmuch")
@@ -2727,6 +2763,7 @@ Simply send M-f instead
 (circ/p1 "p w"  'org-save-all-org-buffers             "save all org buffers"                'org-mode-map)
 (circ/p1 "p"    'nil                                  "projects")
 (circ/p1 "q"    'circ/kill-this-buffer                "kill buffer")
+(circ/p1 "q"    'circ/copy-buffer-copy-quit           "copy buffer copy quit"               'copy-buffer-mode-map)
 (circ/p1 "r n"  'nil                                  "numbers")
 (circ/p1 "r ni" 'increment-register                   "increment register with number")
 (circ/p1 "r np" 'insert-register                      "paste number from register")
