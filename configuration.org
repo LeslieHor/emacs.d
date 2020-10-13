@@ -2763,7 +2763,7 @@ Simply send M-f instead
 (circ/p1 "p w"  'org-save-all-org-buffers             "save all org buffers"                'org-mode-map)
 (circ/p1 "p"    'nil                                  "projects")
 (circ/p1 "q"    'circ/kill-this-buffer                "kill buffer")
-(circ/p1 "q"    'circ/copy-buffer-copy-quit           "copy buffer copy quit"               'copy-buffer-mode-map)
+(circ/p1 "q"    'copy-buffer-copy-quit           "copy buffer copy quit"                    'copy-buffer-mode-map)
 (circ/p1 "r n"  'nil                                  "numbers")
 (circ/p1 "r ni" 'increment-register                   "increment register with number")
 (circ/p1 "r np" 'insert-register                      "paste number from register")
