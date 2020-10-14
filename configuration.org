@@ -1541,6 +1541,18 @@ Major mode for copy buffer
       (copy-buffer-mode)
       (switch-to-buffer buf))))
 #+END_SRC
+** ansi-term title
+#+BEGIN_SRC emacs-lisp
+(defun circ/ansi-term ()
+  (interactive)
+  (let* ((project-name (projectile-project-name))
+         (title (cond ((string= project-name "-")
+                       default-directory)
+                      (t
+                       project-name)))
+         (term-name (format "%s term" title)))
+    (ansi-term "/bin/bash" term-name)))
+#+END_SRC
 * Local variables
 ** Safe Local Eval Aliases
 #+BEGIN_SRC emacs-lisp
@@ -2745,7 +2757,7 @@ Simply send M-f instead
 (circ/p1 "o tc" 'circ/alias-clisp-shell               "clisp")
 (circ/p1 "o te" 'erlang-shell                         "erlang")
 (circ/p1 "o tp" 'circ/alias-python-shell              "python")
-(circ/p1 "o tt" 'circ/alias-bash-shell                "bash")
+(circ/p1 "o tt" 'circ/ansi-term                       "bash")
 (circ/p1 "o"    'nil                                  "applications")
 (circ/p1 "p ?"  'projectile-command-map               "other")
 (circ/p1 "p O"  'circ/alias-org-force-publish         "force org publish project"           'org-mode-map)
