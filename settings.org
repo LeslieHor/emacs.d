@@ -26,14 +26,6 @@ Settings that only work on my home computer. They will probably break other setu
         ("@itops"       . ?i)
         ("@reference"   . ?f)
         (:endgroup      . nil)
-        (:startgroup    . nil)
-        ("@5mins"       . ?1)
-        ("@15mins"      . ?2)
-        ("@30mins"      . ?3)
-        ("@1hr"         . ?4)
-        ("@2hrs"        . ?5)
-        ("@over2hrs"    . ?6)
-        (:endgroup      . nil)
         ("CLARIFY"      . ?C)
         ("SKIPPED"      . ?S)))
 
@@ -43,9 +35,9 @@ Settings that only work on my home computer. They will probably break other setu
                          "~/pims/todo.org"
                          "~/pims/calendar.org"))
 
-(setq org-agenda-start-day "-7d")
-(setq org-agenda-start-on-weekday 1)
-(setq org-agenda-span 21)
+(setq org-agenda-start-day "-4d")
+(setq org-agenda-start-on-weekday nil)
+(setq org-agenda-span 14)
 
 ;; Cortex
 (setq circ/cortex/directory "~/pims/cortex")
@@ -76,16 +68,16 @@ Settings that only work on my home computer. They will probably break other setu
 ;; Archiving something in ./projects.org goes to ./.projects.org_archive
 (setq org-archive-location ".%s_archive::")
 
-;; Custom agenda commants
+;; Custom agenda commands
 (setq org-agenda-custom-commands
       '(("A" "Agenda" ((agenda "")
                        (tags "+CATEGORY=\"inbox\"" ((org-agenda-overriding-header "Inbox")))
-                       (tags "+TODO=\"PROJECT\"&+CATEGORY=\"\"" ((org-agenda-overriding-header "Projects Without Category")))))
-        ("T" "Tasks" ((tags-todo "STYLE=\"habit\"" ((org-agenda-overriding-header
-                                                     "Habits\nBlue:   Not to be done          !: Today\nGreen:  Could have been done    *: Done that day\nYellow: Overdue the next day\nRed:    Overdue that day                                         Today V")))
-                      (tags "STYLE=\"timebucket\"" ((org-agenda-overriding-header "Time Buckets")))
-                      (tags "+TODO=\"INPROGRESS\"" ((org-agenda-overriding-header "In Progress")))
-                      (tags "+TODO=\"NEXT\"" ((org-agenda-overriding-header "Next")))
+                       (tags "+TODO=\"PROJECT\"&+CATEGORY=\"\"" ((org-agenda-overriding-header "Projects Without Category")))
+                       (tags-todo "STYLE=\"habit\"" ((org-agenda-overriding-header
+                                                      "Habits\nBlue:   Not to be done          !: Today\nGreen:  Could have been done    *: Done that day\nYellow: Overdue the next day\nRed:    Overdue that day                                         Today V")))
+                       (tags "STYLE=\"timebucket\"" ((org-agenda-overriding-header "Time Buckets")))
+                       (tags "+TODO=\"INPROGRESS\"" ((org-agenda-overriding-header "In Progress")))))
+        ("T" "Tasks" ((tags "+TODO=\"NEXT\"" ((org-agenda-overriding-header "Next")))
                       (tags "+TODO=\"WAIT\"" ((org-agenda-overriding-header "Wait")))))
         ("x" "x" ((tags-todo "+TODO=\"PROJECT\"")))))
 

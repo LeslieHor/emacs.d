@@ -1553,6 +1553,25 @@ Major mode for copy buffer
          (term-name (format "%s term" title)))
     (ansi-term "/bin/bash" term-name)))
 #+END_SRC
+** reverse goto org clock
+#+BEGIN_SRC emacs-lisp
+(defun org-agenda-clock-goto ()
+  "Jump to the currently clocked in task within the agenda.
+If the currently clocked in task is not listed in the agenda
+buffer, display it in another window."
+  (interactive)
+  (let (pos)
+    (mapc (lambda (o)
+        (if (eq (overlay-get o 'type) 'org-agenda-clocking)
+        (setq pos (overlay-start o))))
+      (reverse (overlays-in (point-min) (point-max))))
+    (cond (pos (goto-char pos))
+      ;; If the currently clocked entry is not in the agenda
+      ;; buffer, we visit it in another window:
+      ((bound-and-true-p org-clock-current-task)
+       (org-switch-to-buffer-other-window (org-clock-goto)))
+      (t (message "No running clock, use `C-c C-x C-j' to jump to the most recent one")))))
+#+END_SRC
 * Local variables
 ** Safe Local Eval Aliases
 #+BEGIN_SRC emacs-lisp

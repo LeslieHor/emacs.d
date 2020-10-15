@@ -148,7 +148,7 @@
    (seq-filter (lambda (buf)
                  (with-current-buffer buf
                    (equal major-mode 'term-mode)))
-               (cond ((buffer-list buffer-list))
+               (cond (buffer-list buffer-list)
                      (t (buffer-list))))))
 
 (defun emux-get-term-buffers-alist (&optional current-buffers)
