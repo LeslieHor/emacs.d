@@ -116,7 +116,7 @@ Settings that only work on my home computer. They will probably break other setu
 (defun circ/pims/set-todo ()
   "Convert item under point into todo item"
   (interactive)
-  (org-todo "NEXT")
+  (org-todo "TODO")
   (org-set-tags-command)
   (org-refile nil nil '(nil "~/pims/todo.org" nil nil))
   (org-save-all-org-buffers))
