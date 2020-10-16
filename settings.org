@@ -5,29 +5,19 @@ Settings that only work on my home computer. They will probably break other setu
 
 * Org
 #+BEGIN_SRC emacs-lisp
+(setq org-enforce-todo-dependencies t)
+(setq org-agenda-todo-ignore-deadlines 'nil)
+(setq org-agenda-todo-ignore-scheduled 'nil)
+(setq org-agenda-tags-todo-honor-ignore-options t)
+(setq org-agenda-dim-blocked-tasks 'invisible)
+
 ;; Set todo states
 (setq org-todo-keywords
       '((sequence "TODO(t)" "WAIT(w)" "NEXT(n)" "PROJECT(p)" "INPROGRESS(i)"
                   "|" "DONE(d)" "CANCELLED(c)")))
 
 ;; Set tags
-(setq org-tag-persistent-alist
-      '((:startgroup    . nil)
-        ("@anywhere"    . ?a)
-        ("@work"        . ?w)
-        ("@home"        . ?h)
-        ("@errand"      . ?e)
-        ("@email"       . ?m)
-        ("@research"    . ?r)
-        ("@programming" . ?p)
-        ("@computer"    . ?c)
-        ("@octavius"    . ?o)
-        ("@nonus"       . ?n)
-        ("@itops"       . ?i)
-        ("@reference"   . ?f)
-        (:endgroup      . nil)
-        ("CLARIFY"      . ?C)
-        ("SKIPPED"      . ?S)))
+(setq org-tag-persistent-alist nil)
 
 ;; Set agenda files
 ;; inbox.org is for timekeeping purposes
@@ -71,13 +61,14 @@ Settings that only work on my home computer. They will probably break other setu
 ;; Custom agenda commands
 (setq org-agenda-custom-commands
       '(("A" "Agenda" ((agenda "")
-                       (tags "+CATEGORY=\"inbox\"" ((org-agenda-overriding-header "Inbox")))
-                       (tags "+TODO=\"PROJECT\"&+CATEGORY=\"\"" ((org-agenda-overriding-header "Projects Without Category")))
                        (tags-todo "STYLE=\"habit\"" ((org-agenda-overriding-header
                                                       "Habits\nBlue:   Not to be done          !: Today\nGreen:  Could have been done    *: Done that day\nYellow: Overdue the next day\nRed:    Overdue that day                                         Today V")))
                        (tags "STYLE=\"timebucket\"" ((org-agenda-overriding-header "Time Buckets")))
-                       (tags "+TODO=\"INPROGRESS\"" ((org-agenda-overriding-header "In Progress")))))
-        ("T" "Tasks" ((tags "+TODO=\"NEXT\"" ((org-agenda-overriding-header "Next")))
+                       (tags "+TODO=\"INPROGRESS\"" ((org-agenda-overriding-header "In Progress")))
+                       (tags "+CATEGORY=\"inbox\"" ((org-agenda-overriding-header "Inbox")))
+                       (tags "proj&+CATEGORY=\"\"" ((org-agenda-overriding-header "Projects Without Category")))
+                       ))
+        ("T" "Tasks" ((tags "+TODO=\"TODO\"-DEADLINE={.+}-SCHEDULED={.+}" ((org-agenda-overriding-header "Todo")))
                       (tags "+TODO=\"WAIT\"" ((org-agenda-overriding-header "Wait")))))
         ("x" "x" ((tags-todo "+TODO=\"PROJECT\"")))))
 

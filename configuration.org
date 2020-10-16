@@ -1572,6 +1572,50 @@ buffer, display it in another window."
        (org-switch-to-buffer-other-window (org-clock-goto)))
       (t (message "No running clock, use `C-c C-x C-j' to jump to the most recent one")))))
 #+END_SRC
+** org-set-tags
+#+BEGIN_SRC emacs-lisp
+(defun circ/org-set-tags ()
+  (interactive)
+  (let* ((curr-tags (org-get-tags))
+         (new-tags (set-difference
+                    (mapcar 'car (org-global-tags-completion-table))
+                    curr-tags
+                    :test 'string=))
+         (completion-list (append
+                           (mapcar (lambda (tag)
+                                     (concat "+" tag))
+                                   new-tags)
+                           (mapcar (lambda (tag)
+                                     (concat "-" tag))
+                                   curr-tags)))
+         (tag-change (completing-read "Tag: " completion-list))
+         (remove (string= "-" (substring tag-change 0 1)))
+         (tag (if (or (string= "-" (substring tag-change 0 1))
+                      (string= "+" (substring tag-change 0 1)))
+                  (substring tag-change 1)
+                tag-change))
+         (tags (remove* "" (if remove
+                               (remove tag curr-tags)
+                             (cons tag curr-tags))
+                        :test 'string=)))
+    (org-set-tags-to tags)
+    (org--align-tags-here org-tags-column)
+    (circ/org-set-tags)))
+
+(defun circ/org-clear-tags ()
+  (interactive)
+  (org-set-tags-to nil))
+#+END_SRC
+** org agenda toggle blocked tasks
+#+BEGIN_SRC emacs-lisp
+(defun circ/org-agenda-toggle-blocked-tasks ()
+  (interactive)
+  (cond ((eq org-agenda-dim-blocked-tasks 'invisible)
+         (setq org-agenda-dim-blocked-tasks t))
+        (org-agenda-dim-blocked-tasks
+         (setq org-agenda-dim-blocked-tasks 'invisible)))
+  (org-agenda-redo))
+#+END_SRC
 * Local variables
 ** Safe Local Eval Aliases
 #+BEGIN_SRC emacs-lisp
@@ -2825,6 +2869,7 @@ Simply send M-f instead
 (circ/p1 "t tr" 'org-table-toggle-coordinate-overlay  "toggle table coords"                 'org-mode-map)
 (circ/p1 "t w"  'whitespace-mode                      "toggle whitespace display")
 (circ/p1 "t a"  'abbrev-mode                          "toggle abbrev mode")
+(circ/p1 "t b"  'circ/org-agenda-toggle-blocked-tasks "toggle blocked tasks"                'org-agenda-mode-map)
 (circ/p1 "t"    'nil                                  "toggles")
 (circ/p1 "v a"  'circ/vc-annotate-current-window      "annotate")
 (circ/p1 "v b"  'vc-retrieve-tag                      "change branch")
@@ -2912,7 +2957,9 @@ Simply send M-f instead
 (circ/p4 "p d"  'org-deadline                         "deadline"                            'org-mode-map)
 (circ/p4 "p p"  'org-set-property                     "set property"                        'org-mode-map)
 (circ/p4 "p s"  'org-schedule                         "schedule"                            'org-mode-map)
-(circ/p4 "p t"  'org-set-tags-command                 "set tags"                            'org-mode-map)
+(circ/p4 "p t"  'circ/org-set-tags                    "set tags"                            'org-mode-map)
+(circ/p4 "p T"  'circ/org-clear-tags                  "clear tags"                          'org-mode-map)
+(circ/p4 "p o"  'org-toggle-ordered-property          "toggle ordered"                      'org-mode-map)
 (circ/p4 "p"    'nil                                  "property"                            'org-mode-map)
 (circ/p4 "r"    'nil                                  "references"                          'org-mode-map)
 (circ/p4 "r f"  'circ/cortex/find-reference           "find reference")
