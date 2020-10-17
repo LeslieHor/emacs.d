@@ -107,6 +107,7 @@ Highlights:
 (setq org-time-stamp-rounding-minutes '(1 1))
 (setq org-clock-out-when-done nil)
 (setq org-log-into-drawer "LOGBOOK")
+(setq org-agenda-hide-tags-regexp ".*")
 
 ;(setq org-clock-persist 'clock)
 ;(org-clock-persistence-insinuate)
@@ -145,36 +146,36 @@ Highlights:
               :gap-ok-around ("4:00"))))
 #+END_SRC
 
-Line wrap mode
-#+BEGIN_SRC emacs-lisp
-(defun org-mode-startup-functions ()
-  (toggle-word-wrap 1)
-  (toggle-truncate-lines -1))
+** Line wrap mode
+ #+BEGIN_SRC emacs-lisp
+ (defun org-mode-startup-functions ()
+   (toggle-word-wrap 1)
+   (toggle-truncate-lines -1))
 
-(add-hook 'org-mode-hook 'org-mode-startup-functions)
+ (add-hook 'org-mode-hook 'org-mode-startup-functions)
 
-(defun org-agenda-mode-startup-functions ()
-  (hl-line-mode +1)
-  (evil-quickscope-mode 0))
+ (defun org-agenda-mode-startup-functions ()
+   (hl-line-mode +1)
+   (evil-quickscope-mode 0))
 
-(add-hook 'org-agenda-mode-hook 'org-agenda-mode-startup-functions)
-(add-hook 'org-agenda-mode-hook 'circ/disable-evil-quickscope-mode)
-#+END_SRC
+ (add-hook 'org-agenda-mode-hook 'org-agenda-mode-startup-functions)
+ (add-hook 'org-agenda-mode-hook 'circ/disable-evil-quickscope-mode)
+ #+END_SRC
 
-Fix the =\emsp= bug in clock tables.
-#+BEGIN_SRC emacs-lisp
-(defun circ/org-clocktable-indent-string (level)
-  (if (= level 1)
-      ""
-    (let ((str "^"))
-      (while (> level 2)
-        (setq level (1- level)
-              str (concat str "--")))
-      (concat str "-> "))))
+** Fix the =\emsp= bug in clock tables.
+ #+BEGIN_SRC emacs-lisp
+ (defun circ/org-clocktable-indent-string (level)
+   (if (= level 1)
+       ""
+     (let ((str "^"))
+       (while (> level 2)
+         (setq level (1- level)
+               str (concat str "--")))
+       (concat str "-> "))))
 
-(advice-add 'org-clocktable-indent-string :override
-            #'circ/org-clocktable-indent-string)
-#+END_SRC
+ (advice-add 'org-clocktable-indent-string :override
+             #'circ/org-clocktable-indent-string)
+ #+END_SRC
 
 ** Beautifying org-mode
 Credits:
@@ -288,6 +289,89 @@ hardcoded 200ms timeout in case no notification service is alive"
 (add-hook 'after-revert-hook 'circ/maybe-refresh-appts)
 #+END_SRC
 
+** Tag counts for task list
+#+BEGIN_SRC emacs-lisp
+(defun circ/org-agenda-get-displayed-tag-count ()
+  (interactive)
+  (save-excursion
+    (let ((count-alist '()))
+      (goto-char (point-min))
+      (while (ignore-errors (org-agenda-next-item 1))
+        (dolist (tag (org-get-at-bol 'tags))
+          (let ((cell (assoc tag count-alist)))
+            (if cell
+                (setf (cdr cell) (+ 1 (cdr cell)))
+              (push (cons tag 1) count-alist)))))
+      count-alist)))
+
+(defun circ/org-agenda-insert-tag-count ()
+  (interactive)
+  (save-excursion
+    (goto-char (point-min))
+    (org-agenda-next-item 1)
+    (move-beginning-of-line nil)
+    (read-only-mode -1)
+    (delete-region (point) (point-min))
+    (read-only-mode 1))
+
+  (let* ((tag-list (circ/org-agenda-get-displayed-tag-count))
+         (max-digits (car (sort (mapcar (lambda (cell)
+                                          (length (number-to-string (cdr cell))))
+                                        tag-list)
+                                '>)))
+         (string-list (mapcar (lambda (cell)
+                                (concat
+                                 (format (concat "%" (number-to-string max-digits) "d")
+                                         (cdr cell))
+                                 ": " (car cell)))
+                              (sort tag-list
+                                    (lambda (cell1 cell2)
+                                      (> (cdr cell1) (cdr cell2)))))))
+    (save-excursion
+      (goto-char (point-min))
+      (read-only-mode -1)
+      (insert (circ/string-list-to-table string-list 80))
+      (insert "\n\n")
+      (read-only-mode 1))))
+
+(defun circ/string-list-to-table (list length)
+  (let* ((max-string-len (car (sort (mapcar 'length
+                                            (mapcar (lambda (s)
+                                                      (concat s "  "))
+                                                    list))
+                                    '>)))
+         (tags-per-line (/ length max-string-len))
+         (counter 0)
+         (string))
+    (dolist (item list)
+      (cond ((>= counter tags-per-line)
+             (setq string (concat string "\n"))
+             (setq counter 0))
+            (t
+             (setq string (concat string (format
+                                          (concat "%-"
+                                                  (number-to-string max-string-len)
+                                                  "s")
+                                          item)))
+             (setq counter (+ 1 counter)))))
+    string))
+
+(defun circ/maybe-org-agenda-insert-tag-count ()
+  (interactive)
+  (when (string= (buffer-name) "*Org Agenda(T)*")
+    (circ/org-agenda-insert-tag-count)))
+
+(add-hook 'org-agenda-finalize-hook 'circ/maybe-org-agenda-insert-tag-count)
+(defun circ/org-agenda-filter-by-tag ()
+  (interactive)
+  (call-interactively 'org-agenda-filter-by-tag)
+  (circ/maybe-org-agenda-insert-tag-count))
+
+(defun circ/org-agenda-filter-by-category ()
+  (interactive)
+  (call-interactively 'org-agenda-filter-by-category)
+  (circ/maybe-org-agenda-insert-tag-count))
+#+END_SRC
 * Mode Line
 #+BEGIN_SRC emacs-lisp
 (column-number-mode 1) ; show column number
@@ -1756,6 +1840,11 @@ Set initial states
 (evil-define-key '(normal visual) evil-org-mode-map
   (kbd "TAB") 'org-cycle
   (kbd "<backtab>") 'org-shifttab)
+
+;; Replace some agenda filter keys with my own custom functions
+(evil-define-key 'motion org-agenda-mode-map
+  "sc" 'circ/org-agenda-filter-by-category
+  "st" 'circ/org-agenda-filter-by-tag)
 #+END_SRC
 
 ** evil-numbers
