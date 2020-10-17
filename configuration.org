@@ -309,7 +309,7 @@ hardcoded 200ms timeout in case no notification service is alive"
   (save-excursion
     (goto-char (point-min))
     (org-agenda-next-item 1)
-    (move-beginning-of-line nil)
+    (move-beginning-of-line 0)
     (read-only-mode -1)
     (delete-region (point) (point-min))
     (read-only-mode 1))
