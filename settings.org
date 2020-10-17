@@ -6,14 +6,16 @@ Settings that only work on my home computer. They will probably break other setu
 * Org
 #+BEGIN_SRC emacs-lisp
 (setq org-enforce-todo-dependencies t)
+(setq org-track-ordered-property-with-tag t)
 (setq org-agenda-todo-ignore-deadlines 'nil)
 (setq org-agenda-todo-ignore-scheduled 'nil)
 (setq org-agenda-tags-todo-honor-ignore-options t)
 (setq org-agenda-dim-blocked-tasks 'invisible)
+(setq org-agenda-log-mode-items '(clock))
 
 ;; Set todo states
 (setq org-todo-keywords
-      '((sequence "TODO(t)" "WAIT(w)" "NEXT(n)" "PROJECT(p)" "INPROGRESS(i)"
+      '((sequence "TODO(t)" "WAIT(w)" "INPROGRESS(i)"
                   "|" "DONE(d)" "CANCELLED(c)")))
 
 ;; Set tags
@@ -66,7 +68,7 @@ Settings that only work on my home computer. They will probably break other setu
                        (tags "STYLE=\"timebucket\"" ((org-agenda-overriding-header "Time Buckets")))
                        (tags "+TODO=\"INPROGRESS\"" ((org-agenda-overriding-header "In Progress")))
                        (tags "+CATEGORY=\"inbox\"" ((org-agenda-overriding-header "Inbox")))
-                       (tags "proj&+CATEGORY=\"\"" ((org-agenda-overriding-header "Projects Without Category")))
+                       (tags "+PROJ&+CATEGORY=\"\"" ((org-agenda-overriding-header "Projects Without Category")))
                        ))
         ("T" "Tasks" ((tags "+TODO=\"TODO\"-DEADLINE={.+}-SCHEDULED={.+}" ((org-agenda-overriding-header "Todo")))
                       (tags "+TODO=\"WAIT\"" ((org-agenda-overriding-header "Wait")))))
@@ -110,7 +112,7 @@ Settings that only work on my home computer. They will probably break other setu
 (defun circ/open-read       () (interactive) (find-file "~/pims/read.org"))
 
 ;; Stuck projects search
-(setq org-stuck-projects '("/PROJECT" ("NEXT" "WAIT" "INPROGRESS") nil ""))
+(setq org-stuck-projects '("+PROJ/-DONE-CANCELLED" ("TODO" "WAIT" "INPROGRESS") nil ""))
 
 ;; Automate filing process
 (defun circ/pims/set-todo ()

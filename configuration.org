@@ -1616,6 +1616,25 @@ buffer, display it in another window."
          (setq org-agenda-dim-blocked-tasks 'invisible)))
   (org-agenda-redo))
 #+END_SRC
+** org agenda toggle clock closed
+#+BEGIN_SRC emacs-lisp
+(defun circ/org-agenda-toggle-clock-closed ()
+  (interactive)
+  (cond ((equal org-agenda-log-mode-items '(clock))
+         (setq org-agenda-log-mode-items '(closed)))
+        (t
+         (setq org-agenda-log-mode-items '(clock))))
+  (org-agenda-redo))
+#+END_SRC
+** org agenda toggle hide tags
+#+BEGIN_SRC emacs-lisp
+(defun circ/org-agenda-toggle-hide-tags ()
+  (interactive)
+  (if org-agenda-hide-tags-regexp
+      (setq org-agenda-hide-tags-regexp nil)
+    (setq org-agenda-hide-tags-regexp ".*"))
+  (org-agenda-redo))
+#+END_SRC
 * Local variables
 ** Safe Local Eval Aliases
 #+BEGIN_SRC emacs-lisp
@@ -2446,6 +2465,11 @@ Evil Keybindings
   (kill-all-abbrevs)
   (read-abbrev-file))
 #+END_SRC
+** avy
+#+BEGIN_SRC emacs-lisp
+(add-to-list 'load-path "~/.emacs.d/packages/avy-0.5.0")
+(require 'avy)
+#+END_SRC
 ** general
 #+BEGIN_SRC emacs-lisp
 (add-to-list
@@ -2756,11 +2780,11 @@ Simply send M-f instead
 (circ/p1 "b"    'nil                                  "buffers")
 (circ/p1 "c"    'delete-window                        "close window")
 (circ/p1 "c"    'ranger-disable                       "close ranger"                        'ranger-mode-map)
-(circ/p1 "d"    'evil-goto-definition                 "goto definition")
 (circ/p1 "d"    'circ/alias-erlang-find-tag           "goto definition"                     'erlang-mode-map)
-(circ/p1 "d"    'org-open-at-point                    "open link"                           'org-mode-map)
-(circ/p1 "d"    'org-open-at-point                    "open link"                           'org-agenda-mode-map)
+(circ/p1 "d"    'evil-goto-definition                 "goto definition")
 (circ/p1 "d"    'goto-address-at-point                "open link"                           'notmuch-show-mode-map)
+(circ/p1 "d"    'org-open-at-point                    "open link"                           'org-agenda-mode-map)
+(circ/p1 "d"    'org-open-at-point                    "open link"                           'org-mode-map)
 (circ/p1 "e #"  'nil                                  "number increment / decrement")
 (circ/p1 "e #a" 'evil-numbers/inc-at-pt               "increment")
 (circ/p1 "e #x" 'evil-numbers/dec-at-pt               "decrement")
@@ -2803,24 +2827,31 @@ Simply send M-f instead
 (circ/p1 "f r"  'counsel-recentf                      "find recent file")
 (circ/p1 "f s"  'nil                                  "scratch buffers")
 (circ/p1 "f sj" 'new-scratch-json-mode                "json scratch buffer")
-(circ/p1 "f st" 'new-scratch-text-mode                "text scratch buffer")
 (circ/p1 "f so" 'new-scratch-org-mode                 "org scratch buffer")
+(circ/p1 "f st" 'new-scratch-text-mode                "text scratch buffer")
 (circ/p1 "f"    'nil                                  "files")
+(circ/p1 "g"    'nil                                  "goto")
+(circ/p1 "g 1"  'avy-goto-char                        "goto char 1")
+(circ/p1 "g 2"  'avy-goto-char-2                      "goto char 2")
+(circ/p1 "g t"  'avy-goto-char-timer                  "goto char timer")
+(circ/p1 "g l"  'avy-goto-line                        "goto line")
+(circ/p1 "g w"  'avy-goto-word-1                      "goto word 1")
+(circ/p1 "g h"  'avy-org-goto-heading-timer           "goto org heading timer"              'org-mode-map)
 (circ/p1 "h"    'windmove-left                        "win left")
 (circ/p1 "j"    'windmove-down                        "win down")
 (circ/p1 "k"    'windmove-up                          "win up")
 (circ/p1 "l"    'windmove-right                       "wind right")
-(circ/p1 "o i"  'circ/open-in-intellij                "open in intellij")
 (circ/p1 "o c"  'copy-buffer                          "copy buffer")
+(circ/p1 "o d"  'dashboard                            "dashboard")
+(circ/p1 "o e"  'notmuch                              "notmuch")
+(circ/p1 "o i"  'circ/open-in-intellij                "open in intellij")
 (circ/p1 "o m"  'mpccp                                "mpccp")
 (circ/p1 "o r"  'circ/elfeed-load-and-open            "elfeed")
-(circ/p1 "o e"  'notmuch                              "notmuch")
-(circ/p1 "o x"  'emux                                 "emux")
-(circ/p1 "o d"  'dashboard                            "dashboard")
 (circ/p1 "o tc" 'circ/alias-clisp-shell               "clisp")
 (circ/p1 "o te" 'erlang-shell                         "erlang")
 (circ/p1 "o tp" 'circ/alias-python-shell              "python")
 (circ/p1 "o tt" 'circ/ansi-term                       "bash")
+(circ/p1 "o x"  'emux                                 "emux")
 (circ/p1 "o"    'nil                                  "applications")
 (circ/p1 "p ?"  'projectile-command-map               "other")
 (circ/p1 "p O"  'circ/alias-org-force-publish         "force org publish project"           'org-mode-map)
@@ -2857,6 +2888,9 @@ Simply send M-f instead
 (circ/p1 "r"    'nil                                  "registers")
 (circ/p1 "t R"  'auto-revert-mode                     "toggle auto revert mode")
 (circ/p1 "t W"  'circ/toggle-whitespace-full          "toggle whitespace full")
+(circ/p1 "t a"  'abbrev-mode                          "toggle abbrev mode")
+(circ/p1 "t b"  'circ/org-agenda-toggle-blocked-tasks "toggle blocked tasks"                'org-agenda-mode-map)
+(circ/p1 "t c"  'circ/org-agenda-toggle-clock-closed  "toggle clock closed"                 'org-agenda-mode-map)
 (circ/p1 "t c"  'comment-line                         "toggle comment line")
 (circ/p1 "t f"  'font-lock-mode                       "toggle auto font formatting")
 (circ/p1 "t h"  'hl-line-mode                         "toggle highight line mode")
@@ -2865,18 +2899,17 @@ Simply send M-f instead
 (circ/p1 "t l"  'nlinum-mode                          "toggle relative line numbers")
 (circ/p1 "t p"  'projectile-mode                      "toggle projectile mode")
 (circ/p1 "t r"  'rainbow-delimiters-mode              "toggle rainbow delimiters")
+(circ/p1 "t t"  'circ/org-agenda-toggle-hide-tags     "toggle hide tags"                    'org-agenda-mode-map)
 (circ/p1 "t t"  'nil                                  "tables"                              'org-mode-map)
 (circ/p1 "t tr" 'org-table-toggle-coordinate-overlay  "toggle table coords"                 'org-mode-map)
 (circ/p1 "t w"  'whitespace-mode                      "toggle whitespace display")
-(circ/p1 "t a"  'abbrev-mode                          "toggle abbrev mode")
-(circ/p1 "t b"  'circ/org-agenda-toggle-blocked-tasks "toggle blocked tasks"                'org-agenda-mode-map)
 (circ/p1 "t"    'nil                                  "toggles")
+(circ/p1 "v D"  'vc-ediff                             "ediff")
 (circ/p1 "v a"  'circ/vc-annotate-current-window      "annotate")
 (circ/p1 "v b"  'vc-retrieve-tag                      "change branch")
 (circ/p1 "v d"  'nil                                  "diff")
 (circ/p1 "v dd" 'vc-version-ediff                     "version ediff")
 (circ/p1 "v dm" 'circ/vc-diff-head-current            "compare current to head")
-(circ/p1 "v D"  'vc-ediff                             "ediff")
 (circ/p1 "v"    'nil                                  "version control")
 (circ/p1 "w e"  'balance-windows                      "balance windows")
 (circ/p1 "w h"  'split-window-right                   "split horizontal")
@@ -2885,11 +2918,11 @@ Simply send M-f instead
 (circ/p1 "w v"  'split-window-below                   "split vertical")
 (circ/p1 "w z"  'maximize-window                      "maximize")
 (circ/p1 "w"    'nil                                  "windows")
-(circ/p1 "x"    'nil                                  "sh cmd")
-(circ/p1 "x x"  'circ/sh-cmd                          "sh cmd")
+(circ/p1 "x S"  'circ/alias-sh-cmd-whole-buffer-split-lines "sh cmd whole buffer split lines")
 (circ/p1 "x X"  'circ/alias-sh-cmd-whole-buffer       "sh cmd whole buffer")
 (circ/p1 "x s"  'circ/alias-sh-cmd-split-lines        "sh cmd split lines")
-(circ/p1 "x S"  'circ/alias-sh-cmd-whole-buffer-split-lines "sh cmd whole buffer split lines")
+(circ/p1 "x x"  'circ/sh-cmd                          "sh cmd")
+(circ/p1 "x"    'nil                                  "sh cmd")
 #+END_SRC
 
 ** P2
