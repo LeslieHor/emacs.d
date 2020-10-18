@@ -1504,8 +1504,8 @@ Subscribe to youtube channel
   (when (circ/org-agenda-file-p)
     (circ/reload-all-org-agendas)))
 
-(add-hook 'after-save-hook 'circ/maybe-refresh-all-org-agendas)
-(add-hook 'after-revert-hook 'circ/maybe-refresh-all-org-agendas)
+; (add-hook 'after-save-hook 'circ/maybe-refresh-all-org-agendas)
+; (add-hook 'after-revert-hook 'circ/maybe-refresh-all-org-agendas)
 #+END_SRC
 ** copy-buffer
 Major mode for copy buffer
