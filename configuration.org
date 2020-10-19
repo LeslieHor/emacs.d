@@ -1791,6 +1791,21 @@ Set initial states
 (define-key ivy-minibuffer-map (kbd "S-SPC") nil)
 #+END_SRC
 
+*** initial input alist
+#+BEGIN_SRC emacs-lisp
+;; (setq ivy-initial-inputs-alist '((counsel-package . "^+ ")
+;;                                  (org-refile . "^")
+;;                                  (org-agenda-refile . "^")
+;;                                  (org-capture-refile . "^")
+;;                                  (counsel-M-x . "^")
+;;                                  (counsel-describe-function . "^")
+;;                                  (counsel-describe-variable . "^")
+;;                                  (counsel-org-capture . "^")
+;;                                  (Man-completion-table . "^")
+;;                                  (woman . "^")))
+
+(setq ivy-initial-inputs-alist '())
+#+END_SRC
 ** projectile
 #+BEGIN_SRC emacs-lisp
 (add-to-list 'load-path "~/.emacs.d/packages/projectile-2.0.0")
