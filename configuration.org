@@ -1248,9 +1248,12 @@ has no effect."
 #+BEGIN_SRC emacs-lisp
 (defun circ/setup-agenda-view()
   (interactive)
+  (circ/open-inbox)
+  (split-window-right)
   (circ/alias-org-agenda-tasks)
   (split-window-right)
-  (circ/alias-org-agenda-agenda))
+  (circ/alias-org-agenda-agenda)
+  (balance-windows))
 #+END_SRC
 ** Org agenda templates
 #+BEGIN_SRC emacs-lisp
