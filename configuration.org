@@ -1546,9 +1546,6 @@ Major mode for copy buffer
       (rename-buffer "*copy-buffer*" t)
       (copy-buffer-mode)
       (switch-to-buffer buf))))
-
-(evil-define-key '(normal visual) copy-buffer-mode-map
-  "q" 'copy-buffer-copy-quit)
 #+END_SRC
 ** ansi-term title
 #+BEGIN_SRC emacs-lisp
@@ -3051,6 +3048,8 @@ Simply send M-f instead
   "<f4>" 'circ/open-inbox
   "<f5>" 'circ/open-checklists
 )
+(evil-define-key '(normal visual) copy-buffer-mode-map
+  "q" 'copy-buffer-copy-quit)
 #+END_SRC
 
 *** Help
