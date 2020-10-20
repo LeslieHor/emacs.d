@@ -1533,9 +1533,11 @@ Major mode for copy buffer
 
 (defun copy-buffer-copy-quit ()
   (interactive)
-  (when (functionp copy-buffer-copy-function)
-    (funcall copy-buffer-copy-function (buffer-string))
-    (circ/kill-this-buffer)))
+  (cond ((functionp copy-buffer-copy-function)
+         (funcall copy-buffer-copy-function (buffer-string))
+         (circ/kill-this-buffer))
+        (t
+         (user-error "Error. Please set `copy-buffer-copy-function' to a function."))))
 
 (defun copy-buffer ()
   (interactive)
@@ -1544,6 +1546,9 @@ Major mode for copy buffer
       (rename-buffer "*copy-buffer*" t)
       (copy-buffer-mode)
       (switch-to-buffer buf))))
+
+(evil-define-key '(normal visual) copy-buffer-mode-map
+  "q" 'copy-buffer-copy-quit)
 #+END_SRC
 ** ansi-term title
 #+BEGIN_SRC emacs-lisp
@@ -2888,7 +2893,6 @@ Simply send M-f instead
 (circ/p1 "p w"  'org-save-all-org-buffers             "save all org buffers"                'org-mode-map)
 (circ/p1 "p"    'nil                                  "projects")
 (circ/p1 "q"    'circ/kill-this-buffer                "kill buffer")
-(circ/p1 "q"    'copy-buffer-copy-quit           "copy buffer copy quit"                    'copy-buffer-mode-map)
 (circ/p1 "r n"  'nil                                  "numbers")
 (circ/p1 "r ni" 'increment-register                   "increment register with number")
 (circ/p1 "r np" 'insert-register                      "paste number from register")
