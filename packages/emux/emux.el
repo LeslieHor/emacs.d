@@ -234,8 +234,7 @@
 
 (defun emux-send-to-all-exit ()
   (interactive)
-  (emux-send-to-all-raw-string "\C-d")
-  (emux-clear-buffer-list))
+  (emux-send-to-all-raw-string "\C-d"))
 
 (defun emux-reset-buffer-list ()
   (interactive)
@@ -261,9 +260,11 @@
       (let* ((key (car key-values))
              (val (cadr key-values))
              (values (cond ((listp val) val)
-                           ((stringp val) (split-string
-                                           (string-trim (shell-command-to-string val))
-                                           " ")))))
+                           ((stringp val) (reverse
+                                           (split-string
+                                            (string-trim
+                                             (shell-command-to-string val))
+                                           "\n"))))))
         (insert (format "Key: %s\n" key))
         (insert (format "Values: %s\n" val))
         (insert (format "Evaluated Values: %s\n" values))
@@ -338,9 +339,14 @@
 (defun emux-launch-frame-group-with-variables (&optional use-current-frame)
   (interactive)
   (let* ((group (completing-read "Group: " emux-groups))
-         (group-values (cadadr (assoc group emux-groups)))
-         (num-of-terms (length group-values))
+         (val (cadadr (assoc group emux-groups)))
+         (values (cond ((listp val) val)
+                       ((stringp val) (split-string
+                                       (string-trim (shell-command-to-string val))
+                                       "\n"))))
+         (num-of-terms (length values))
          (emux-win (emux-set-up-frame num-of-terms use-current-frame)))
+    (message "Group vals: %s" values)
     (with-current-buffer (window-buffer emux-win)
       (emux-load-group group))))
 
