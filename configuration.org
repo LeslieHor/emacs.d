@@ -2164,35 +2164,44 @@ Open in eww readable
 
 Completing read tag editing
 #+BEGIN_SRC emacs-lisp
-(defun circ/elfeed-add-search-filter-tag ()
+(defun circ/elfeed-search-filter-tag ()
   (interactive)
   (unwind-protect
-      (let* ((tags (elfeed-db-get-all-tags))
+      (let* ((tags (mapcar 'symbol-name (elfeed-db-get-all-tags)))
              (current-filter elfeed-search-filter)
              (current-tags (plist-get (elfeed-search-parse-filter current-filter)
                                       :must-have))
-             (tag-candidates (set-difference tags current-tags)) ; Order of lists matter
-             (new-tag (completing-read "Add tag: " tag-candidates))
-             (new-filter (concat current-filter " +" new-tag)))
-        (setq elfeed-search-filter new-filter)
-        (elfeed-search-update :force))))
+             (tag-candidates (append
+                              (mapcar (lambda (tag)
+                                        (concat "+" tag))
+                                      tags)
+                              (mapcar (lambda (tag)
+                                        (concat "-" tag))
+                                      tags)))
+             (new-tag (completing-read (format "[%s]: " current-filter) tag-candidates nil t))
+             (filter-list (split-string elfeed-search-filter " " t)))
+        (if (member new-tag filter-list)
+            (circ/elfeed--remove-search-filter-tag new-tag)
+          (circ/elfeed--add-search-filter-tag new-tag))))
+  (circ/elfeed-search-filter-tag))
 
-(defun circ/elfeed-remove-search-filter-tag ()
+(defun circ/elfeed--add-search-filter-tag (tag)
+  (let ((filter-list (split-string elfeed-search-filter " " t)))
+    (setq elfeed-search-filter (string-join (append filter-list (list tag)) " "))
+    (elfeed-search-update :force)))
+
+(defun circ/elfeed--remove-search-filter-tag (tag)
+  (let ((filter-list (split-string elfeed-search-filter " " t)))
+    (setq elfeed-search-filter (string-join (delete tag filter-list) " "))
+    (elfeed-search-update :force)))
+#+END_SRC
+
+Saved searches
+#+BEGIN_SRC emacs-lisp
+(defun circ/elfeed-search-saved ()
   (interactive)
-  (unwind-protect
-      (let* ((tags (elfeed-db-get-all-tags))
-             (current-filter elfeed-search-filter)
-             (current-tags (plist-get (elfeed-search-parse-filter current-filter)
-                                      :must-have))
-             (tag-candidates (intersection tags current-tags))
-             (remove-tag (completing-read "Remove tag: " tag-candidates))
-             (new-filter (string-trim
-                          (replace-regexp-in-string
-                           (regexp-quote "  ") " "
-                           (replace-regexp-in-string
-                            (regexp-quote (concat "+" remove-tag)) "" current-filter)))))
-        (setq elfeed-search-filter new-filter)
-        (elfeed-search-update :force))))
+  (setq elfeed-search-filter "+saved")
+  (elfeed-search-update :force))
 #+END_SRC
 
 Evil Keybindings
@@ -2212,14 +2221,14 @@ Evil Keybindings
   "gR" 'circ/elfeed-db-reload
   "s" 'circ/elfeed-search-tag-saved
   "S" 'circ/elfeed-search-untag-saved
-  "t" 'circ/elfeed-add-search-filter-tag
-  "T" 'circ/elfeed-remove-search-filter-tag
+  "t" 'circ/elfeed-search-filter-tag
   "o" 'nil
   "or" 'circ/elfeed-search-open-eww-readable
   "oe" 'circ/elfeed-search-open-eww
   "ov" 'circ/elfeed-search-open-in-mpv
   "ob" 'elfeed-search-browse-url
   "f" 'circ/open-rss-elfeed-file
+  "gs" 'circ/elfeed-search-saved
   "d" 'evil-scroll-down
   "u" 'evil-scroll-up
   "q" 'circ/elfeed-save-and-close)
