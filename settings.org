@@ -51,10 +51,10 @@ Settings that only work on my home computer. They will probably break other setu
 (setq circ/org-reference-directory "~/pims/cortex/reference")
 (setq org-refile-allow-creating-parent-nodes 'confirm)
 (setq org-refile-use-outline-path 'file)
-(setq org-refile-targets '(("~/pims/todo.org" :level . 1)
-                           ("~/pims/someday.org" :level . 1)
-                           ("~/pims/calendar.org" :level . 1)
-                           ("~/pims/read.org" :level . 1)))
+(setq org-refile-targets '(("~/pims/todo.org"     :maxlevel . 99)
+                           ("~/pims/someday.org"  :maxlevel . 99)
+                           ("~/pims/calendar.org" :maxlevel . 99)
+                           ("~/pims/read.org"     :maxlevel . 99)))
 
 ;; Set archiving targets
 ;; Archiving something in ./projects.org goes to ./.projects.org_archive
