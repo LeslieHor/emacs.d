@@ -6,6 +6,38 @@ Clone this repository.
 Symlink the ~packages~ directory and the ~init.el~ and ~configuration.org~ files
 to your ~.emacs.d/~ directory.
 
+#+BEGIN_SRC sh
+mkdir -p ~/.emacs.d/
+ln -s ~/projects/emacs.d/configuration.org ~/.emacs.d/
+ln -s ~/projects/emacs.d/init.el ~/.emacs.d/
+ln -s ~/projects/emacs.d/settings.org ~/.emacs.d/
+ln -s ~/projects/emacs.d/packages/ ~/.emacs.d/
+
+touch ~/.emacs.d/personalsettings.org
+#+END_SRC
+
+In the =personalsettings.org= file, define some variables. E.g.:
+#+BEGIN_SRC emacs-lisp
+(setq circ/format-appt-notify-msg 'circ/format-appt-notify-msg-simple)
+(setq circ/format-appt-notify-cmd 'circ/format-appt-notify-cmd-desktop)
+;(setq circ/format-appt-notify-cmd 'circ/format-appt-notify-cmd-termux)
+(setq circ/notify-command 'circ/desktop-notify)
+;(setq circ/notify-command 'circ/termux-notify)
+
+(setq circ/message-from-addresses
+      '("Forename Surname <email@domain.com>"
+        "Joe Bloggs <joe.bloggs@domain.com>"))
+
+(setq emux-groups
+      '(("all" ("HOST" ("machine1" "machine2" "machine3" "machine4")))
+        ("test" ("VALUE" "seq 1 10"))))
+
+(setq circ/notmuch-load-path "~/.emacs.d/packages/notmuch-0.29.3/emacs")
+
+(setq copy-buffer-copy-function 'copy-buffer-copy-function-desktop)
+;(setq copy-buffer-copy-function 'copy-buffer-copy-function-termux)
+#+END_SRC
+
 ** Packages
 | Package                | Version                                         |
 |------------------------+-------------------------------------------------|
