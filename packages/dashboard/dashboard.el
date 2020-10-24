@@ -173,6 +173,7 @@ will call `find-file' with \"~/.emacs.d/init.el\" as the arg")
       (goto-char (point-min))
       (search-forward "Persistent Links")
       (move-beginning-of-line 2)
-      (hl-line-mode))))
+      (hl-line-mode))
+    buf))
 
 (provide 'dashboard)

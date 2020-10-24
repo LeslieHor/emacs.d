@@ -1458,8 +1458,8 @@ Subscribe to youtube channel
   (interactive)
   (let* ((youtube-url (read-string "Youtube Channel Link: "))
          (channel-name (read-string "Youtube Channel Name: "))
-         (channel-id (replace-regexp-in-string ".*channel/" "" youtube-url))
-         (url (concat "https://www.youtube.com/feeds/videox.xml?channel_id="
+         (channel-id (replace-regexp-in-string ".*channel/\\([A-Za-z0-9_-]*\\).*" "\\1" youtube-url))
+         (url (concat "https://www.youtube.com/feeds/videos.xml?channel_id="
                       channel-id))
          (org-link (format "[[%s][%s]]" url channel-name)))
     (kill-new org-link)
