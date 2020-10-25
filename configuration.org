@@ -1253,7 +1253,8 @@ has no effect."
   (circ/alias-org-agenda-tasks)
   (split-window-right)
   (circ/alias-org-agenda-agenda)
-  (balance-windows))
+  (balance-windows)
+  (circ/set-frame-name "PIMS"))
 #+END_SRC
 ** Org agenda templates
 #+BEGIN_SRC emacs-lisp
