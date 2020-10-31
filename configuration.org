@@ -2397,7 +2397,7 @@ Evil Keybindings
     "q" 'notmuch-bury-or-kill-this-buffer
     "r" 'notmuch-refresh-this-buffer
     "R" 'circ/notmuch-update-emails
-    "J" 'notmuch-jump-search
+    "g" 'notmuch-jump-search
     "/" 'circ/notmuch-search
     "c" 'notmuch-mua-new-mail
     "d" 'evil-scroll-down

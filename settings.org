@@ -66,11 +66,10 @@ Settings that only work on my home computer. They will probably break other setu
                        (tags-todo "STYLE=\"habit\"" ((org-agenda-overriding-header
                                                       "Habits\nBlue:   Not to be done          !: Today\nGreen:  Could have been done    *: Done that day\nYellow: Overdue the next day\nRed:    Overdue that day                                         Today V")))
                        (tags "STYLE=\"timebucket\"" ((org-agenda-overriding-header "Time Buckets")))
-                       (tags "+TODO=\"INPROGRESS\"" ((org-agenda-overriding-header "In Progress")))
                        (tags "+CATEGORY=\"inbox\"" ((org-agenda-overriding-header "Inbox")))
-                       (tags "+PROJ&+CATEGORY=\"\"" ((org-agenda-overriding-header "Projects Without Category")))
-                       ))
-        ("T" "Tasks" ((tags "+TODO=\"TODO\"-DEADLINE={.+}-SCHEDULED={.+}" ((org-agenda-overriding-header "Todo")))
+                       (tags "+PROJ&+CATEGORY=\"\"" ((org-agenda-overriding-header "Projects Without Category")))))
+        ("T" "Tasks" ((tags "+TODO=\"INPROGRESS\"" ((org-agenda-overriding-header "In Progress")))
+                      (tags "+TODO=\"TODO\"-DEADLINE={.+}-SCHEDULED={.+}" ((org-agenda-overriding-header "Todo")))
                       (tags "+TODO=\"WAIT\"" ((org-agenda-overriding-header "Wait")))))
         ("x" "x" ((tags-todo "+TODO=\"PROJECT\"")))))
 
