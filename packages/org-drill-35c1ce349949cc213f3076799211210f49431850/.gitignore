@@ -1,0 +1,10 @@
+/.cask
+org-drill.html
+/*.elc
+/elpa
+/makefile-local
+/robot/Makefile
+/robot/failure.txt
+/robot/messages.txt
+/robot/*-copy.org
+

@@ -72,6 +72,9 @@
     (kbd ".") 'mpccp-raise-volume
     (kbd "<") 'mpccp-seek-backward
     (kbd ">") 'mpccp-seek-forward
+    (kbd "SPC") 'mpccp-play-pause
+    (kbd "n") 'mpccp-next
+    (kbd "p") 'mpccp-prev
     )
 
   (evil-define-minor-mode-key 'motion 'mpccp-database-search-mode
@@ -118,10 +121,11 @@
 (defvar mpccp-queue-buffer-name "*mpccp-queue*"
   "Name for the mpccp queue buffer")
 
-(defvar mpccp-database-search-albumartist-length 15)
-(defvar mpccp-database-search-artist-length      25)
-(defvar mpccp-database-search-album-length       25)
-(defvar mpccp-database-search-title-length       40)
+(defvar mpccp-results-list-offset 20) ;TODO Find this programmatically
+(defvar mpccp-database-search-albumartist-length 0.2)
+(defvar mpccp-database-search-artist-length      0.2)
+(defvar mpccp-database-search-album-length       0.2)
+(defvar mpccp-database-search-title-length       0.6)
 
 (defvar-local mpccp-mpc-status nil
   "Stores various mpc toggle states")
@@ -175,6 +179,20 @@
   (with-temp-buffer
     (mpccp-call-mpc t '("current" "--format" "%albumartist% - %title%"))
     (string-trim (buffer-string))))
+
+(defun mpccp-get-current-song-progress ()
+  "Get current song progress."
+  (interactive)
+  (with-temp-buffer
+    (let* ((mpc-status (with-temp-buffer
+                         (mpccp-call-mpc t '("status"))
+                         (buffer-string)))
+           (mpc-split-status (split-string mpc-status "\n"))
+           (mpc-status-line (replace-regexp-in-string "  *" "\t"
+                                                      (nth 1 mpc-split-status)))
+           (mpc-status-list (split-string mpc-status-line "\t"))
+           (mpc-song-progress (nth 2 mpc-status-list)))
+      mpc-song-progress)))
 
 (defun mpccp-off-on-to-bool (s)
   (cond ((string= s "on") t)
@@ -243,6 +261,20 @@
 (defun mpccp-seek-forward ()
   (interactive)
   (mpccp-call-mpc nil '("seek" "+00:00:05")))
+
+(defun mpccp-play-pause ()
+  (interactive)
+  (mpccp-call-mpc nil '("toggle"))
+  (mpccp))
+
+(defun mpccp-next ()
+  (interactive)
+  (mpccp-call-mpc nil '("next"))
+  (mpccp))
+(defun mpccp-prev ()
+  (interactive)
+  (mpccp-call-mpc nil '("prev"))
+  (mpccp))
 
 (defun mpccp-parse-mpc-song-to-alist (song)
   (cl-destructuring-bind (artist album albumartist date disc genre title
@@ -327,22 +359,26 @@
 (defun mpccp-trunc-pad-string (length string)
   (truncate-string-to-width string length 0 ?\s))
 (defun mpccp-pretty-song-list ()
-  (string-join
-   (mapcar
-    (lambda (song-data)
-      (let ((index (car song-data))
-            (song (cdr song-data)))
-        (format "%2s) | %2s | %s | %s | %s |"
-                index
-                (alist-get 'track song)
-                (mpccp-trunc-pad-string mpccp-database-search-artist-length
-                                        (alist-get 'artist song))
-                (mpccp-trunc-pad-string mpccp-database-search-album-length
-                                        (alist-get 'album song))
-                (mpccp-trunc-pad-string mpccp-database-search-title-length
-                                        (alist-get 'title song)))))
-    mpccp-song-alist)
-   "\n"))
+  (let* ((avail-line-len (- (window-text-width) mpccp-results-list-offset))
+         (artist-len (floor (* avail-line-len mpccp-database-search-artist-length)))
+         (album-len  (floor (* avail-line-len mpccp-database-search-album-length)))
+         (title-len  (floor (* avail-line-len mpccp-database-search-title-length))))
+    (string-join
+     (mapcar
+      (lambda (song-data)
+        (let ((index (car song-data))
+              (song (cdr song-data)))
+          (format "%3s) | %2s | %s | %s | %s |"
+                  index
+                  (alist-get 'track song)
+                  (mpccp-trunc-pad-string artist-len
+                                          (alist-get 'artist song))
+                  (mpccp-trunc-pad-string album-len
+                                          (alist-get 'album song))
+                  (mpccp-trunc-pad-string title-len
+                                          (alist-get 'title song)))))
+      mpccp-song-alist)
+     "\n")))
 
 (defun mpccp-queue-raw-file ()
   (string-join
@@ -507,6 +543,37 @@
         (t
          (user-error "mpccp-playlist-directory not set"))))
 
+(defun mpccp-update-current-song ()
+  (interactive)
+  (save-excursion
+    (let ((buf (get-buffer mpccp-main-buffer-name)))
+      (cond (buf
+             (with-current-buffer buf
+               (read-only-mode -1)
+               (goto-char (point-min))
+               (search-forward "    Current: ")
+               (delete-region (line-beginning-position) (+ 1 (line-end-position)))
+               (insert "    Current: " (mpccp-get-current-song) "\n")
+               (search-forward "    Progress: ")
+               (delete-region (line-beginning-position) (+ 1 (line-end-position)))
+               (insert "    Progress: " (mpccp-get-current-song-progress) "\n")))
+            (t
+             (mpccp-cancel-update-timer))))))
+
+(defun mpccp-cancel-update-timer ()
+  (message "Cancelling mpccp update loop")
+  (cancel-function-timers 'mpccp-update-current-song))
+
+(defun mpccp-run-update-timer ()
+  "Starts the mpccp timer. If the timer is already running, it
+does not try to run it"
+  (unless (member 'mpccp-update-current-song
+                  (mapcar (lambda (timer)
+                            (timer--function timer))
+                          timer-list))
+    (message "Starting mpccp update loop")
+    (run-with-timer 1 1 'mpccp-update-current-song)))
+
 (defun mpccp (&optional ignore-auto noconfirm)
   (interactive)
   (let ((buf (get-buffer-create mpccp-main-buffer-name)))
@@ -521,10 +588,17 @@
               "\n"
               (propertize "Status\n" 'face 'mpccp-header-2)
               "    Current: " (mpccp-get-current-song) "\n"
+              "    Progress: " (mpccp-get-current-song-progress) "\n"
+              "    Volume: " (mpccp-status-print-volume) "%\n"
               "\n"
               (propertize "Player Commands\n" 'face 'mpccp-header-2)
-              "    [,.] Volume - " (mpccp-status-print-volume) "%\n"
-              "    [<>] Seek\n"
+              "    [SPACE] Play / Pause\n"
+              "    [p] Prev\n"
+              "    [n] Next\n"
+              "    [,] Volume -5%\n"
+              "    [.] Volume +5%\n"
+              "    [<] Seek -5 sec\n"
+              "    [>] Seek +5 sec\n"
               "    [p] Repeat  - " (mpccp-status-print-repeat) "\n"
               "    [h] Shuffle - " (mpccp-status-print-shuffle) "\n"
               "    [i] Single  - " (mpccp-status-print-single) " (plays one song then pauses) \n"
@@ -545,13 +619,18 @@
               "    [q] quit"
               )
       (mpccp-mode)
+      (mpccp-run-update-timer)
       (switch-to-buffer buf))))
 
 (defun mpccp-format-results-header ()
-  (format " ID | No | %s | %s | %s |\n"
-    (mpccp-trunc-pad-string mpccp-database-search-album-length "Album")
-    (mpccp-trunc-pad-string mpccp-database-search-artist-length "Artist")
-    (mpccp-trunc-pad-string mpccp-database-search-title-length "Title")))
+  (let* ((avail-line-len (- (window-text-width) mpccp-results-list-offset))
+         (artist-len (floor (* avail-line-len mpccp-database-search-artist-length)))
+         (album-len  (floor (* avail-line-len mpccp-database-search-album-length)))
+         (title-len  (floor (* avail-line-len mpccp-database-search-title-length))))
+    (format " ID  | No | %s | %s | %s |\n"
+            (mpccp-trunc-pad-string artist-len "Artist")
+            (mpccp-trunc-pad-string album-len "Album")
+            (mpccp-trunc-pad-string title-len "Title"))))
 
 (defun mpccp-database-search-buffer-name ()
   mpccp-database-search-buffer-name)

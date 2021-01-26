@@ -86,7 +86,16 @@ Highlights:
 #+END_SRC
 
 * Org
+Load latest org and contribs:
 #+BEGIN_SRC emacs-lisp
+(add-to-list 'load-path "~/.emacs.d/packages/org-9.4.4/lisp")
+(add-to-list 'load-path "~/.emacs.d/packages/org-9.4.4/contrib/lisp")
+(add-to-list 'load-path "~/.emacs.d/packages/persist-0.4") ; for org-drill
+(add-to-list 'load-path "~/.emacs.d/packages/org-drill-35c1ce349949cc213f3076799211210f49431850")
+#+END_SRC
+
+#+BEGIN_SRC emacs-lisp
+(org-reload)
 (setq org-html-postamble "<p class=\"created\">Created: %T</p>")
 (setq org-src-fontify-natively t)
 (setq org-src-tab-acts-natively t)
@@ -117,8 +126,10 @@ Highlights:
 ;; Enable habit tracking in org-mode
 (require 'org-habit)
 (add-to-list 'org-modules 'org-habit)
+(require 'org-drill)
 (add-to-list 'org-modules 'org-drill)
-;(require 'org-drill)
+(setq org-drill-add-random-noise-to-intervals-p t)
+
 ;; Don't show any habits in the agenda, there is a dedicated section for that.
 (setq org-habit-show-habits nil)
 (setq org-habit-show-habits-only-for-today nil)
@@ -132,10 +143,12 @@ Highlights:
   ((version< org-version "9.0.9")
    '((python . t)
      (sh . t)
+     (dot . t)
      (emacs-lisp . t)))
   (t
    '((python . t)
      (shell . t)
+     (dot . t)
      (emacs-lisp . t)))))
 
 ;; Set clock checks
@@ -1352,6 +1365,14 @@ creates a new one"
 (defun new-scratch-text-mode ()
   (interactive)
   (new-scratch-with-mode 'text-mode))
+
+(defun new-scratch-shell-script-mode ()
+  (interactive)
+  (new-scratch-with-mode 'shell-script-mode))
+
+(defun new-scratch-python-mode ()
+  (interactive)
+  (new-scratch-with-mode 'python-mode))
 #+END_SRC
 ** Disable evil quickscope
 #+BEGIN_SRC emacs-lisp
@@ -2501,6 +2522,13 @@ Evil Keybindings
 (add-to-list 'load-path "~/.emacs.d/packages/avy-0.5.0")
 (require 'avy)
 #+END_SRC
+** go-mode
+#+BEGIN_SRC emacs-lisp
+(add-to-list 'load-path "~/.emacs.d/packages/go-mode.el-fdf46fe0e110a8e0dddb5aac4ab20a93ee9c5d88")
+(autoload 'go-mode "go-mode" nil t)
+; (add-to-list 'auto-mode-alist '("\\.go\\'" . go-mode))
+(add-hook 'before-save-hook 'gofmt-before-save)
+#+END_SRC
 ** general
 #+BEGIN_SRC emacs-lisp
 (add-to-list
@@ -2860,6 +2888,8 @@ Simply send M-f instead
 (circ/p1 "f sj" 'new-scratch-json-mode                "json scratch buffer")
 (circ/p1 "f so" 'new-scratch-org-mode                 "org scratch buffer")
 (circ/p1 "f st" 'new-scratch-text-mode                "text scratch buffer")
+(circ/p1 "f ss" 'new-scratch-shell-script-mode        "shell script scratch buffer")
+(circ/p1 "f sp" 'new-scratch-python-mode              "python scratch buffer")
 (circ/p1 "f"    'nil                                  "files")
 (circ/p1 "g"    'nil                                  "goto")
 (circ/p1 "g 1"  'avy-goto-char                        "goto char 1")
