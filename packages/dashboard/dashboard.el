@@ -72,7 +72,7 @@
     (kbd "RET") 'dashboard-open-link
 
     (kbd "a") 'circ/alias-org-agenda-agenda
-    (kbd "t") 'circ/alias-org-agenda-tasks
+    (kbd "t") 'circ/org-agenda-open-tasks
     (kbd "i") 'circ/open-inbox
     (kbd "l") 'circ/open-checklists
     (kbd "r") 'circ/elfeed-load-and-open
