@@ -302,6 +302,105 @@ hardcoded 200ms timeout in case no notification service is alive"
 (add-hook 'after-revert-hook 'circ/maybe-refresh-appts)
 #+END_SRC
 
+** Tag cloud for org mode
+#+BEGIN_SRC emacs-lisp
+(defvar-local circ/org-agenda-filter-list nil)
+
+(defun circ/agenda-count-tags ()
+  (interactive)
+  (save-excursion
+    (goto-char (point-min))
+    (let ((count-alist '())
+          (last-pos 0))
+      (while (not (= last-pos (progn
+                                (ignore-errors (org-agenda-next-item 1))
+                                (move-beginning-of-line nil))))
+        (setq last-pos (point))
+        (dolist (tag (org-get-at-bol 'tags))
+          (let* ((alist-val (assoc tag count-alist))
+                 (count (cond ((not alist-val) 0)
+                              (t (cdr alist-val)))))
+            (setq count-alist (circ/alist-set tag (1+ count) count-alist)))))
+      count-alist)))
+
+(defun circ/agenda-format-tag-cloud (tag-alist)
+  (interactive)
+  (let ((string "  ")
+        (text-width (window-text-width))
+        (line-length 0))
+    (dolist (tag (sort tag-alist (lambda (a b) (> (cdr a) (cdr b)))))
+      (let ((tag-name (propertize (car tag) 'face 'org-tag))
+            (tag-count (cdr tag)))
+        (unless (member tag-name '("proj"))
+          (let ((tag-string (format "%s (%s)  " tag-name tag-count)))
+            (cond ((> (+ line-length (length tag-string)) text-width)
+                   (setq string (concat string "\n  " tag-string))
+                   (setq line-length (+ (length tag-string) 2)))
+                  (t
+                   (setq string (concat string tag-string))
+                   (setq line-length (+ line-length (length tag-string)))))))))
+    string))
+
+(defun circ/alist-set (key val alist &optional symbol)
+  "Set property KEY to VAL in ALIST. Return new alist.
+This creates the association if it is missing, and otherwise sets
+the cdr of the first matching association in the list. It does
+not create duplicate associations. By default, key comparison is
+done with `equal'. However, if SYMBOL is non-nil, then `eq' is
+used instead.
+
+This method may mutate the original alist, but you still need to
+use the return value of this method instead of the original
+alist, to ensure correct results."
+  (if-let ((pair (if symbol (assq key alist) (assoc key alist))))
+      (setcdr pair val)
+    (push (cons key val) alist))
+  alist)
+
+; -------------
+
+(defun circ/org-agenda-insert-tag-cloud ()
+  (interactive)
+  (when (string= (buffer-name) "*Org Agenda(T)*")
+    (read-only-mode 0)
+    ;; Remove tags if exists
+    (goto-char (point-min))
+    (when (ignore-errors (search-forward-regexp "^Tag Cloud"))
+      (search-forward-regexp "^\*\**\n")
+      (move-beginning-of-line 2)
+      (delete-region (point-min) (point)))
+
+    (goto-char (point-min))
+    (insert (propertize "Tag Cloud\n" 'face 'org-agenda-structure)
+            (circ/agenda-format-tag-cloud (circ/agenda-count-tags)) "\n\n"
+            (make-string (window-width) ?*) "\n")
+    (read-only-mode 1)))
+
+;; Could improve performance by caching the alist from `circ/agenda-count-tags'
+;; but there is some problem with setting it. It doesn't set correcly. Don't
+;; know why.
+(defun circ/org-agenda-filter-tag ()
+  (interactive)
+  (let* ((potential-tags (set-difference
+                          (mapcar 'car (circ/agenda-count-tags))
+                          circ/org-agenda-filter-list))
+         (new-tag (completing-read "Tag: " potential-tags)))
+    (setq circ/org-agenda-filter-list
+          (cons new-tag circ/org-agenda-filter-list))
+    (org-agenda-filter-apply
+     (mapcar (lambda (tag) (concat "+" tag)) circ/org-agenda-filter-list)
+     'tag)
+    (run-hooks 'org-agenda-filter-hook)))
+
+(defun circ/org-agenda-show-all-tags ()
+  (interactive)
+  (setq circ/org-agenda-filter-list nil)
+  (org-agenda-filter-show-all-tag)
+  (run-hooks 'org-agenda-filter-hook))
+
+(add-hook 'org-agenda-finalize-hook 'circ/org-agenda-insert-tag-cloud)
+(add-hook 'org-agenda-filter-hook 'circ/org-agenda-insert-tag-cloud)
+#+END_SRC
 * Mode Line
 #+BEGIN_SRC emacs-lisp
 (column-number-mode 1) ; show column number
@@ -2068,6 +2167,7 @@ Open man pages in current window
       '("file:~/.emacs.d/configuration.org"
         "file:~/.emacs.d/settings.org"
         "file:~/.emacs.d/personalsettings.org"
+        "file:~/pims/cortex/reference/books/read_books_list.org"
         "url:http://duckduckgo.com"))
 (setq initial-buffer-choice 'dashboard)
 (add-hook 'dashboard-mode-hook 'circ/disable-evil-quickscope-mode)
@@ -3090,6 +3190,9 @@ Simply send M-f instead
 )
 (evil-define-key '(normal visual) copy-buffer-mode-map
   "q" 'copy-buffer-copy-quit)
+(evil-define-key 'motion org-agenda-mode-map
+  "s" 'circ/org-agenda-filter-tag
+  "S" 'circ/org-agenda-show-all-tags)
 #+END_SRC
 
 *** Help
