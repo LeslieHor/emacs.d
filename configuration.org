@@ -361,20 +361,25 @@ alist, to ensure correct results."
 
 (defun circ/org-agenda-insert-tag-cloud ()
   (interactive)
-  (save-excursion
-    (read-only-mode 0)
-    ;; Remove tags if exists
-    (goto-char (point-min))
-    (when (ignore-errors (search-forward-regexp "^Tag Cloud"))
-      (search-forward-regexp "^\*\**\n")
-      (move-beginning-of-line 2)
-      (delete-region (point-min) (point)))
+  ;; Check the buffer name and the existance of a "===" line.
+  (when (and (string= (buffer-name) "*Org Agenda(T)*")
+             (save-excursion
+               (goto-char (point-min))
+               (search-forward-regexp "^==*" nil t)))
+    (save-excursion
+      (read-only-mode 0)
+      ;; Remove tags if exists
+      (goto-char (point-min))
+      (when (ignore-errors (search-forward-regexp "^Tag Cloud"))
+        (search-forward-regexp "^\*\**\n")
+        (move-beginning-of-line 2)
+        (delete-region (point-min) (point)))
 
-    (goto-char (point-min))
-    (insert (propertize "Tag Cloud\n" 'face 'org-agenda-structure)
-            (circ/agenda-format-tag-cloud (circ/agenda-count-tags)) "\n\n"
-            (make-string (window-width) ?*) "\n")
-    (read-only-mode 1)))
+      (goto-char (point-min))
+      (insert (propertize "Tag Cloud\n" 'face 'org-agenda-structure)
+              (circ/agenda-format-tag-cloud (circ/agenda-count-tags)) "\n\n"
+              (make-string (window-width) ?*) "\n")
+      (read-only-mode 1))))
 
 ;; Could improve performance by caching the alist from `circ/agenda-count-tags'
 ;; but there is some problem with setting it. It doesn't set correcly. Don't
@@ -398,11 +403,7 @@ alist, to ensure correct results."
   (org-agenda-filter-show-all-tag)
   (run-hooks 'org-agenda-filter-hook))
 
-(defun circ/org-agenda-open-tasks ()
-  (interactive)
-  (org-agenda nil "T")
-  (circ/org-agenda-insert-tag-cloud))
-
+(add-hook 'org-agenda-finalize-hook 'circ/org-agenda-insert-tag-cloud)
 (add-hook 'org-agenda-filter-hook 'circ/org-agenda-insert-tag-cloud)
 #+END_SRC
 * Mode Line
@@ -1366,7 +1367,7 @@ has no effect."
   (interactive)
   (circ/open-inbox)
   (split-window-right)
-  (circ/org-agenda-open-tasks)
+  (circ/alias-org-agenda-tasks)
   (split-window-right)
   (circ/alias-org-agenda-agenda)
   (balance-windows)
@@ -2675,6 +2676,7 @@ To keep the code nice and clean.
 (defun circ/alias-org-force-publish () (interactive) (org-publish-current-project t))
 
 (defun circ/alias-org-agenda-agenda () (interactive) (org-agenda nil "A"))
+(defun circ/alias-org-agenda-tasks  () (interactive) (org-agenda nil "T"))
 
 (defun circ/alias-sh-cmd-whole-buffer () (interactive) (circ/sh-cmd nil t nil))
 (defun circ/alias-sh-cmd-split-lines () (interactive) (circ/sh-cmd nil nil t))
@@ -3119,7 +3121,7 @@ Simply send M-f instead
 (circ/p4 "/"    'counsel-org-goto                     "org goto"                            'org-mode-map)
 (circ/p4 "a"    'nil                                  "org-agenda")
 (circ/p4 "a a"  'circ/alias-org-agenda-agenda         "agenda")
-(circ/p4 "a t"  'circ/org-agenda-open-tasks           "tasks")
+(circ/p4 "a t"  'circ/alias-org-agenda-tasks          "tasks")
 (circ/p4 "a s"  'circ/setup-agenda-view               "setup agenda view")
 (circ/p4 "b c"  'circ/open-calendar                   "calendar")
 (circ/p4 "b l"  'circ/open-checklists                 "checklists")
@@ -3224,7 +3226,7 @@ running, it will open a new instance and use the =--agenda= flag to launch
 (defun circ/startup/agenda (&optional switch) (circ/alias-org-agenda-agenda))
 (add-to-list 'command-switch-alist '("--agenda" . circ/startup/agenda))
 
-(defun circ/startup/tasks (&optional switch) (circ/org-agenda-open-tasks))
+(defun circ/startup/tasks (&optional switch) (circ/alias-org-agenda-tasks))
 (add-to-list 'command-switch-alist '("--tasks" . circ/startup/tasks))
 
 (defun circ/startup/pims (&optional switch) (circ/set-up-agenda-view))
