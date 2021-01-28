@@ -103,6 +103,11 @@ Settings that only work on my home computer. They will probably break other setu
 (setq org-agenda-tags-column -80)
 (setq org-habit-graph-column 50)
 
+(setq org-show-context-detail '((agenda . canonical)
+                                (bookmark-jump . lineage)
+                                (isearch . lineage)
+                                (default . ancestors)))
+
 ;; Functions to open org files
 (defun circ/open-inbox      () (interactive) (find-file "~/pims/inbox.org"))
 (defun circ/open-todo       () (interactive) (find-file "~/pims/todo.org"))
