@@ -376,7 +376,10 @@ alist, to ensure correct results."
         (delete-region (point-min) (point)))
 
       (goto-char (point-min))
-      (insert (propertize "Tag Cloud\n" 'face 'org-agenda-structure)
+      (insert (propertize (format
+                           "Tag Cloud (%s)\n"
+                           (string-join circ/org-agenda-filter-list " "))
+                          'face 'org-agenda-structure)
               (circ/agenda-format-tag-cloud (circ/agenda-count-tags)) "\n\n"
               (make-string (window-width) ?*) "\n")
       (read-only-mode 1))))
@@ -386,22 +389,31 @@ alist, to ensure correct results."
 ;; know why.
 (defun circ/org-agenda-filter-tag ()
   (interactive)
-  (let* ((potential-tags (set-difference
-                          (mapcar 'car (circ/agenda-count-tags))
-                          circ/org-agenda-filter-list))
-         (new-tag (completing-read "Tag: " potential-tags)))
+  (let* ((tag-list (mapcar 'car (circ/agenda-count-tags)))
+         (tag-candidates (append (mapcar (lambda (tag) (concat "+" tag)) tag-list)
+                                 (mapcar (lambda (tag) (concat "-" tag)) tag-list)))
+         (new-tag (completing-read "Tag: " tag-candidates)))
     (setq circ/org-agenda-filter-list
           (cons new-tag circ/org-agenda-filter-list))
-    (org-agenda-filter-apply
-     (mapcar (lambda (tag) (concat "+" tag)) circ/org-agenda-filter-list)
-     'tag)
-    (run-hooks 'org-agenda-filter-hook)))
+    (circ/org-agenda-apply-filter)))
+
+(defun circ/org-agenda-apply-filter ()
+  (interactive)
+  (org-agenda-filter-apply circ/org-agenda-filter-list 'tag)
+  (run-hooks 'org-agenda-filter-hook))
 
 (defun circ/org-agenda-show-all-tags ()
   (interactive)
   (setq circ/org-agenda-filter-list nil)
   (org-agenda-filter-show-all-tag)
   (run-hooks 'org-agenda-filter-hook))
+
+(defun circ/org-agenda-redo ()
+  (interactive)
+  (let ((filter-list circ/org-agenda-filter-list))
+    (org-agenda-redo)
+    (setq circ/org-agenda-filter-list filter-list)
+    (circ/org-agenda-apply-filter)))
 
 (add-hook 'org-agenda-finalize-hook 'circ/org-agenda-insert-tag-cloud)
 (add-hook 'org-agenda-filter-hook 'circ/org-agenda-insert-tag-cloud)
@@ -1365,8 +1377,6 @@ has no effect."
 #+BEGIN_SRC emacs-lisp
 (defun circ/setup-agenda-view()
   (interactive)
-  (circ/open-inbox)
-  (split-window-right)
   (circ/alias-org-agenda-tasks)
   (split-window-right)
   (circ/alias-org-agenda-agenda)
@@ -2278,7 +2288,7 @@ Open in eww readable
 (defun circ/elfeed-save-and-close ()
   (interactive)
   (elfeed-db-save)
-  (kill-this-buffer))
+  (circ/kill-this-buffer))
 (defun circ/elfeed-db-reload ()
   (interactive)
   (elfeed-db-load)
@@ -2329,6 +2339,32 @@ Saved searches
   (interactive)
   (setq elfeed-search-filter "+saved")
   (elfeed-search-update :force))
+#+END_SRC
+
+** Auto tagging of length of videos
+#+BEGIN_SRC emacs-lisp
+(defun circ/elfeed-tag-yt-length ()
+  (interactive)
+  (dolist (entry (elfeed-search-selected))
+    (let* ((link (elfeed-entry-link entry))
+           (title (elfeed-entry-title entry))
+           (len (split-string
+                 (circ/strip-last-newline
+                  (shell-command-to-string
+                   (concat "youtube-dl --get-duration "
+                           "\"" link "\"")))
+                 ":"))
+           (rlen (cond ((= (length len) 3)
+                        (* (/ (+ (+ (* (string-to-number (car len)) 60)
+                                    (string-to-number (cadr len))) 10) 10) 10))
+                       ((= (length len) 2)
+                        (* (/ (+ (string-to-number (car len)) 10) 10) 10))
+                       (t -1)))
+           (tag (concat (number-to-string rlen) "mins")))
+      (when (> rlen 0)
+        (elfeed-tag entry (intern tag))
+        (message "Tagged \"%s\" as \"%s\"" title tag))))
+  (elfeed-search-update--force))
 #+END_SRC
 
 Evil Keybindings
@@ -2997,7 +3033,8 @@ Simply send M-f instead
   "q" 'copy-buffer-copy-quit)
 (evil-define-key 'motion org-agenda-mode-map
   "s" 'circ/org-agenda-filter-tag
-  "S" 'circ/org-agenda-show-all-tags)
+  "S" 'circ/org-agenda-show-all-tags
+  "r" 'circ/org-agenda-redo)
 (general-define-key
  :keymaps 'ivy-minibuffer-map
  "<escape>"  'minibuffer-keyboard-quit)

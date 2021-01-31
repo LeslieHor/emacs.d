@@ -177,7 +177,7 @@
 (defun mpccp-get-current-song ()
   "Get current song."
   (with-temp-buffer
-    (mpccp-call-mpc t '("current" "--format" "%albumartist% - %title%"))
+    (mpccp-call-mpc t '("current" "--format" "%artist% - %title%"))
     (string-trim (buffer-string))))
 
 (defun mpccp-get-current-song-progress ()
