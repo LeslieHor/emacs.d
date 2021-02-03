@@ -398,13 +398,17 @@
   (with-temp-buffer
     (mpccp-call-mpc t '("listall" "--format" "%artist%"))
     (delete-dups (split-string (buffer-string) "\n"))))
+(defun mpccp-get-album-artists ()
+  (with-temp-buffer
+    (mpccp-call-mpc t '("listall" "--format" "%albumartist%"))
+    (delete-dups (split-string (buffer-string) "\n"))))
 (defun mpccp-database-search-clear-artist ()
   (interactive)
   (setq mpccp-database-search-artist ""))
 (defun mpccp-database-search-set-artist ()
   (interactive)
   (setq mpccp-database-search-artist
-        (completing-read "Artist: " (mpccp-get-artists))))
+        (completing-read "Artist: " (mpccp-get-album-artists))))
 (defun mpccp-database-search-set-artist-and-search ()
   (interactive)
   (mpccp-database-search-set-artist)
