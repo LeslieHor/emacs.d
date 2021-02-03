@@ -121,7 +121,7 @@
 (defvar mpccp-queue-buffer-name "*mpccp-queue*"
   "Name for the mpccp queue buffer")
 
-(defvar mpccp-results-list-offset 20) ;TODO Find this programmatically
+(defvar mpccp-results-list-offset 22) ;TODO Find this programmatically
 (defvar mpccp-database-search-albumartist-length 0.2)
 (defvar mpccp-database-search-artist-length      0.2)
 (defvar mpccp-database-search-album-length       0.2)
@@ -368,7 +368,7 @@
       (lambda (song-data)
         (let ((index (car song-data))
               (song (cdr song-data)))
-          (format "%3s) | %2s | %s | %s | %s |"
+          (format "%3s) | %3s | %s | %s | %s |"
                   index
                   (alist-get 'track song)
                   (mpccp-trunc-pad-string artist-len
@@ -627,7 +627,7 @@ does not try to run it"
          (artist-len (floor (* avail-line-len mpccp-database-search-artist-length)))
          (album-len  (floor (* avail-line-len mpccp-database-search-album-length)))
          (title-len  (floor (* avail-line-len mpccp-database-search-title-length))))
-    (format " ID  | No | %s | %s | %s |\n"
+    (format " ID  | No  | %s | %s | %s |\n"
             (mpccp-trunc-pad-string artist-len "Artist")
             (mpccp-trunc-pad-string album-len "Album")
             (mpccp-trunc-pad-string title-len "Title"))))

@@ -86,16 +86,17 @@ Highlights:
 #+END_SRC
 
 * Org
-Load latest org and contribs:
+** Load latest org and contribs:
 #+BEGIN_SRC emacs-lisp
 (add-to-list 'load-path "~/.emacs.d/packages/org-9.4.4/lisp")
 (add-to-list 'load-path "~/.emacs.d/packages/org-9.4.4/contrib/lisp")
 (add-to-list 'load-path "~/.emacs.d/packages/persist-0.4") ; for org-drill
 (add-to-list 'load-path "~/.emacs.d/packages/org-drill-35c1ce349949cc213f3076799211210f49431850")
+(org-reload)
 #+END_SRC
 
+** Org settings
 #+BEGIN_SRC emacs-lisp
-(org-reload)
 (setq org-html-postamble "<p class=\"created\">Created: %T</p>")
 (setq org-src-fontify-natively t)
 (setq org-src-tab-acts-natively t)
@@ -417,6 +418,20 @@ alist, to ensure correct results."
 
 (add-hook 'org-agenda-finalize-hook 'circ/org-agenda-insert-tag-cloud)
 (add-hook 'org-agenda-filter-hook 'circ/org-agenda-insert-tag-cloud)
+#+END_SRC
+** Org capture
+*** Set a custom header
+Override the current org-capture header by assigning a new header after the mode
+is loaded.
+
+#+BEGIN_SRC emacs-lisp
+(defun circ/set-org-capture-mode-header ()
+  (setq-local header-line-format
+   (substitute-command-keys
+    "\\<org-capture-mode-map>Capture buffer.  Finish \
+[q] / [\\[org-capture-finalize]], refile [\\[org-capture-refile]], \
+abort [Q] / [\\[org-capture-kill]].")))
+(add-hook 'org-capture-mode-hook 'circ/set-org-capture-mode-header)
 #+END_SRC
 * Mode Line
 #+BEGIN_SRC emacs-lisp
@@ -2012,12 +2027,20 @@ Set the colours to be as distinct as possible.
 Telephone line customization.
 
 #+BEGIN_SRC emacs-lisp
+(setq-default header-line-format "| %b | %I | %f")
+(telephone-line-defsegment* circ/telephone-line-indicator-segment
+  `(""
+    mode-line-mule-info
+    mode-line-modified
+    mode-line-client
+    mode-line-remote
+    mode-line-frame-identification))
 (setq telephone-line-lhs
       '((evil   . (telephone-line-evil-tag-segment))
         (accent . (telephone-line-vc-segment
                    telephone-line-erc-modified-channels-segment
                    telephone-line-process-segment))
-        (nil    . (telephone-line-buffer-segment))))
+        (nil    . (circ/telephone-line-indicator-segment))))
 (setq telephone-line-rhs
       '((nil    . (telephone-line-misc-info-segment))
         (accent . (telephone-line-major-mode-segment))
@@ -3022,6 +3045,7 @@ Simply send M-f instead
 #+BEGIN_SRC emacs-lisp
 (evil-define-key 'motion org-agenda-mode-map "ci" 'org-agenda-show-clocking-issues)
 (evil-define-key 'motion org-agenda-mode-map "cl" 'org-agenda-log-mode)
+
 ;; F1 is reserved for some special cases when "C-h" isn't available
 (general-define-key
   "<f2>" 'circ/alias-org-agenda-agenda
@@ -3029,15 +3053,27 @@ Simply send M-f instead
   "<f4>" 'circ/open-inbox
   "<f5>" 'circ/open-checklists
 )
+
 (evil-define-key '(normal visual) copy-buffer-mode-map
   "q" 'copy-buffer-copy-quit)
+
 (evil-define-key 'motion org-agenda-mode-map
   "s" 'circ/org-agenda-filter-tag
   "S" 'circ/org-agenda-show-all-tags
   "r" 'circ/org-agenda-redo)
+
+(evil-define-key 'normal org-capture-mode-map
+  "q" 'org-capture-finalize
+  "Q" 'org-capture-kill)
+;; Evil mode only sets keymaps on state transition. It does not know that
+;; org-capture-mode-map has evil bindings when you start an org-capture. Force
+;; it to load the keymap with this function on hook.
+(add-hook 'org-capture-mode-hook 'evil-normalize-keymaps)
+
 (general-define-key
  :keymaps 'ivy-minibuffer-map
  "<escape>"  'minibuffer-keyboard-quit)
+
 (general-define-key
  :keymaps 'swiper-map
  "<escape>"  'minibuffer-keyboard-quit)
