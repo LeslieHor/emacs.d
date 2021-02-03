@@ -1792,6 +1792,15 @@ buffer, display it in another window."
     (setq org-agenda-hide-tags-regexp ".*"))
   (org-agenda-redo))
 #+END_SRC
+** insert non-ascii characters
+#+BEGIN_SRC emacs-lisp
+(defun circ/insert-a-macron () (interactive) (insert "ā"))
+(defun circ/insert-e-macron () (interactive) (insert "ē"))
+(defun circ/insert-i-macron () (interactive) (insert "ī"))
+(defun circ/insert-o-macron () (interactive) (insert "ō"))
+(defun circ/insert-u-macron () (interactive) (insert "ū"))
+(defun circ/insert-y-macron () (interactive) (insert "ӯ"))
+#+END_SRC
 * Local variables
 ** Safe Local Eval Aliases
 #+BEGIN_SRC emacs-lisp
@@ -2492,8 +2501,124 @@ Evil Keybindings
 #+BEGIN_SRC emacs-lisp
 (add-to-list 'load-path "~/.emacs.d/packages/go-mode.el-fdf46fe0e110a8e0dddb5aac4ab20a93ee9c5d88")
 (autoload 'go-mode "go-mode" nil t)
-; (add-to-list 'auto-mode-alist '("\\.go\\'" . go-mode))
+(add-to-list 'auto-mode-alist '("\\.go\\'" . go-mode))
 (add-hook 'before-save-hook 'gofmt-before-save)
+#+END_SRC
+** doc-view
+#+BEGIN_SRC emacs-lisp
+(evil-set-initial-state 'doc-view-mode 'motion)
+
+(evil-define-key 'motion doc-view-mode-map
+    "q" 'image-kill-buffer
+    "J" 'doc-view-next-page
+    "K" 'doc-view-previous-page
+    "j" 'doc-view-next-line-or-next-page
+    "k" 'doc-view-previous-line-or-previous-page
+    "SPC" 'doc-view-scroll-up-or-next-page
+    "S-SPC" 'doc-view-scroll-down-or-previous-page
+    "gg" 'doc-view-first-page
+    "G" 'doc-view-last-page
+    "C-J" 'doc-view-goto-page
+    "RET" 'image-next-line
+
+    ;; zoom
+    "+" 'doc-view-enlarge
+    "=" 'doc-view-enlarge
+    "0" 'doc-view-scale-reset
+    "-" 'doc-view-shrink
+    "_" 'doc-view-shrink
+
+    "W" 'doc-view-fit-width-to-window ; Like evil-image.
+    "H" 'doc-view-fit-height-to-window ; Like evil-image.
+    "P" 'doc-view-fit-page-to-window
+    "X" 'doc-view-kill-proc
+
+    "s s" 'doc-view-set-slice
+    "s m" 'doc-view-set-slice-using-mouse
+    "s b" 'doc-view-set-slice-from-bounding-box
+    "s r" 'doc-view-reset-slice
+
+    "/" 'doc-view-search
+    "?" 'doc-view-search-backward
+    "C-t" 'doc-view-show-tooltip
+    "C-c C-c" 'doc-view-toggle-display
+    "C-c C-t" 'doc-view-open-text
+
+    ;; refresh
+    "r" 'doc-view-revert-buffer)
+#+END_SRC
+** image-mode
+#+BEGIN_SRC emacs-lisp
+(evil-set-initial-state 'image-mode 'motion)
+(evil-define-key 'motion image-mode-map
+  "q" 'image-kill-buffer
+
+  "h" 'image-backward-hscroll
+  "l" 'image-forward-hscroll
+  "j" 'image-next-line
+  "k" 'image-previous-line
+
+  "H" 'circ/image-backward-hscroll-fast
+  "L" 'circ/image-forward-hscroll-fast
+  "J" 'circ/image-next-line-fast
+  "K" 'circ/image-previous-line-fast
+
+  "gg" 'image-bob
+  "G" 'image-eob
+  "RET" 'image-toggle-animation
+  "a0" 'image-reset-speed
+  "ar" 'image-reverse-speed
+  "F" 'image-goto-frame
+  "," 'image-previous-frame ; mplayer/mpv style
+  "." 'image-next-frame ; mplayer/mpv style
+  "{" 'image-decrease-speed ; mplayer/mpv style
+  "}" 'image-increase-speed ; mplayer/mpv style
+
+  "z h" 'image-transform-fit-to-height
+  "z w" 'image-transform-fit-to-width
+
+  "+" 'circ/image-mode-zoom-in
+  "=" 'circ/image-mode-zoom-in
+  "0" 'circ/image-mode-zoom-reset
+  "-" 'circ/image-mode-zoom-out
+  "_" 'circ/image-mode-zoom-out
+
+  "[[" 'image-previous-file
+  "]]" 'image-next-file
+  "gk" 'image-previous-file
+  "gj" 'image-next-file
+
+  "C-c C-c" 'image-toggle-display)
+#+END_SRC
+
+*** Faster scroll functions
+#+BEGIN_SRC emacs-lisp
+(defvar circ/image-scroll-fast-rate 10)
+(defun circ/image-backward-hscroll-fast ()
+  (interactive)
+  (image-backward-hscroll circ/image-scroll-fast-rate))
+(defun circ/image-forward-hscroll-fast ()
+  (interactive)
+  (image-forward-hscroll circ/image-scroll-fast-rate))
+(defun circ/image-next-line-fast ()
+  (interactive)
+  (image-next-line circ/image-scroll-fast-rate))
+(defun circ/image-previous-line-fast ()
+  (interactive)
+  (image-previous-line circ/image-scroll-fast-rate))
+#+END_SRC
+
+*** Zoom functions
+#+BEGIN_SRC emacs-lisp
+(defun circ/image-mode-zoom-reset ()
+  (interactive)
+  (image-transform-set-scale 1))
+(defun circ/image-mode-zoom-in ()
+  (interactive)
+  (image-transform-set-scale (* image-transform-scale 1.1)))
+(defun circ/image-mode-zoom-out ()
+  (interactive)
+  (image-transform-set-scale (* image-transform-scale 0.9)))
 #+END_SRC
 ** general
 #+BEGIN_SRC emacs-lisp
@@ -2855,6 +2980,10 @@ Simply send M-f instead
 (circ/p1 "f st" 'new-scratch-text-mode                "text scratch buffer")
 (circ/p1 "f ss" 'new-scratch-shell-script-mode        "shell script scratch buffer")
 (circ/p1 "f sp" 'new-scratch-python-mode              "python scratch buffer")
+(circ/p1 "f t"  'nil                                  "tramp")
+(circ/p1 "f tB" 'tramp-cleanup-all-buffers            "tramp clean all buffers")
+(circ/p1 "f tc" 'tramp-cleanup-this-connection        "tramp clean this connection")
+(circ/p1 "f tC" 'tramp-cleanup-all-connections        "tramp clean all connection")
 (circ/p1 "f"    'nil                                  "files")
 (circ/p1 "g"    'nil                                  "goto")
 (circ/p1 "g 1"  'avy-goto-char                        "goto char 1")
@@ -2867,6 +2996,11 @@ Simply send M-f instead
 (circ/p1 "j"    'windmove-down                        "win down")
 (circ/p1 "k"    'windmove-up                          "win up")
 (circ/p1 "l"    'windmove-right                       "wind right")
+(circ/p1 "m"    'nil                                  "bookmarks")
+(circ/p1 "m a"  'bookmark-set                         "set bookmark")
+(circ/p1 "m A"  'bookmark-set-no-overwrite            "set bookmark (no overwrite)")
+(circ/p1 "m b"  'bookmark-jump                        "open bookmark")
+(circ/p1 "m l"  'bookmark-bmenu-list                  "open bookmark")
 (circ/p1 "o c"  'copy-buffer                          "copy buffer")
 (circ/p1 "o d"  'dashboard                            "dashboard")
 (circ/p1 "o i"  'circ/open-in-intellij                "open in intellij")
@@ -2956,6 +3090,19 @@ Simply send M-f instead
 (circ/p2 "j"    'circ/alias-enlarge-win-vert          "enlarge vert"                        'override)
 (circ/p2 "k"    'circ/alias-shrink-win-vert           "shrink vert"                         'override)
 (circ/p2 "l"    'circ/alias-enlarge-win-horz          "enlarge horz"                        'override)
+(circ/p2 "i"    'nil                                  "insert")
+(circ/p2 "i a"  'nil                                  "a chars")
+(circ/p2 "i am" 'circ/insert-a-macron                 "ā")
+(circ/p2 "i e"  'nil                                  "e chars")
+(circ/p2 "i em" 'circ/insert-e-macron                 "ē")
+(circ/p2 "i i"  'nil                                  "i chars")
+(circ/p2 "i im" 'circ/insert-i-macron                 "ī")
+(circ/p2 "i o"  'nil                                  "o chars")
+(circ/p2 "i om" 'circ/insert-o-macron                 "ō")
+(circ/p2 "i u"  'nil                                  "u chars")
+(circ/p2 "i um" 'circ/insert-u-macron                 "ū")
+(circ/p2 "i y"  'nil                                  "y chars")
+(circ/p2 "i ym" 'circ/insert-y-macron                 "ӯ")
 #+END_SRC
 
 ** P3
