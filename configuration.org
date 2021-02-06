@@ -1769,7 +1769,7 @@ buffer, display it in another window."
 #+BEGIN_SRC emacs-lisp
 (defun circ/org-set-tags ()
   (interactive)
-  (let* ((curr-tags (org-get-tags))
+  (let* ((curr-tags (org-get-tags nil t))
          (new-tags (set-difference
                     (mapcar 'car (org-global-tags-completion-table))
                     curr-tags
@@ -1922,11 +1922,6 @@ Override for :wq"
   (evil-write nil nil nil file bang)
   (kill-this-buffer))
 (evil-ex-define-cmd "wq" 'evil-save-and-kill-buffer)
-#+END_SRC
-
-Set initial states
-#+BEGIN_SRC emacs-lisp
-(evil-set-initial-state 'vc-annotate-mode 'motion)
 #+END_SRC
 
 ** evil-leader
@@ -2892,6 +2887,47 @@ Completing read tag editing
 )
 (add-hook 'image-dired-display-image-mode-hook 'evil-normalize-keymaps)
 #+end_src
+** vc-annotate-mode
+*** Keybindings
+#+BEGIN_SRC emacs-lisp
+(evil-set-initial-state 'vc-annotate-mode 'motion)
+(evil-define-key 'motion vc-annotate-mode-map
+  "q" 'circ/kill-this-buffer
+
+  "a" 'vc-annotate-revision-previous-to-line
+  "d" 'vc-annotate-show-diff-revision-at-line
+  "=" 'vc-annotate-show-diff-revision-at-line
+  "D" 'vc-annotate-show-changeset-diff-revision-at-linee
+  "F" 'vc-annotate-find-revision-at-line
+  "J" 'vc-annotate-revision-at-line
+  "L" 'vc-annotate-show-log-revision-at-line
+  "W" 'vc-annotate-working-revision
+  "A" 'vc-annotate-toggle-annotation-visibility
+  (kbd "RET") 'vc-annotate-goto-line
+  "o" 'vc-annotate-goto-line
+
+  "]" 'vc-annotate-next-revision
+  "[" 'vc-annotate-prev-revision
+)
+(add-hook 'vc-annotate-mode-hook 'circ/disable-evil-quickscope-mode)
+#+END_SRC
+
+** Diff
+#+begin_src emacs-lisp
+(evil-set-initial-state 'diff-mode 'motion)
+(evil-define-key 'motion 'diff-mode-map
+  "q" 'circ/kill-this-buffer
+)
+#+end_src
+
+** git log view mode
+#+begin_src emacs-lisp
+(evil-set-initial-state 'vc-git-log-view-mode 'motion)
+(evil-define-key 'motion vc-git-log-view-mode-map
+  "q" 'circ/kill-this-buffer
+)
+#+end_src
+
 ** general
 #+BEGIN_SRC emacs-lisp
 (add-to-list
@@ -3344,6 +3380,11 @@ Simply send M-f instead
 (circ/p1 "v d"  'nil                                  "diff")
 (circ/p1 "v dd" 'vc-version-ediff                     "version ediff")
 (circ/p1 "v dm" 'circ/vc-diff-head-current            "compare current to head")
+(circ/p1 "v n"  'diff-hl-next-hunk                    "next change")
+(circ/p1 "v p"  'diff-hl-previous-hunk                "prev change")
+(circ/p1 "v m"  'nil                                  "merge conflict"                      'smerge-mode-map)
+(circ/p1 "v mn" 'smerge-next                          "next merge conflict"                 'smerge-mode-map)
+(circ/p1 "v mp" 'smerge-prev                          "prev merge conflict"                 'smerge-mode-map)
 (circ/p1 "v"    'nil                                  "version control")
 (circ/p1 "w e"  'balance-windows                      "balance windows")
 (circ/p1 "w h"  'split-window-right                   "split horizontal")
