@@ -29,6 +29,11 @@
 
 ;;; Code:
 
+(defcustom mpccp-mode-hook nil
+  "mpccp hook"
+  :group 'mpccp
+  :type 'hook)
+
 (defvar mpccp-mode-map
   (let ((map (make-sparse-keymap)))
     map)
@@ -56,57 +61,54 @@
 (defun evil-mpccp-set-keys ()
   (evil-set-initial-state 'mpccp-mode 'motion)
   (evil-define-key 'motion mpccp-mode-map
-    (kbd "r") 'mpccp
-    (kbd "/") 'mpccp-database-search
-    (kbd "u") 'mpccp-queue
-    (kbd "U") 'mpccp-update-library
-    (kbd "q") 'circ/kill-this-buffer
-    (kbd "l") 'mpccp-load-playlist
-    (kbd "s") 'mpccp-save-playlist
-    (kbd "e") 'mpccp-edit-playlist
-    (kbd "p") 'mpccp-toggle-repeat
-    (kbd "h") 'mpccp-toggle-shuffle
-    (kbd "i") 'mpccp-toggle-single
-    (kbd "c") 'mpccp-toggle-consume
-    (kbd ",") 'mpccp-lower-volume
-    (kbd ".") 'mpccp-raise-volume
-    (kbd "<") 'mpccp-seek-backward
-    (kbd ">") 'mpccp-seek-forward
+    "r" 'mpccp
+    "/" 'mpccp-database-search
+    "u" 'mpccp-queue
+    "U" 'mpccp-update-library
+    "q" 'circ/kill-this-buffer
+    "l" 'mpccp-load-playlist
+    "s" 'mpccp-save-playlist
+    "e" 'mpccp-edit-playlist
+    "t" 'mpccp-toggle-repeat
+    "h" 'mpccp-toggle-shuffle
+    "i" 'mpccp-toggle-single
+    "c" 'mpccp-toggle-consume
+    "," 'mpccp-lower-volume
+    "." 'mpccp-raise-volume
+    "<" 'mpccp-seek-backward
+    ">" 'mpccp-seek-forward
     (kbd "SPC") 'mpccp-play-pause
-    (kbd "n") 'mpccp-next
-    (kbd "p") 'mpccp-prev
-    )
+    "n" 'mpccp-next
+    "p" 'mpccp-prev)
 
   (evil-define-minor-mode-key 'motion 'mpccp-database-search-mode
-    (kbd "r") 'mpccp-database-search-reload
-    (kbd "q") 'circ/kill-this-buffer
-    (kbd "a") 'mpccp-database-search-set-artist-and-search
-    (kbd "A") 'mpccp-database-search-clear-artist-and-refresh
-    (kbd "l") 'mpccp-database-search-set-album-and-search
-    (kbd "L") 'mpccp-database-search-clear-album-and-refresh
-    (kbd "t") 'mpccp-database-search-set-track-and-search
-    (kbd "T") 'mpccp-database-search-clear-track-and-refresh
-    (kbd "p") 'mpccp-database-search-append
-    (kbd "P") 'mpccp-database-search-append-all
-    (kbd "i") 'mpccp-database-search-insert
-    (kbd "I") 'mpccp-database-search-insert-all
-    (kbd "e") 'mpccp-database-search-replace
-    (kbd "E") 'mpccp-database-search-replace-all
-    (kbd "c") 'mpccp-clear-queue
-    )
+    "r" 'mpccp-database-search-reload
+    "q" 'circ/kill-this-buffer
+    "a" 'mpccp-database-search-set-artist-and-search
+    "A" 'mpccp-database-search-clear-artist-and-refresh
+    "l" 'mpccp-database-search-set-album-and-search
+    "L" 'mpccp-database-search-clear-album-and-refresh
+    "t" 'mpccp-database-search-set-track-and-search
+    "T" 'mpccp-database-search-clear-track-and-refresh
+    "p" 'mpccp-database-search-append
+    "P" 'mpccp-database-search-append-all
+    "i" 'mpccp-database-search-insert
+    "I" 'mpccp-database-search-insert-all
+    "e" 'mpccp-database-search-replace
+    "E" 'mpccp-database-search-replace-all
+    "c" 'mpccp-clear-queue
+    "Ra" 'mpccp-database-search-random-artist
+    "Rl" 'mpccp-database-search-random-album)
 
   (evil-define-minor-mode-key 'motion 'mpccp-queue-mode
-    (kbd "r") 'mpccp-queue-reload
-    (kbd "q") 'circ/kill-this-buffer
-    (kbd "e") 'mpccp-queue-edit
-    (kbd "c") 'mpccp-clear-queue
-    (kbd "RET") 'mpccp-queue-play-line
-    )
+    "r" 'mpccp-queue-reload
+    "q" 'circ/kill-this-buffer
+    "e" 'mpccp-queue-edit
+    "c" 'mpccp-clear-queue
+    "RET" 'mpccp-queue-play-line)
 
   (evil-define-minor-mode-key 'normal 'mpccp-queue-edit-mode
-    (kbd "q") 'mpccp-queue-edit-save
-    )
-  )
+    "q" 'mpccp-queue-edit-save))
 (evil-mpccp-set-keys)
 
 (defgroup mpccp nil
@@ -193,6 +195,19 @@
            (mpc-status-list (split-string mpc-status-line "\t"))
            (mpc-song-progress (nth 2 mpc-status-list)))
       mpc-song-progress)))
+
+(defun mpccp-get-current-song-queue-position ()
+  "Get current song queue position"
+  (interactive)
+  (with-temp-buffer
+    (mpccp-call-mpc t '("current" "--format" "%position%"))
+    (string-to-number (string-trim (buffer-string)))))
+
+(defun mpccp-get-queue-length ()
+  (interactive)
+  (with-temp-buffer
+    (mpccp-call-mpc t '("playlist"))
+    (count-lines (point-min) (point-max))))
 
 (defun mpccp-off-on-to-bool (s)
   (cond ((string= s "on") t)
@@ -405,10 +420,11 @@
 (defun mpccp-database-search-clear-artist ()
   (interactive)
   (setq mpccp-database-search-artist ""))
-(defun mpccp-database-search-set-artist ()
+(defun mpccp-database-search-set-artist (&optional artist)
   (interactive)
-  (setq mpccp-database-search-artist
-        (completing-read "Artist: " (mpccp-get-album-artists))))
+  (let ((ar (cond (artist artist)
+                  (t (completing-read "Artist: " (mpccp-get-album-artists))))))
+    (setq mpccp-database-search-artist ar)))
 (defun mpccp-database-search-set-artist-and-search ()
   (interactive)
   (mpccp-database-search-set-artist)
@@ -428,10 +444,11 @@
 (defun mpccp-database-search-clear-album ()
   (interactive)
   (setq mpccp-database-search-album ""))
-(defun mpccp-database-search-set-album ()
+(defun mpccp-database-search-set-album (&optional album)
   (interactive)
-  (setq mpccp-database-search-album
-        (completing-read "Album: " (mpccp-get-albums))))
+  (let ((al (cond (album album)
+                  (t (completing-read "Album: " (mpccp-get-albums))))))
+    (setq mpccp-database-search-album al)))
 (defun mpccp-database-search-set-album-and-search ()
   (interactive)
   (mpccp-database-search-set-album)
@@ -439,6 +456,22 @@
 (defun mpccp-database-search-clear-album-and-refresh()
   (interactive)
   (mpccp-database-search-clear-album)
+  (mpccp-database-search-reload))
+
+(defun mpccp-database-search-random-artist ()
+  (interactive)
+  (mpccp-database-search-clear-artist)
+  (mpccp-database-search-clear-album)
+  (mpccp-database-search-clear-track)
+  (mpccp-database-search-set-artist (seq-random-elt (mpccp-get-album-artists)))
+  (mpccp-database-search-reload))
+
+(defun mpccp-database-search-random-album ()
+  (interactive)
+  (mpccp-database-search-clear-artist)
+  (mpccp-database-search-clear-album)
+  (mpccp-database-search-clear-track)
+  (mpccp-database-search-set-album (seq-random-elt (mpccp-get-albums)))
   (mpccp-database-search-reload))
 
 (defun mpccp-get-tracks ()
@@ -560,7 +593,9 @@
                (insert "    Current: " (mpccp-get-current-song) "\n")
                (search-forward "    Progress: ")
                (delete-region (line-beginning-position) (+ 1 (line-end-position)))
-               (insert "    Progress: " (mpccp-get-current-song-progress) "\n")))
+               (insert "    Progress: " (number-to-string (mpccp-get-current-song-queue-position))
+                       "/" (number-to-string (mpccp-get-queue-length)) " - "
+                       (mpccp-get-current-song-progress) "\n")))
             (t
              (mpccp-cancel-update-timer))))))
 
@@ -592,7 +627,9 @@ does not try to run it"
               "\n"
               (propertize "Status\n" 'face 'mpccp-header-2)
               "    Current: " (mpccp-get-current-song) "\n"
-              "    Progress: " (mpccp-get-current-song-progress) "\n"
+              "    Progress: " (number-to-string (mpccp-get-current-song-queue-position))
+              "/" (number-to-string (mpccp-get-queue-length)) " - "
+              (mpccp-get-current-song-progress) "\n"
               "    Volume: " (mpccp-status-print-volume) "%\n"
               "\n"
               (propertize "Player Commands\n" 'face 'mpccp-header-2)
@@ -603,7 +640,7 @@ does not try to run it"
               "    [.] Volume +5%\n"
               "    [<] Seek -5 sec\n"
               "    [>] Seek +5 sec\n"
-              "    [p] Repeat  - " (mpccp-status-print-repeat) "\n"
+              "    [t] Repeat  - " (mpccp-status-print-repeat) "\n"
               "    [h] Shuffle - " (mpccp-status-print-shuffle) "\n"
               "    [i] Single  - " (mpccp-status-print-single) " (plays one song then pauses) \n"
               "    [c] Consume - " (mpccp-status-print-consume) "\n"
@@ -624,7 +661,8 @@ does not try to run it"
               )
       (mpccp-mode)
       (mpccp-run-update-timer)
-      (switch-to-buffer buf))))
+      (switch-to-buffer buf)
+      (run-hooks 'mpccp-mode-hook))))
 
 (defun mpccp-format-results-header ()
   (let* ((avail-line-len (- (window-text-width) mpccp-results-list-offset))
@@ -651,6 +689,8 @@ does not try to run it"
               "[A] clear [a] Artist: " mpccp-database-search-artist "\n"
               "[L] clear [l] Album:  " mpccp-database-search-album "\n"
               "[T] clear [t] Track:  " mpccp-database-search-track "\n"
+              "[Ra] Random artist\n"
+              "[Rl] Random album\n"
               "\n"
               "[c] Clear queue\n"
               "[p] Append" "     " "[i] Insert" "     " "[e] Replace" "\n"

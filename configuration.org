@@ -15,6 +15,7 @@
 (setq-default frame-title-format '("%b - Emacs")) ; set the emacs title.
                                         ; overrides the old "emacs@HOST" title
 (set-frame-font "Liberation Mono 9" t t)
+;(set-frame-font "Unifont 12" t t)
 (menu-bar-mode -1)
 
 ;; Disable these in termux mode
@@ -119,6 +120,7 @@ Highlights:
 (setq org-log-into-drawer "LOGBOOK")
 (setq org-agenda-hide-tags-regexp ".*")
 (setq org-catch-invisible-edits 'show-and-error)
+(setq org-adapt-indentation nil)
 
 ;(setq org-clock-persist 'clock)
 ;(org-clock-persistence-insinuate)
@@ -159,23 +161,25 @@ Highlights:
               :min-duration 0
               :max-gap 0
               :gap-ok-around ("4:00"))))
+
+(add-to-list 'org-file-apps '("\\.mkv\\'" . "mpv %s"))
 #+END_SRC
 
 ** Line wrap mode
- #+BEGIN_SRC emacs-lisp
- (defun org-mode-startup-functions ()
-   (toggle-word-wrap 1)
-   (toggle-truncate-lines -1))
+#+BEGIN_SRC emacs-lisp
+(defun org-mode-startup-functions ()
+  (toggle-word-wrap 1)
+  (toggle-truncate-lines -1))
 
- (add-hook 'org-mode-hook 'org-mode-startup-functions)
+(add-hook 'org-mode-hook 'org-mode-startup-functions)
 
- (defun org-agenda-mode-startup-functions ()
-   (hl-line-mode +1)
-   (evil-quickscope-mode 0))
+(defun org-agenda-mode-startup-functions ()
+  (hl-line-mode +1)
+  (evil-quickscope-mode 0))
 
- (add-hook 'org-agenda-mode-hook 'org-agenda-mode-startup-functions)
- (add-hook 'org-agenda-mode-hook 'circ/disable-evil-quickscope-mode)
- #+END_SRC
+(add-hook 'org-agenda-mode-hook 'org-agenda-mode-startup-functions)
+(add-hook 'org-agenda-mode-hook 'circ/disable-evil-quickscope-mode)
+#+END_SRC
 
 ** Fix the =\emsp= bug in clock tables.
  #+BEGIN_SRC emacs-lisp
@@ -433,6 +437,21 @@ is loaded.
 [q] / [\\[org-capture-finalize]], refile [\\[org-capture-refile]], \
 abort [Q] / [\\[org-capture-kill]].")))
 (add-hook 'org-capture-mode-hook 'circ/set-org-capture-mode-header)
+#+END_SRC
+** Org 9.4.4 options
+#+BEGIN_SRC emacs-lisp
+(unless (version< org-version "9.2.0")
+  (setq org-structure-template-alist '(("a" . "export ascii")
+                                       ("c" . "center")
+                                       ("C" . "comment")
+                                       ("e" . "example")
+                                       ("E" . "export")
+                                       ("h" . "export html")
+                                       ("l" . "export latex")
+                                       ("q" . "quote")
+                                       ("s" . "src")
+                                       ("v" . "verse")))
+  (require 'org-tempo))
 #+END_SRC
 * Mode Line
 #+BEGIN_SRC emacs-lisp
@@ -1704,12 +1723,28 @@ Major mode for copy buffer
 (defun circ/ansi-term ()
   (interactive)
   (let* ((project-name (projectile-project-name))
-         (title (cond ((string= project-name "-")
-                       default-directory)
-                      (t
-                       project-name)))
+         (path default-directory)
+         (title (cond ((string= project-name "-") path)
+                      (t project-name)))
          (term-name (format "%s term" title)))
-    (ansi-term "/bin/bash" term-name)))
+    (ansi-term "/bin/bash" term-name)
+    ;; If you are visiting a remote file, try to open a terminal in the remote box
+    (if (tramp-tramp-file-p path)
+        (let ((path (replace-regexp-in-string "^file:" "" path))
+              (cd-str "fn=%s; if test ! -d $fn; then fn=$(dirname $fn); fi; cd $fn;")
+              (bufname (concat "*" term-name "*" )))
+          (let ((tstruct (tramp-dissect-file-name path)))
+            (message "%s" (tramp-file-name-hop tstruct))
+            (cond ((not (tramp-file-name-hop tstruct))
+                   (cond ((equal (tramp-file-name-method tstruct) "ssh")
+                          (process-send-string
+                           bufname
+                           (format (concat "ssh -t %s '" cd-str " exec bash'\n")
+                                   (tramp-file-name-host tstruct)
+                                   (tramp-file-name-localname tstruct))))
+                         (t (error "not implemented for method %s"
+                                   (tramp-file-name-method tstruct)))))
+                  (t (error "Multiple hops not yet supported"))))))))
 #+END_SRC
 ** reverse goto org clock
 #+BEGIN_SRC emacs-lisp
@@ -1944,6 +1979,7 @@ Set initial states
 (require 'ivy)
 (require 'swiper)
 (require 'counsel)
+(setq ivy-use-selectable-prompt t)
 (setq ivy-use-virtual-buffers t)
 (setq ivy-count-format "(%d/%d) ")
 (ivy-mode 1)
@@ -2206,17 +2242,17 @@ Open man pages in current window
 (add-to-list 'load-path "~/.emacs.d/packages/mpccp")
 (require 'mpccp)
 (setq mpccp-playlist-directory "/mnt/slave/playlists")
+(add-hook 'mpccp-mode-hook 'circ/disable-evil-quickscope-mode)
 #+END_SRC
 ** Dashboard
 #+BEGIN_SRC emacs-lisp
 (add-to-list 'load-path "~/.emacs.d/packages/dashboard")
 (require 'dashboard)
-(setq dashboard-persistent-links
-      '("file:~/.emacs.d/configuration.org"
-        "file:~/.emacs.d/settings.org"
-        "file:~/.emacs.d/personalsettings.org"
-        "file:~/pims/cortex/reference/books/read_books_list.org"
-        "url:http://duckduckgo.com"))
+(add-to-list 'dashboard-persistent-links "file:~/.emacs.d/configuration.org")
+(add-to-list 'dashboard-persistent-links "file:~/.emacs.d/settings.org")
+(add-to-list 'dashboard-persistent-links "file:~/.emacs.d/personalsettings.org")
+(add-to-list 'dashboard-persistent-links "file:~/pims/cortex/reference/books/read_books_list.org")
+(add-to-list 'dashboard-persistent-links "url:http://duckduckgo.com")
 (setq initial-buffer-choice 'dashboard)
 (add-hook 'dashboard-mode-hook 'circ/disable-evil-quickscope-mode)
 #+END_SRC
@@ -2249,6 +2285,7 @@ multiple eww buffers to be open"
 (add-hook 'eww-after-render-hook #'circ/rename-eww-hook)
 #+END_SRC
 ** elfeed
+*** Setup
 #+BEGIN_SRC emacs-lisp
 (add-to-list 'load-path "~/.emacs.d/packages/elfeed-7b2b6fadaa498fef2ba212a50da4a8afa2a5d305")
 (require 'elfeed)
@@ -2256,48 +2293,74 @@ multiple eww buffers to be open"
 (add-hook 'elfeed-search-mode-hook 'circ/disable-evil-quickscope-mode)
 #+END_SRC
 
-#+BEGIN_SRC emacs-lisp
-;; Dependencies
-(add-to-list 'load-path "~/.emacs.d/packages/dash.el-2.16.0")
-(add-to-list 'load-path "~/.emacs.d/packages/s.el-43ba8b563bee3426cead0e6d4ddc09398e1a349d")
+*** elfeed-org
+To read rss feed links from an org file:
+ #+BEGIN_SRC emacs-lisp
+ ;; Dependencies
+ (add-to-list 'load-path "~/.emacs.d/packages/dash.el-2.16.0")
+ (add-to-list 'load-path "~/.emacs.d/packages/s.el-43ba8b563bee3426cead0e6d4ddc09398e1a349d")
 
-(add-to-list 'load-path "~/.emacs.d/packages/elfeed-org-77b6bbf222487809813de260447d31c4c59902c9")
-(require 'elfeed-org)
-(elfeed-org)
-(setq rmh-elfeed-org-files (list "~/rss_elfeed/rss_feeds.org"))
+ (add-to-list 'load-path "~/.emacs.d/packages/elfeed-org-77b6bbf222487809813de260447d31c4c59902c9")
+ (require 'elfeed-org)
+ (elfeed-org)
+ (setq rmh-elfeed-org-files (list "~/rss_elfeed/rss_feeds.org"))
+ #+END_SRC
+
+*** Load and Save DB on open and close
+#+BEGIN_SRC emacs-lisp
+(defun circ/elfeed-load-and-open ()
+  (interactive)
+  (elfeed-db-load)
+  (elfeed))
+(defun circ/elfeed-save-and-close ()
+  (interactive)
+  (elfeed-db-save)
+  (circ/kill-this-buffer))
+(defun circ/elfeed-db-reload ()
+  (interactive)
+  (elfeed-db-load)
+  (elfeed-search-update--force))
+#+END_SRC
+*** Open elfeed file
+#+BEGIN_SRC emacs-lisp
+(defun circ/open-rss-elfeed-file ()
+  (interactive)
+  (find-file "~/rss_elfeed/rss_feeds.org"))
+#+END_SRC
+*** Open in custom application
+ #+BEGIN_SRC emacs-lisp
+ (defun circ/eww-readable (url &rest args)
+   (interactive)
+   (eww url)
+   (add-hook 'eww-after-render-hook 'eww-readable nil t))
+
+ (defun circ/open-in-mpv (url &rest args)
+   (message "Opening in mpv: %s" url)
+   (call-process "mpv" nil 0 nil url))
+
+ (defun circ/elfeed-show-open-in-mpv ()
+   (interactive)
+   (let ((browse-url-browser-function 'circ/open-in-mpv)) (elfeed-show-visit)))
+ (defun circ/elfeed-show-open-eww-readable()
+   (interactive)
+   (let ((browse-url-browser-function 'circ/eww-readable)) (elfeed-show-visit)))
+ (defun circ/elfeed-show-open-eww()
+   (interactive)
+   (let ((browse-url-browser-function 'eww-browse-url)) (elfeed-show-visit)))
+
+ (defun circ/elfeed-search-open-in-mpv ()
+   (interactive)
+   (let ((browse-url-browser-function 'circ/open-in-mpv)) (elfeed-search-browse-url)))
+ (defun circ/elfeed-search-open-eww-readable()
+   (interactive)
+   (let ((browse-url-browser-function 'circ/eww-readable)) (elfeed-search-browse-url)))
+ (defun circ/elfeed--search-open-eww()
+   (interactive)
+   (let ((browse-url-browser-function 'eww-browse-url)) (elfeed-search-browse-url)))
 #+END_SRC
 
-Open in eww readable
+*** Saved tags
 #+BEGIN_SRC emacs-lisp
-(defun circ/eww-readable (url &rest args)
-  (interactive)
-  (eww url)
-  (add-hook 'eww-after-render-hook 'eww-readable nil t))
-
-(defun circ/open-in-mpv (url &rest args)
-  (message "Opening in mpv: %s" url)
-  (call-process "mpv" nil 0 nil url))
-
-(defun circ/elfeed-show-open-in-mpv ()
-  (interactive)
-  (let ((browse-url-browser-function 'circ/open-in-mpv)) (elfeed-show-visit)))
-(defun circ/elfeed-show-open-eww-readable()
-  (interactive)
-  (let ((browse-url-browser-function 'circ/eww-readable)) (elfeed-show-visit)))
-(defun circ/elfeed-show-open-eww()
-  (interactive)
-  (let ((browse-url-browser-function 'eww-browse-url)) (elfeed-show-visit)))
-
-(defun circ/elfeed-search-open-in-mpv ()
-  (interactive)
-  (let ((browse-url-browser-function 'circ/open-in-mpv)) (elfeed-search-browse-url)))
-(defun circ/elfeed-search-open-eww-readable()
-  (interactive)
-  (let ((browse-url-browser-function 'circ/eww-readable)) (elfeed-search-browse-url)))
-(defun circ/elfeed--search-open-eww()
-  (interactive)
-  (let ((browse-url-browser-function 'eww-browse-url)) (elfeed-search-browse-url)))
-
 (defun circ/elfeed-search-tag-saved ()
   (interactive)
   (let ((elfeed-search-remain-on-entry t))
@@ -2313,25 +2376,8 @@ Open in eww readable
 (defun circ/elfeed-show-untag-saved ()
   (interactive)
   (elfeed-show-untag 'saved))
-
-(defun circ/elfeed-load-and-open ()
-  (interactive)
-  (elfeed-db-load)
-  (elfeed))
-(defun circ/elfeed-save-and-close ()
-  (interactive)
-  (elfeed-db-save)
-  (circ/kill-this-buffer))
-(defun circ/elfeed-db-reload ()
-  (interactive)
-  (elfeed-db-load)
-  (elfeed-search-update--force))
-
-(defun circ/open-rss-elfeed-file ()
-  (interactive)
-  (find-file "~/rss_elfeed/rss_feeds.org"))
 #+END_SRC
-
+*** Tag filtering
 Completing read tag editing
 #+BEGIN_SRC emacs-lisp
 (defun circ/elfeed-search-filter-tag ()
@@ -2366,15 +2412,14 @@ Completing read tag editing
     (elfeed-search-update :force)))
 #+END_SRC
 
-Saved searches
+*** Saved searches
 #+BEGIN_SRC emacs-lisp
 (defun circ/elfeed-search-saved ()
   (interactive)
   (setq elfeed-search-filter "+saved")
   (elfeed-search-update :force))
 #+END_SRC
-
-** Auto tagging of length of videos
+*** Auto tagging of length of videos
 #+BEGIN_SRC emacs-lisp
 (defun circ/elfeed-tag-yt-length ()
   (interactive)
@@ -2400,7 +2445,7 @@ Saved searches
   (elfeed-search-update--force))
 #+END_SRC
 
-Evil Keybindings
+*** Evil Keybindings
 #+BEGIN_SRC emacs-lisp
 (evil-set-initial-state 'elfeed-search-mode 'motion)
 (evil-define-key 'motion elfeed-search-mode-map
@@ -2415,25 +2460,26 @@ Evil Keybindings
   "r" 'elfeed-search-update--force
   "R" 'elfeed-search-fetch
   "gR" 'circ/elfeed-db-reload
-  "s" 'circ/elfeed-search-tag-saved
-  "S" 'circ/elfeed-search-untag-saved
-  "t" 'circ/elfeed-search-filter-tag
+  "m" 'circ/elfeed-search-tag-saved
+  "M" 'circ/elfeed-search-untag-saved
+  "f" 'circ/elfeed-search-filter-tag
+  "F" 'elfeed/search-clear-filter
   "o" 'nil
   "or" 'circ/elfeed-search-open-eww-readable
   "oe" 'circ/elfeed-search-open-eww
   "ov" 'circ/elfeed-search-open-in-mpv
   "ob" 'elfeed-search-browse-url
-  "f" 'circ/open-rss-elfeed-file
+  "gf" 'circ/open-rss-elfeed-file
   "gs" 'circ/elfeed-search-saved
-  "d" 'evil-scroll-down
-  "u" 'evil-scroll-up
+  "C-d" 'evil-scroll-down
+  "C-u" 'evil-scroll-up
   "q" 'circ/elfeed-save-and-close)
 
 (evil-define-key '(motion visual) elfeed-search-mode-map
   "+" 'elfeed-search-tag-all
   "-" 'elfeed-search-untag-all
-  "M" 'elfeed-search-tag-all-unread
-  "m" 'elfeed-search-untag-all-unread)
+  "u" 'elfeed-search-tag-all-unread
+  "d" 'elfeed-search-untag-all-unread)
 
 (evil-set-initial-state 'elfeed-show-mode 'motion)
 (evil-define-key 'motion elfeed-show-mode-map
@@ -2459,10 +2505,10 @@ Evil Keybindings
   "ov" 'circ/elfeed-show-open-in-mpv
   "ob" 'elfeed-show-visit
   "y" 'elfeed-show-yank
-  "d" 'evil-scroll-down
-  "u" 'evil-scroll-up
-  "s" 'circ/elfeed-show-tag-saved
-  "S" 'circ/elfeed-show-untag-saved)
+  "C-d" 'evil-scroll-down
+  "C-u" 'evil-scroll-up
+  "m" 'circ/elfeed-show-tag-saved
+  "M" 'circ/elfeed-show-untag-saved)
 #+END_SRC
 ** emux
 #+BEGIN_SRC emacs-lisp
@@ -2510,47 +2556,85 @@ Evil Keybindings
 (evil-set-initial-state 'doc-view-mode 'motion)
 
 (evil-define-key 'motion doc-view-mode-map
-    "q" 'image-kill-buffer
-    "J" 'doc-view-next-page
-    "K" 'doc-view-previous-page
-    "j" 'doc-view-next-line-or-next-page
-    "k" 'doc-view-previous-line-or-previous-page
-    "SPC" 'doc-view-scroll-up-or-next-page
-    "S-SPC" 'doc-view-scroll-down-or-previous-page
-    "gg" 'doc-view-first-page
-    "G" 'doc-view-last-page
-    "C-J" 'doc-view-goto-page
-    "RET" 'image-next-line
+  "q" 'image-kill-buffer
 
-    ;; zoom
-    "+" 'doc-view-enlarge
-    "=" 'doc-view-enlarge
-    "0" 'doc-view-scale-reset
-    "-" 'doc-view-shrink
-    "_" 'doc-view-shrink
+  "h" 'image-backward-hscroll
+  "j" 'doc-view-next-line-or-next-page
+  "k" 'doc-view-previous-line-or-previous-page
+  "l" 'image-forward-hscroll
 
-    "W" 'doc-view-fit-width-to-window ; Like evil-image.
-    "H" 'doc-view-fit-height-to-window ; Like evil-image.
-    "P" 'doc-view-fit-page-to-window
-    "X" 'doc-view-kill-proc
+  "H" 'circ/doc-view-backward-hscroll-fast
+  "J" 'circ/doc-view-next-line-or-next-page-fast
+  "K" 'circ/doc-view-previous-line-or-previous-page-fast
+  "L" 'circ/doc-view-forward-hscroll-fast
 
-    "s s" 'doc-view-set-slice
-    "s m" 'doc-view-set-slice-using-mouse
-    "s b" 'doc-view-set-slice-from-bounding-box
-    "s r" 'doc-view-reset-slice
+  "]" 'doc-view-next-page
+  "[" 'doc-view-previous-page
 
-    "/" 'doc-view-search
-    "?" 'doc-view-search-backward
-    "C-t" 'doc-view-show-tooltip
-    "C-c C-c" 'doc-view-toggle-display
-    "C-c C-t" 'doc-view-open-text
+  (kbd "SPC") 'doc-view-scroll-up-or-next-page
+  (kbd "S-SPC") 'doc-view-scroll-down-or-previous-page
+  "gg" 'doc-view-first-page
+  "G" 'doc-view-last-page
+  "gp" 'doc-view-goto-page
+  (kbd "RET") 'image-next-line
 
-    ;; refresh
-    "r" 'doc-view-revert-buffer)
+  ;; zoom
+  "+" 'doc-view-enlarge
+  "=" 'doc-view-enlarge
+  "0" 'doc-view-scale-reset
+  "-" 'doc-view-shrink
+  "_" 'doc-view-shrink
+
+  "zw" 'doc-view-fit-width-to-window ; Like evil-image.
+  "zh" 'doc-view-fit-height-to-window ; Like evil-image.
+  "zp" 'doc-view-fit-page-to-window
+  "X" 'doc-view-kill-proc
+
+  "ss" 'doc-view-set-slice
+  "sm" 'doc-view-set-slice-using-mouse
+  "sb" 'doc-view-set-slice-from-bounding-box
+  "sr" 'doc-view-reset-slice
+
+  "n" 'doc-view-search-next-match
+  "N" 'doc-view-search-previous-match
+  "/" 'circ/doc-view-search
+  "?" 'circ/doc-view-search-backward
+  "C-t" 'doc-view-show-tooltip
+  "C-c C-c" 'doc-view-toggle-display
+  "C-c C-t" 'doc-view-open-text
+
+  ;; refresh
+  "r" 'doc-view-revert-buffer)
+#+END_SRC
+*** Faster scroll functions
+#+BEGIN_SRC emacs-lisp
+(defvar circ/doc-view-scroll-fast-rate 10)
+(defun circ/doc-view-backward-hscroll-fast ()
+  (interactive)
+  (image-backward-hscroll circ/doc-view-scroll-fast-rate))
+(defun circ/doc-view-forward-hscroll-fast ()
+  (interactive)
+  (image-forward-hscroll circ/doc-view-scroll-fast-rate))
+(defun circ/doc-view-next-line-or-next-page-fast ()
+  (interactive)
+  (doc-view-next-line-or-next-page circ/doc-view-scroll-fast-rate))
+(defun circ/doc-view-previous-line-or-previous-page-fast ()
+  (interactive)
+  (doc-view-previous-line-or-previous-page circ/doc-view-scroll-fast-rate))
+#+END_SRC
+*** Doc view search
+#+BEGIN_SRC emacs-lisp
+(defun circ/doc-view-search ()
+  (interactive)
+  (doc-view-search t))
+(defun circ/doc-view-search-backward ()
+  (interactive)
+  (doc-view-search-backward t))
 #+END_SRC
 ** image-mode
 #+BEGIN_SRC emacs-lisp
 (evil-set-initial-state 'image-mode 'motion)
+
 (evil-define-key 'motion image-mode-map
   "q" 'image-kill-buffer
 
@@ -2575,8 +2659,8 @@ Evil Keybindings
   "{" 'image-decrease-speed ; mplayer/mpv style
   "}" 'image-increase-speed ; mplayer/mpv style
 
-  "z h" 'image-transform-fit-to-height
-  "z w" 'image-transform-fit-to-width
+  "zh" 'image-transform-fit-to-height
+  "zw" 'image-transform-fit-to-width
 
   "+" 'circ/image-mode-zoom-in
   "=" 'circ/image-mode-zoom-in
@@ -2621,6 +2705,185 @@ Evil Keybindings
   (interactive)
   (image-transform-set-scale (* image-transform-scale 0.9)))
 #+END_SRC
+** dired
+*** Set up
+#+begin_src emacs-lisp
+(require 'dired-x)
+(setq dired-dwim-target t)
+(setq dired-omit-files "^\\.?#\\|^\\.$\\|^\\.\\.$\\|^\\.")
+(setq dired-listing-switches "-Gghal")
+(setq dired-guess-shell-alist-user '(("\\.flac\\'" "mpv")
+                                     ("\\.mp3\\'" "mpv")))
+#+end_src
+
+*** reuse directory when going up directory
+#+BEGIN_SRC emacs-lisp
+(defun circ/dired-up-directory ()
+  (interactive)
+  (find-alternate-file ".."))
+#+END_SRC
+*** Maybe open with external application
+#+begin_src emacs-lisp
+(setq circ/dired-external-app-extensions
+      '("mp3" "flac"
+        "mkv" "mp4" "flv" "avi"))
+(defun circ/dired-maybe-open-with-external-app ()
+  "If file extension matches with any in
+`circ/dired-external-app-extensions' then open with
+`browse-url-of-dired-file' else open with `dired-find-file'"
+  (interactive)
+  (cond ((member (file-name-extension (dired-get-file-for-visit))
+                 circ/dired-external-app-extensions)
+          (browse-url-of-dired-file))
+         (t
+          (dired-find-file))))
+(defun circ/dired-maybe-open-with-external-app-other-window ()
+  "If file extension matches with any in
+`circ/dired-external-app-extensions' then open with
+`browse-url-of-dired-file' else open with `dired-find-file-other-window'"
+  (interactive)
+  (cond ((member (file-name-extension (dired-get-file-for-visit))
+                 circ/dired-external-app-extensions)
+          (browse-url-of-dired-file))
+         (t
+          (dired-find-file-other-window))))
+#+end_src
+
+*** Keybindings
+#+BEGIN_SRC emacs-lisp
+(evil-define-key 'normal dired-mode-map
+  "q" 'circ/kill-this-buffer
+  "r" 'revert-buffer
+
+  "/" 'dired-isearch-filenames
+  "gg" 'evil-goto-first-line
+  "G" 'evil-goto-line
+
+  "h" 'dired-up-directory
+  "j" 'dired-next-line
+  "k" 'dired-previous-line
+  "l" 'dired-find-file
+
+  "i" 'dired-maybe-insert-subdir
+  "I" 'dired-kill-subdir
+  (kbd "TAB") 'dired-hide-subdir
+
+  "o" 'circ/dired-maybe-open-with-external-app
+  "O" 'circ/dired-maybe-open-with-external-app-other-window
+  "W" 'browse-url-of-dired-file
+
+  "v" 'dired-view-file
+
+  "m" 'dired-mark
+  "d" 'dired-flag-file-deletion
+  "u" 'dired-unmark
+  "U" 'dired-unmark-all-marks
+  "t" 'dired-toggle-marks
+  "x" 'dired-do-flagged-delete
+
+  "!" 'dired-do-shell-command
+  "&" 'dired-do-async-shell-command
+  "=" 'ediff
+
+  "eM" 'dired-do-chmod
+  "eO" 'dired-do-chown
+  "eG" 'dired-do-chgrp
+  "eT" 'dired-do-touch
+  "eZ" 'dired-do-compress
+  "eS" 'dired-do-symlink
+  "em" 'dired-do-rename
+  "ec" 'dired-do-copy
+  "er" 'dired-do-rename-regexp
+  "et" 'dired-show-file-type
+
+  "ad" 'dired-create-directory
+  )
+#+END_SRC
+
+** View mode
+#+begin_src emacs-lisp
+(evil-define-key 'normal view-mode-map
+  "q" 'View-quit)
+(add-hook 'view-mode-hook 'evil-normalize-keymaps)
+#+end_src
+** ibuffer
+#+begin_src emacs-lisp
+(evil-set-initial-state 'ibuffer-mode 'normal)
+(evil-define-key 'normal ibuffer-mode-map
+  "q" 'circ/kill-this-buffer
+  "r" 'ibuffer-update
+  "R" 'ibuffer-redisplay
+
+  "o" 'ibuffer-visit-buffer
+  (kbd "RET") 'ibuffer-visit-buffer
+
+  "m" 'ibuffer-mark-forward
+  "u" 'ibuffer-unmark-forward
+  "U" 'ibuffer-unmark-all-marks
+  "d" 'ibuffer-mark-for-delete
+  "D" 'ibuffer-do-delete
+
+  "MM" 'ibuffer-mark-by-mode
+  "Mm" 'ibuffer-mark-modified-buffers
+  "Mu" 'ibuffer-mark-unsaved-buffers
+  "Ms" 'ibuffer-mark-special-buffers
+  "Mr" 'ibuffer-mark-read-only-buffers
+  "M/" 'ibuffer-mark-dired-buffers
+  "Me" 'ibuffer-mark-dissociated-buffers
+  "Mh" 'ibuffer-mark-help-buffers
+  "Mz" 'ibuffer-mark-compressed-file-buffers
+  "Mo" 'ibuffer-mark-old-buffers
+
+  "es" 'ibuffer-do-save
+  "ex" 'ibuffer-do-shell-command-file
+  "eX" 'ibuffer-do-shell-command-pipe
+  "ed" 'ibuffer-do-delete
+
+  (kbd "f RET") 'ibuffer-filter-by-mode
+  "fq" 'ibuffer-filter-disable
+  "fm" 'ibuffer-filter-by-used-mode
+  "fM" 'ibuffer-filter-by-derived-mode
+  "fn" 'ibuffer-filter-by-name
+  "f*" 'ibuffer-filter-by-starred-name
+  "ff" 'ibuffer-filter-by-filename
+  "fb" 'ibuffer-filter-by-basename
+  "f." 'ibuffer-filter-by-file-extension
+  "f<" 'ibuffer-filter-by-size-lt
+  "f>" 'ibuffer-filter-by-size-gt
+  "fi" 'ibuffer-filter-by-modified
+  "fv" 'ibuffer-filter-by-visiting-file
+  "fc" 'ibuffer-filter-by-content
+  "fe" 'ibuffer-filter-by-predicate
+
+  "," 'ibuffer-toggle-sorting-mode
+  "si" 'ibuffer-invert-sorting
+  "sa" 'ibuffer-do-sort-by-alphabetic
+  "sv" 'ibuffer-do-sort-by-recency
+  "ss" 'ibuffer-do-sort-by-size
+  "sf" 'ibuffer-do-sort-by-filename/process
+  "sm" 'ibuffer-do-sort-by-major-mode
+)
+#+end_src
+** image-dired
+#+begin_src emacs-lisp
+(evil-define-key 'normal image-dired-thumbnail-mode-map
+  "q" 'circ/kill-this-buffer
+
+  "h" 'image-dired-backward-image
+  "l" 'image-dired-forward-image
+  "j" 'image-dired-next-line
+  "k" 'image-dired-previous-line
+
+  (kbd "RET") 'image-dired-display-thumbnail-original-image
+  "o" 'image-dired-display-thumbnail-original-image
+  "[" 'image-dired-display-previous-thumbnail-original
+  "]" 'image-dired-display-next-thumbnail-original
+)
+(evil-define-key 'normal image-dired-display-image-mode-map
+  "q" 'circ/kill-this-buffer
+)
+(add-hook 'image-dired-display-image-mode-hook 'evil-normalize-keymaps)
+#+end_src
 ** general
 #+BEGIN_SRC emacs-lisp
 (add-to-list
@@ -3002,9 +3265,12 @@ Simply send M-f instead
 (circ/p1 "m A"  'bookmark-set-no-overwrite            "set bookmark (no overwrite)")
 (circ/p1 "m b"  'bookmark-jump                        "open bookmark")
 (circ/p1 "m l"  'bookmark-bmenu-list                  "open bookmark")
+(circ/p1 "o b"  'ibuffer                              "ibuffer")
 (circ/p1 "o c"  'copy-buffer                          "copy buffer")
-(circ/p1 "o d"  'dashboard                            "dashboard")
+(circ/p1 "o d"  'dired-jump                           "dired jump")
+(circ/p1 "o D"  'dired                                "dired")
 (circ/p1 "o i"  'circ/open-in-intellij                "open in intellij")
+(circ/p1 "o i"  'image-dired                          "image-dired"                         'dired-mode-map)
 (circ/p1 "o m"  'mpccp                                "mpccp")
 (circ/p1 "o r"  'circ/elfeed-load-and-open            "elfeed")
 (circ/p1 "o tc" 'circ/alias-clisp-shell               "clisp")
@@ -3054,12 +3320,13 @@ Simply send M-f instead
 (circ/p1 "t f"  'font-lock-mode                       "toggle auto font formatting")
 (circ/p1 "t h"  'hl-line-mode                         "toggle highight line mode")
 (circ/p1 "t h"  'ranger-toggle-dotfiles               "toggle hidden"                       'ranger-mode-map)
+(circ/p1 "t h"  'dired-omit-mode                      "toggle hidden"                       'dired-mode-map)
 (circ/p1 "t i"  'org-toggle-inline-images             "toggle images"                       'org-mode-map)
 (circ/p1 "t l"  'nlinum-mode                          "toggle relative line numbers")
 (circ/p1 "t p"  'projectile-mode                      "toggle projectile mode")
 (circ/p1 "t r"  'rainbow-delimiters-mode              "toggle rainbow delimiters")
-(circ/p1 "t t"  'circ/org-agenda-toggle-hide-tags     "toggle hide tags"                    'org-agenda-mode-map)
 (circ/p1 "t t"  'nil                                  "tables"                              'org-mode-map)
+(circ/p1 "t t"  'circ/org-agenda-toggle-hide-tags     "toggle hide tags"                    'org-agenda-mode-map)
 (circ/p1 "t tr" 'org-table-toggle-coordinate-overlay  "toggle table coords"                 'org-mode-map)
 (circ/p1 "t w"  'whitespace-mode                      "toggle whitespace display")
 (circ/p1 "t"    'nil                                  "toggles")
@@ -3157,7 +3424,7 @@ Simply send M-f instead
 (circ/p4 "j"    'outline-next-visible-heading         "next visible heading")
 (circ/p4 "k"    'outline-previous-visible-heading     "prev visible heading")
 (circ/p4 "l"    'outline-forward-same-level           "forward same level")
-(circ/p4 "m"    'org-archive-subtree-default          "archive"                             'org-mode-map)
+(circ/p4 "d"    'org-archive-subtree-default          "archive"                             'org-mode-map)
 (circ/p4 "n"    'org-capture                          "org capture")
 (circ/p4 "o"    'org-clock-out                        "clock out"                           'org-mode-map)
 (circ/p4 "p d"  'org-deadline                         "deadline"                            'org-mode-map)
@@ -3212,8 +3479,8 @@ Simply send M-f instead
   "q" 'copy-buffer-copy-quit)
 
 (evil-define-key 'motion org-agenda-mode-map
-  "s" 'circ/org-agenda-filter-tag
-  "S" 'circ/org-agenda-show-all-tags
+  "f" 'circ/org-agenda-filter-tag
+  "F" 'circ/org-agenda-show-all-tags
   "r" 'circ/org-agenda-redo)
 
 (evil-define-key 'normal org-capture-mode-map
