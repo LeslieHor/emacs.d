@@ -2797,7 +2797,15 @@ Completing read tag editing
   "et" 'dired-show-file-type
 
   "ad" 'dired-create-directory
+
+  "E" 'dired-toggle-read-only
   )
+(evil-set-initial-state 'wdired-mode 'normal)
+(evil-define-key 'normal wdired-mode-map
+  "ZQ" 'wdired-abort-changes
+  "ZZ" 'wdired-finish-edit
+  (kbd "<escape>") 'wdired-exit
+)
 #+END_SRC
 
 ** View mode
