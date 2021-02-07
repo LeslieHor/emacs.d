@@ -2717,6 +2717,25 @@ Completing read tag editing
   (interactive)
   (find-alternate-file ".."))
 #+END_SRC
+*** Get directory size
+#+begin_src emacs-lisp
+(defun circ/dired-du-current ()
+  (interactive)
+  (message "Directory size: %s"
+           (circ/strip-last-newline
+            (shell-command-to-string
+             "du -h --max-depth 0"))))
+
+(defun circ/dired-du ()
+  (interactive)
+  (let ((dir (dired-get-file-for-visit)))
+    (when (file-directory-p dir)
+      (message "Directory size: %s"
+               (circ/strip-last-newline
+                (shell-command-to-string
+                 (format "du -h --max-depth 0 %s" dir)))))))
+#+end_src
+
 *** Maybe open with external application
 #+begin_src emacs-lisp
 (setq circ/dired-external-app-extensions
@@ -2790,6 +2809,8 @@ Completing read tag editing
   "ec" 'dired-do-copy
   "er" 'dired-do-rename-regexp
   "et" 'dired-show-file-type
+  "ed" 'circ/dired-du
+  "eD" 'circ/dired-du-current
 
   "ad" 'dired-create-directory
 
@@ -2928,6 +2949,40 @@ Completing read tag editing
 )
 #+end_src
 
+** proced
+#+begin_src emacs-lisp
+(evil-set-initial-state 'proced-mode 'motion)
+(evil-define-key 'motion 'proced-mode-map
+  "q" 'circ/kill-this-buffer
+  "r" 'revert-buffer
+
+  "m" 'proced-mark
+  "M" 'proced-mark-all
+  ;"u" 'proced-unmark ;; Think of a better key
+  "U" 'proced-unmark-all
+  "t" 'proced-toggle-marks
+  "c" 'proced-mark-children
+  "p" 'proced-mark-parents
+
+  "u" 'proced-undo
+
+  "x" 'proced-send-signal
+  "n" 'proced-renice
+
+  "O" 'proced-omit-processes
+
+  "sO" 'proced-sort-interactive
+  "sc" 'proced-sort-pcpu
+  "sm" 'proced-sort-pmem
+  "sp" 'proced-sort-pid
+  "ss" 'proced-sort-start
+  "st" 'proced-sort-time
+  "su" 'proced-sort-user
+
+  "f" 'proced-filter-interactive
+  "F" 'proced-format-interactive
+)
+#+end_src
 ** general
 #+BEGIN_SRC emacs-lisp
 (add-to-list
@@ -3316,6 +3371,7 @@ Simply send M-f instead
 (circ/p1 "o i"  'circ/open-in-intellij                "open in intellij")
 (circ/p1 "o i"  'image-dired                          "image-dired"                         'dired-mode-map)
 (circ/p1 "o m"  'mpccp                                "mpccp")
+(circ/p1 "o p"  'proced                               "proded")
 (circ/p1 "o r"  'circ/elfeed-load-and-open            "elfeed")
 (circ/p1 "o tc" 'circ/alias-clisp-shell               "clisp")
 (circ/p1 "o te" 'erlang-shell                         "erlang")
@@ -3371,6 +3427,7 @@ Simply send M-f instead
 (circ/p1 "t r"  'rainbow-delimiters-mode              "toggle rainbow delimiters")
 (circ/p1 "t t"  'nil                                  "tables"                              'org-mode-map)
 (circ/p1 "t t"  'circ/org-agenda-toggle-hide-tags     "toggle hide tags"                    'org-agenda-mode-map)
+(circ/p1 "t t"  'proced-toggle-tree                   "toggle proced tree"                  'proced-mode-map)
 (circ/p1 "t tr" 'org-table-toggle-coordinate-overlay  "toggle table coords"                 'org-mode-map)
 (circ/p1 "t w"  'whitespace-mode                      "toggle whitespace display")
 (circ/p1 "t"    'nil                                  "toggles")
