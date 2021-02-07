@@ -2936,7 +2936,7 @@ Completing read tag editing
 ** Diff
 #+begin_src emacs-lisp
 (evil-set-initial-state 'diff-mode 'motion)
-(evil-define-key 'motion 'diff-mode-map
+(evil-define-key 'motion diff-mode-map
   "q" 'circ/kill-this-buffer
 )
 #+end_src
@@ -2952,7 +2952,7 @@ Completing read tag editing
 ** proced
 #+begin_src emacs-lisp
 (evil-set-initial-state 'proced-mode 'motion)
-(evil-define-key 'motion 'proced-mode-map
+(evil-define-key 'motion proced-mode-map
   "q" 'circ/kill-this-buffer
   "r" 'revert-buffer
 
