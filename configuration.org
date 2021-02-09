@@ -49,6 +49,9 @@
 
 ;; Don't use proportional fonts in eww
 (setq shr-use-fonts nil)
+
+;; Use emacs to put in gpg password
+(setq epa-pinentry-mode 'loopback)
 #+END_SRC
 
 ** Tab Behaviour
@@ -337,7 +340,7 @@ hardcoded 200ms timeout in case no notification service is alive"
     (dolist (tag (sort tag-alist (lambda (a b) (> (cdr a) (cdr b)))))
       (let ((tag-name (propertize (car tag) 'face 'org-tag))
             (tag-count (cdr tag)))
-        (unless (member tag-name '("proj"))
+        (unless (member tag-name '("proj" "ordered"))
           (let ((tag-string (format "%s (%s)  " tag-name tag-count)))
             (cond ((> (+ line-length (length tag-string)) text-width)
                    (setq string (concat string "\n  " tag-string))
@@ -1837,6 +1840,108 @@ buffer, display it in another window."
 (defun circ/insert-u-macron () (interactive) (insert "ū"))
 (defun circ/insert-y-macron () (interactive) (insert "ӯ"))
 #+END_SRC
+** pass
+#+begin_src emacs-lisp
+(defvar circ/pass/pass-directory "~/.password-store")
+(defvar circ/pass/ignore-regexp "")
+(defvar circ/pass/clipboard-timeout 30)
+
+(defvar circ/pass/clipboard-field nil)
+(defvar circ/pass/clipboard-timeout-job nil)
+(defvar circ/pass/kill-ring-pointer nil)
+
+(defun circ/pass/get-entries ()
+  (seq-filter
+   (lambda (entr)
+     (not (string-match-p circ/pass/ignore-regexp entr)))
+   (mapcar
+    (lambda (entry)
+      (file-name-sans-extension
+       (replace-regexp-in-string
+        (regexp-quote (file-name-as-directory
+                       (expand-file-name circ/pass/pass-directory)))
+        "" entry)))
+    (directory-files-recursively
+     (expand-file-name circ/pass/pass-directory) ".gpg$"))))
+
+(defun circ/pass/get-entry-path (entry)
+  (concat (file-name-as-directory circ/pass/pass-directory)
+          entry
+          ".gpg"))
+
+(defun circ/pass/read-entry (entry)
+  (with-temp-buffer
+    (insert-file-contents (circ/pass/get-entry-path entry))
+    (buffer-substring-no-properties (point-min) (point-max))))
+
+(defun circ/pass/parse-entry (entry)
+  (mapcar
+   (lambda (x)
+     (split-string x ": "))
+   (split-string (circ/pass/read-entry entry) "\n")))
+
+(defun circ/pass/get-value (entry key)
+  (cond ((string= key "password")
+         (caar (circ/pass/parse-entry entry)))
+        (t
+         (cadr (assoc key (circ/pass/parse-entry entry))))))
+
+(defun circ/pass/open-entry (&optional entry)
+  (interactive)
+  (unless entry (setq entry (completing-read "Pass entry: "
+                                             (circ/pass/get-entries))))
+  (find-file (circ/pass/get-entry-path entry)))
+
+(defun circ/pass/clear-clipboard ()
+  (when circ/pass/clipboard-timeout-job
+    (cancel-timer circ/pass/clipboard-timeout-job)
+    (setq circ/pass/clipboard-timeout-job nil))
+  (when (or (string= (org-get-x-clipboard 'CLIPBOARD) (car circ/pass/kill-ring-pointer))
+            (string= (org-get-x-clipboard 'PRIMARY) (car circ/pass/kill-ring-pointer)))
+    (kill-new ""))
+  (when circ/pass/kill-ring-pointer
+    (setcar circ/pass/kill-ring-pointer "")
+    (setq circ/pass/kill-ring-pointer nil)
+    (message "%s in clipboard cleared" (capitalize circ/pass/clipboard-field))))
+
+(defun circ/pass/copy-entry-field (entry field)
+  (circ/pass/clear-clipboard)
+  (kill-new (circ/pass/get-value entry field))
+  (setq circ/pass/kill-ring-pointer kill-ring-yank-pointer)
+  (setq circ/pass/clipboard-timeout-job
+        (run-at-time circ/pass/clipboard-timeout nil
+                     'circ/pass/clear-clipboard))
+  (setq circ/pass/clipboard-field field)
+  (message "Copied %s for %s. Will clear in %s seconds"
+           field entry circ/pass/clipboard-timeout))
+
+(defun circ/pass/copy-password (&optional entry)
+  (interactive)
+  (unless entry (setq entry (completing-read "Pass entry: "
+                                             (circ/pass/get-entries))))
+  (circ/pass/copy-entry-field entry "password"))
+
+(defun circ/pass/copy-user (&optional entry)
+  (interactive)
+  (unless entry (setq entry (completing-read "Pass entry: "
+                                             (circ/pass/get-entries))))
+  (circ/pass/copy-entry-field entry "user"))
+
+(defun circ/pass/generate-entry (&optional entry)
+  (interactive)
+  (unless entry (setq entry (read-string "Entry name: ")))
+  (when (file-exists-p (circ/pass/get-entry-path entry))
+    (unless (y-or-n-p (format "%s already exists. Overwrite? " entry))
+      (error "Generate aborted")))
+  (let ((flags "-i"))
+    (unless (y-or-n-p "Use symbols? ")
+      (setq flags (concat flags "n")))
+    (shell-command (format "pass generate %s %s > /dev/null" flags entry)))
+  (when (y-or-n-p (format "Copy entry %s password?" entry))
+    (circ/pass/copy-password entry))
+  (when (y-or-n-p (format "Open entry %s?" entry))
+    (circ/pass/open-entry entry)))
+#+end_src
 * Local variables
 ** Safe Local Eval Aliases
 #+BEGIN_SRC emacs-lisp
@@ -3477,6 +3582,10 @@ Simply send M-f instead
 (circ/p2 "i um" 'circ/insert-u-macron                 "ū")
 (circ/p2 "i y"  'nil                                  "y chars")
 (circ/p2 "i ym" 'circ/insert-y-macron                 "ӯ")
+(circ/p2 "p"    'nil                                  "pass")
+(circ/p2 "p u"  'circ/pass/copy-user                  "copy user")
+(circ/p2 "p p"  'circ/pass/copy-password              "copy password")
+(circ/p2 "p g"  'circ/pass/generate                   "generate")
 #+END_SRC
 
 ** P3

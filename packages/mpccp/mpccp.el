@@ -105,7 +105,7 @@
     "q" 'circ/kill-this-buffer
     "e" 'mpccp-queue-edit
     "c" 'mpccp-clear-queue
-    "RET" 'mpccp-queue-play-line)
+    (kbd "RET") 'mpccp-queue-play-line)
 
   (evil-define-minor-mode-key 'normal 'mpccp-queue-edit-mode
     "q" 'mpccp-queue-edit-save))
@@ -194,7 +194,8 @@
                                                       (nth 1 mpc-split-status)))
            (mpc-status-list (split-string mpc-status-line "\t"))
            (mpc-song-progress (nth 2 mpc-status-list)))
-      mpc-song-progress)))
+      (cond (mpc-song-progress mpc-song-progress)
+            (t "0")))))
 
 (defun mpccp-get-current-song-queue-position ()
   "Get current song queue position"
@@ -224,7 +225,9 @@
                              (buffer-string)))
                (mpc-split-status (split-string mpc-status "\n"))
                (mpc-status-line (replace-regexp-in-string "  *" "\t"
-                                                          (nth 2 mpc-split-status)))
+                                                          (nth
+                                                           (- (length mpc-split-status) 2)
+                                                           mpc-split-status)))
                (mpc-status-list (split-string mpc-status-line "\t"))
                (mpc-volume (replace-regexp-in-string "%" "" (nth 1 mpc-status-list)))
                (mpc-repeat-state (nth 3 mpc-status-list))
@@ -615,6 +618,9 @@ does not try to run it"
 
 (defun mpccp (&optional ignore-auto noconfirm)
   (interactive)
+  (when (= (call-process "mpc") 1)
+    (when (y-or-n-p "MPC unable to connect. Start mpd?")
+      (call-process "mpd")))
   (let ((buf (get-buffer-create mpccp-main-buffer-name)))
     (with-current-buffer buf
       (read-only-mode -1)
