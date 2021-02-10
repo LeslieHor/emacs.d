@@ -54,6 +54,19 @@
 (setq epa-pinentry-mode 'loopback)
 #+END_SRC
 
+** Display buffer behaviour
+#+begin_src emacs-lisp
+(setq display-buffer-alist
+      '(("^\\*Proced\\*$"
+         (display-buffer-same-window))
+        ("^\\*Help\\*$"
+         (display-buffer-reuse-window display-buffer-in-side-window)
+         (side . right)
+         (window-width . 80))
+        ("^\\*Annotate.*"
+         (display-buffer-same-window))))
+#+end_src
+
 ** Tab Behaviour
 #+BEGIN_SRC emacs-lisp
 (setq-default indent-tabs-mode nil) ; don't insert tabs
@@ -796,6 +809,16 @@ Show the full file path as a message
     (message "No valid file path")))
 #+END_SRC
 
+** show-buffer-name
+In case the header is overwritten
+
+#+begin_src emacs-lisp
+(defun circ/show-buffer-name ()
+  "Show buffer name as a message"
+  (interactive)
+  (message "%s" (buffer-name)))
+#+end_src
+
 ** smart-clear-buffer
 Clear the buffer, but with special cases for certain major modes.
 
@@ -1399,18 +1422,6 @@ has no effect."
 
 (advice-add #'org-agenda-finalize :before #'circ/org-agenda-mark-habits)
 #+END_SRC
-** VC annotate in current window
-#+BEGIN_SRC emacs-lisp
-(defun circ/vc-annotate-current-window ()
-  "A bad implementation of vc-annotate-current-window"
-  (interactive)
-  (vc-ensure-vc-buffer)
-  (let ((prev-window-configuration (current-window-configuration)))
-    (call-interactively 'vc-annotate)
-    (let ((vc-buffer (current-buffer)))
-      (set-window-configuration prev-window-configuration)
-      (switch-to-buffer vc-buffer))))
-#+END_SRC
 ** Org agenda setup
 #+BEGIN_SRC emacs-lisp
 (defun circ/setup-agenda-view()
@@ -1721,7 +1732,7 @@ Major mode for copy buffer
       (copy-buffer-mode)
       (switch-to-buffer buf))))
 #+END_SRC
-** ansi-term title
+** ansi-term
 #+BEGIN_SRC emacs-lisp
 (defun circ/ansi-term ()
   (interactive)
@@ -1729,10 +1740,11 @@ Major mode for copy buffer
          (path default-directory)
          (title (cond ((string= project-name "-") path)
                       (t project-name)))
-         (term-name (format "%s term" title)))
+         (term-name (format "term (%s)" title)))
     (ansi-term "/bin/bash" term-name)
     ;; If you are visiting a remote file, try to open a terminal in the remote box
-    (if (tramp-tramp-file-p path)
+    (if (and (functionp 'tramp-tramp-file-p)
+             (tramp-tramp-file-p path))
         (let ((path (replace-regexp-in-string "^file:" "" path))
               (cd-str "fn=%s; if test ! -d $fn; then fn=$(dirname $fn); fi; cd $fn;")
               (bufname (concat "*" term-name "*" )))
@@ -3386,6 +3398,7 @@ Simply send M-f instead
 (circ/p1 "b dl" 'circ/alias-duplicate-buffer-right    "duplicate buffer right")
 (circ/p1 "b f"  'circ/show-file-path                  "show file path")
 (circ/p1 "b o"  'open-in-new-config                   "open buffer in a new window config")
+(circ/p1 "b n"  'circ/show-buffer-name                "show buffer name")
 (circ/p1 "b p"  'circ/buffer-paste                    "paste buffer")
 (circ/p1 "b r"  'rename-buffer                        "rename buffer")
 (circ/p1 "b t"  'nil                                  "transpose buffers")
@@ -3537,7 +3550,7 @@ Simply send M-f instead
 (circ/p1 "t w"  'whitespace-mode                      "toggle whitespace display")
 (circ/p1 "t"    'nil                                  "toggles")
 (circ/p1 "v D"  'vc-ediff                             "ediff")
-(circ/p1 "v a"  'circ/vc-annotate-current-window      "annotate")
+(circ/p1 "v a"  'vc-annotate                          "annotate")
 (circ/p1 "v b"  'counsel-git-checkout                 "change branch")
 (circ/p1 "v d"  'nil                                  "diff")
 (circ/p1 "v dd" 'vc-version-ediff                     "version ediff")
