@@ -64,7 +64,30 @@
          (side . right)
          (window-width . 80))
         ("^\\*Annotate.*"
-         (display-buffer-same-window))))
+         (display-buffer-same-window))
+        ;; the function `org-fit-window-to-buffer' overrides the window height
+        ;; Re-define the function if you want to enforce a height
+        ("^ \\*Org todo\\*$"
+         (display-buffer-in-side-window)
+         (side . bottom)
+         (window-height . 999))
+        ;; the function `org-fit-window-to-buffer' overrides the window height
+        ;; Re-define the function if you want to enforce a height
+        ("^\\*Org Select\\*$"
+         (display-buffer-in-side-window)
+         (side . bottom)
+         (window-height . 999))
+        ("^\\*Capture\\*$"
+         (display-buffer-in-side-window)
+         (side . bottom)
+         (window-height . 15))
+        ("^CAPTURE-"
+         (display-buffer-in-side-window)
+         (side . bottom)
+         (window-height . 15))
+        ("^\\*Org Src "
+         (display-buffer-same-window))
+        ))
 #+end_src
 
 ** Tab Behaviour
@@ -130,7 +153,7 @@ Highlights:
 (setq org-log-done 'time)
 (setq org-agenda-skip-scheduled-if-done t)
 (setq org-agenda-skip-deadline-if-done t)
-(setq org-src-window-setup 'current-window)
+(setq org-src-window-setup 'plain) ; Use display-buffer-alist settings
 (setq org-time-stamp-rounding-minutes '(1 1))
 (setq org-clock-out-when-done nil)
 (setq org-log-into-drawer "LOGBOOK")
@@ -469,6 +492,133 @@ abort [Q] / [\\[org-capture-kill]].")))
                                        ("v" . "verse")))
   (require 'org-tempo))
 #+END_SRC
+** Force org mode to display buffers my way
+Requires rules in =display-buffer-alist= to work properly.
+=org-fit-window-to-buffer= overrides some display-buffer-alist rules. I am keeping
+the call to =org-fit-window-to-buffer= because I like the behaviour.
+*** Redefine =org-switch-to-buffer-other-window=
+#+begin_src emacs-lisp
+(defun org-switch-to-buffer-other-window (&rest args)
+  "Redefinition of `org-switch-to-buffer-other-window' to force
+org to abide by `display-buffer-alist'"
+  (apply #'switch-to-buffer-other-window args))
+#+end_src
+*** Redefine =org-capture-place-template= to not delete other windows
+#+begin_src emacs-lisp
+(defun org-capture-place-template (&optional inhibit-wconf-store)
+  "Insert the template at the target location, and display the buffer.
+When `inhibit-wconf-store', don't store the window configuration, as it
+may have been stored before."
+  (unless inhibit-wconf-store
+    (org-capture-put :return-to-wconf (current-window-configuration)))
+  ;; ----------------------------------------------------------
+  ;; Don't delete other windows. Just be a normal buffer
+  ;; (delete-other-windows)
+  ;; ----------------------------------------------------------
+  (org-switch-to-buffer-other-window
+   (org-capture-get-indirect-buffer (org-capture-get :buffer) "CAPTURE"))
+  (widen)
+  (org-show-all)
+  (goto-char (org-capture-get :pos))
+  (setq-local outline-level 'org-outline-level)
+  (pcase (org-capture-get :type)
+    ((or `nil `entry) (org-capture-place-entry))
+    (`table-line (org-capture-place-table-line))
+    (`plain (org-capture-place-plain-text))
+    (`item (org-capture-place-item))
+    (`checkitem (org-capture-place-item)))
+  (setq-local org-capture-current-plist org-capture-plist)
+  (org-capture-mode 1))
+#+end_src
+*** Redefine =org-fast-todo-selection= to not delete other windows
+#+begin_src emacs-lisp
+(defun org-fast-todo-selection (&optional current-state)
+  "Fast TODO keyword selection with single keys.
+Returns the new TODO keyword, or nil if no state change should occur.
+When CURRENT-STATE is given and selection letters are not unique globally,
+prefer a state in the current sequence over on in another sequence."
+  (let* ((fulltable org-todo-key-alist)
+	 (head (org-get-todo-sequence-head current-state))
+	 (done-keywords org-done-keywords) ;; needed for the faces.
+	 (maxlen (apply 'max (mapcar
+			      (lambda (x)
+				(if (stringp (car x)) (string-width (car x)) 0))
+			      fulltable)))
+	 (expert (equal org-use-fast-todo-selection 'expert))
+	 (prompt "")
+	 (fwidth (+ maxlen 3 1 3))
+	 (ncol (/ (- (window-width) 4) fwidth))
+	 tg cnt e c tbl subtable
+	 groups ingroup in-current-sequence)
+    (save-excursion
+      (save-window-excursion
+	(if expert
+	    (set-buffer (get-buffer-create " *Org todo*"))
+      ;; ----------------------------------------------------------
+      ;; Don't delete other windows. Just be a normal buffer
+      ;; And don't split any buffers up.
+	  ;; (delete-other-windows)
+	  ;; (set-window-buffer (split-window-vertically) (get-buffer-create " *Org todo*"))
+      ;; ----------------------------------------------------------
+	  (org-switch-to-buffer-other-window " *Org todo*"))
+	(erase-buffer)
+	(setq-local org-done-keywords done-keywords)
+	(setq tbl fulltable cnt 0)
+	(while (setq e (pop tbl))
+	  (cond
+	   ((equal e '(:startgroup))
+	    (push '() groups) (setq ingroup t)
+	    (unless (= cnt 0)
+	      (setq cnt 0)
+	      (insert "\n"))
+	    (setq prompt (concat prompt "{"))
+	    (insert "{ "))
+	   ((equal e '(:endgroup))
+	    (setq ingroup nil cnt 0 in-current-sequence nil)
+	    (setq prompt (concat prompt "}"))
+	    (insert "}\n"))
+	   ((equal e '(:newline))
+	    (unless (= cnt 0)
+	      (setq cnt 0)
+	      (insert "\n")
+	      (setq e (car tbl))
+	      (while (equal (car tbl) '(:newline))
+		(insert "\n")
+		(setq tbl (cdr tbl)))))
+	   (t
+	    (setq tg (car e) c (cdr e))
+	    (if (equal tg head) (setq in-current-sequence t))
+	    (when ingroup (push tg (car groups)))
+	    (when in-current-sequence (push e subtable))
+	    (setq tg (org-add-props tg nil 'face
+				    (org-get-todo-face tg)))
+	    (when (and (= cnt 0) (not ingroup)) (insert "  "))
+	    (setq prompt (concat prompt "[" (char-to-string c) "] " tg " "))
+	    (insert "[" c "] " tg (make-string
+				   (- fwidth 4 (length tg)) ?\ ))
+	    (when (and (= (setq cnt (1+ cnt)) ncol)
+		       ;; Avoid lines with just a closing delimiter.
+		       (not (equal (car tbl) '(:endgroup))))
+	      (insert "\n")
+	      (when ingroup (insert "  "))
+	      (setq cnt 0)))))
+	(insert "\n")
+	(goto-char (point-min))
+	(unless expert (org-fit-window-to-buffer))
+	(message (concat "[a-z..]:Set [SPC]:clear"
+			 (if expert (concat "\n" prompt) "")))
+	(setq c (let ((inhibit-quit t)) (read-char-exclusive)))
+	(setq subtable (nreverse subtable))
+	(cond
+	 ((or (= c ?\C-g)
+	      (and (= c ?q) (not (rassoc c fulltable))))
+	  (setq quit-flag t))
+	 ((= c ?\ ) nil)
+	 ((setq e (or (rassoc c subtable) (rassoc c fulltable))
+		tg (car e))
+	  tg)
+	 (t (setq quit-flag t)))))))
+#+end_src
 * Mode Line
 #+BEGIN_SRC emacs-lisp
 (column-number-mode 1) ; show column number
@@ -1942,12 +2092,13 @@ buffer, display it in another window."
 (defun circ/pass/generate-entry (&optional entry)
   (interactive)
   (unless entry (setq entry (read-string "Entry name: ")))
-  (when (file-exists-p (circ/pass/get-entry-path entry))
-    (unless (y-or-n-p (format "%s already exists. Overwrite? " entry))
-      (error "Generate aborted")))
-  (let ((flags "-i"))
+  (let ((flags ""))
+    (when (file-exists-p (circ/pass/get-entry-path entry))
+      (unless (y-or-n-p (format "%s already exists. Overwrite? " entry))
+        (error "Generate aborted"))
+      (setq flags (concat flags " -i")))
     (unless (y-or-n-p "Use symbols? ")
-      (setq flags (concat flags "n")))
+      (setq flags (concat flags " -n")))
     (shell-command (format "pass generate %s %s > /dev/null" flags entry)))
   (when (y-or-n-p (format "Copy entry %s password?" entry))
     (circ/pass/copy-password entry))
@@ -3598,7 +3749,8 @@ Simply send M-f instead
 (circ/p2 "p"    'nil                                  "pass")
 (circ/p2 "p u"  'circ/pass/copy-user                  "copy user")
 (circ/p2 "p p"  'circ/pass/copy-password              "copy password")
-(circ/p2 "p g"  'circ/pass/generate                   "generate")
+(circ/p2 "p g"  'circ/pass/generate-entry             "generate")
+(circ/p2 "p o"  'circ/pass/open-entry                 "open entry")
 #+END_SRC
 
 ** P3
