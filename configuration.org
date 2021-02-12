@@ -14,7 +14,7 @@
 (setq ring-bell-function 'ignore) ; silent bell when you make a mistake
 (setq-default frame-title-format '("%b - Emacs")) ; set the emacs title.
                                         ; overrides the old "emacs@HOST" title
-(set-frame-font "Liberation Mono 9" t t)
+(set-frame-font "Liberation Mono 7" t t)
 ;(set-frame-font "Unifont 12" t t)
 (menu-bar-mode -1)
 
@@ -62,7 +62,7 @@
         ("^\\*Help\\*$"
          (display-buffer-reuse-window display-buffer-in-side-window)
          (side . right)
-         (window-width . 80))
+         (window-width . 86))
         ("^\\*Annotate.*"
          (display-buffer-same-window))
         ;; the function `org-fit-window-to-buffer' overrides the window height
@@ -244,14 +244,6 @@ Hide the markup for various emphasis'
 (setq org-hide-emphasis-markers t)
 #+END_SRC
 
-Replace list bullet point with nice unicode
-#+BEGIN_SRC emacs-lisp
-(font-lock-add-keywords
-  'org-mode
-  '(("^ *\\([-]\\) "
-     (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))))
-#+END_SRC
-
 Set up nice fonts
 #+BEGIN_SRC emacs-lisp
 (let* ((base-font-color  (face-foreground 'default nil 'default))
@@ -378,7 +370,12 @@ hardcoded 200ms timeout in case no notification service is alive"
             (tag-count (cdr tag)))
         (unless (member tag-name '("proj" "ordered"))
           (let ((tag-string (format "%s (%s)  " tag-name tag-count)))
-            (cond ((> (+ line-length (length tag-string)) text-width)
+            ;; Magic number 3 to help avoid the overflow icon. Sometimes, if the
+            ;; tags are just right, the tag cloud will show an icon that
+            ;; indicates there is more text off the side of the buffer. I don't
+            ;; ever want that, because it makes me wonder if any tags are
+            ;; missing from my immediate view.
+            (cond ((> (+ line-length (length tag-string) 3) text-width)
                    (setq string (concat string "\n  " tag-string))
                    (setq line-length (+ (length tag-string) 2)))
                   (t
@@ -401,8 +398,6 @@ alist, to ensure correct results."
       (setcdr pair val)
     (push (cons key val) alist))
   alist)
-
-; -------------
 
 (defun circ/org-agenda-insert-tag-cloud ()
   (interactive)
@@ -435,11 +430,17 @@ alist, to ensure correct results."
 (defun circ/org-agenda-filter-tag ()
   (interactive)
   (let* ((tag-list (mapcar 'car (circ/agenda-count-tags)))
-         (tag-candidates (append (mapcar (lambda (tag) (concat "+" tag)) tag-list)
-                                 (mapcar (lambda (tag) (concat "-" tag)) tag-list)))
+         (tag-candidates (remove-duplicates
+                          (append (mapcar (lambda (tag) (concat "+" tag)) tag-list)
+                                  (mapcar (lambda (tag) (concat "-" tag)) tag-list)
+                                  circ/org-agenda-filter-list)
+                          :test 'string=))
          (new-tag (completing-read "Tag: " tag-candidates)))
-    (setq circ/org-agenda-filter-list
-          (cons new-tag circ/org-agenda-filter-list))
+    (cond ((member new-tag circ/org-agenda-filter-list)
+           (setq circ/org-agenda-filter-list (remove new-tag circ/org-agenda-filter-list))
+           (circ/org-agenda-show-all-tags))
+          (t
+           (setq circ/org-agenda-filter-list (cons new-tag circ/org-agenda-filter-list))))
     (circ/org-agenda-apply-filter)))
 
 (defun circ/org-agenda-apply-filter ()
@@ -498,14 +499,17 @@ Requires rules in =display-buffer-alist= to work properly.
 the call to =org-fit-window-to-buffer= because I like the behaviour.
 *** Redefine =org-switch-to-buffer-other-window=
 #+begin_src emacs-lisp
-(defun org-switch-to-buffer-other-window (&rest args)
+(defun circ/org-switch-to-buffer-other-window (&rest args)
   "Redefinition of `org-switch-to-buffer-other-window' to force
 org to abide by `display-buffer-alist'"
   (apply #'switch-to-buffer-other-window args))
+
+(advice-add 'org-switch-to-buffer-other-window :override
+            #'circ/org-switch-to-buffer-other-window)
 #+end_src
 *** Redefine =org-capture-place-template= to not delete other windows
 #+begin_src emacs-lisp
-(defun org-capture-place-template (&optional inhibit-wconf-store)
+(defun circ/org-capture-place-template (&optional inhibit-wconf-store)
   "Insert the template at the target location, and display the buffer.
 When `inhibit-wconf-store', don't store the window configuration, as it
 may have been stored before."
@@ -529,10 +533,13 @@ may have been stored before."
     (`checkitem (org-capture-place-item)))
   (setq-local org-capture-current-plist org-capture-plist)
   (org-capture-mode 1))
+
+(advice-add 'org-capture-place-template :override
+            #'circ/org-capture-place-template)
 #+end_src
 *** Redefine =org-fast-todo-selection= to not delete other windows
 #+begin_src emacs-lisp
-(defun org-fast-todo-selection (&optional current-state)
+(defun circ/org-fast-todo-selection (&optional current-state)
   "Fast TODO keyword selection with single keys.
 Returns the new TODO keyword, or nil if no state change should occur.
 When CURRENT-STATE is given and selection letters are not unique globally,
@@ -618,6 +625,9 @@ prefer a state in the current sequence over on in another sequence."
 		tg (car e))
 	  tg)
 	 (t (setq quit-flag t)))))))
+
+(advice-add 'org-fast-todo-selection :override
+            #'circ/org-fast-todo-selection)
 #+end_src
 * Mode Line
 #+BEGIN_SRC emacs-lisp
@@ -2105,6 +2115,102 @@ buffer, display it in another window."
   (when (y-or-n-p (format "Open entry %s?" entry))
     (circ/pass/open-entry entry)))
 #+end_src
+** balance-window fix
+Balance window doesn't work when you have a side window with a fixed size.
+
+This is due to a calculation bug in the =windows.el= code.
+
+#+begin_src emacs-lisp
+(defun circ/balance-windows-2 (window horizontal)
+  "Subroutine of `balance-windows-1'.
+WINDOW must be a vertical combination (horizontal if HORIZONTAL
+is non-nil)."
+  (let* ((char-size (if window-resize-pixelwise
+			1
+		      (frame-char-size window horizontal)))
+	 (first (window-child window))
+	 (sub first)
+	 (number-of-children 0)
+     (ignore-window-count 0)
+	 (parent-size (window-new-pixel window))
+	 (total-sum parent-size)
+	 failed size sub-total sub-delta sub-amount rest)
+    (while sub
+      (setq number-of-children (1+ number-of-children))
+      (when (window-size-fixed-p sub horizontal)
+	(setq total-sum
+	      (- total-sum (window-size sub horizontal t)))
+    (setq ignore-window-count (1+ ignore-window-count))
+	(set-window-new-normal sub 'ignore))
+      (setq sub (window-right sub)))
+
+    (setq failed t)
+    (while (and failed (> number-of-children 0))
+      (setq size (/ total-sum (- number-of-children ignore-window-count)))
+      (setq failed nil)
+      (setq sub first)
+      (while (and sub (not failed))
+	;; Ignore child windows that should be ignored or are stuck.
+	(unless (window--resize-child-windows-skip-p sub)
+	  (setq sub-total (window-size sub horizontal t))
+	  (setq sub-delta (- size sub-total))
+	  (setq sub-amount
+		(window-sizable sub sub-delta horizontal nil t))
+	  ;; Register the new total size for this child window.
+	  (set-window-new-pixel sub (+ sub-total sub-amount))
+	  (unless (= sub-amount sub-delta)
+	    (setq total-sum (- total-sum sub-total sub-amount))
+	    (setq number-of-children (1- number-of-children))
+	    ;; We failed and need a new round.
+	    (setq failed t)
+	    (set-window-new-normal sub 'skip)))
+	(setq sub (window-right sub))))
+
+    ;; How can we be sure that `number-of-children' is NOT zero here ?
+    (setq rest (% total-sum number-of-children))
+    ;; Fix rounding by trying to enlarge non-stuck windows by one line
+    ;; (column) until `rest' is zero.
+    (setq sub first)
+    (while (and sub (> rest 0))
+      (unless (window--resize-child-windows-skip-p window)
+	(set-window-new-pixel sub (min rest char-size) t)
+	(setq rest (- rest char-size)))
+      (setq sub (window-right sub)))
+
+    ;; Fix rounding by trying to enlarge stuck windows by one line
+    ;; (column) until `rest' equals zero.
+    (setq sub first)
+    (while (and sub (> rest 0))
+      (unless (eq (window-new-normal sub) 'ignore)
+	(set-window-new-pixel sub (min rest char-size) t)
+	(setq rest (- rest char-size)))
+      (setq sub (window-right sub)))
+
+    (setq sub first)
+    (while sub
+      ;; Record new normal sizes.
+      (set-window-new-normal
+       sub (/ (if (eq (window-new-normal sub) 'ignore)
+		  (window-size sub horizontal t)
+		(window-new-pixel sub))
+	      (float parent-size)))
+      ;; Recursively balance each window's child windows.
+      (balance-windows-1 sub horizontal)
+      (setq sub (window-right sub)))))
+
+(advice-add 'balance-windows-2 :override
+            #'circ/balance-windows-2)
+#+end_src
+** Fixed window sizes
+I want certain windows to have fixed width because they open in a side window.
+#+begin_src emacs-lisp
+(defun circ/set-fixed-window-size-width ()
+  "Set the buffer to not allow window width changes"
+  (interactive)
+  (setq window-size-fixed 'width))
+
+(add-hook 'help-mode-hook 'circ/set-fixed-window-size-width)
+#+end_src
 * Local variables
 ** Safe Local Eval Aliases
 #+BEGIN_SRC emacs-lisp
@@ -2708,6 +2814,24 @@ Completing read tag editing
   (elfeed-search-update--force))
 #+END_SRC
 
+*** Setting entry faces for tags
+#+begin_src emacs-lisp
+(defface circ/elfeed-search-saved-face
+  '((t :foreground "#ffff99"))
+  "Face for saved entries"
+  :group 'elfeed)
+
+(defface circ/elfeed-search-video-face
+  '((t :foreground "#99ffff"))
+  "Face for video entries"
+  :group 'elfeed)
+
+;; Define faces for tagged entries. Earlier faces take priority.
+(setq elfeed-search-face-alist '((unread elfeed-search-unread-title-face)
+                                 (video circ/elfeed-search-video-face)
+                                 (saved circ/elfeed-search-saved-face)
+                                 ))
+#+end_src
 *** Evil Keybindings
 #+BEGIN_SRC emacs-lisp
 (evil-set-initial-state 'elfeed-search-mode 'motion)
@@ -3809,6 +3933,7 @@ Simply send M-f instead
 (circ/p4 "o"    'org-clock-out                        "clock out"                           'org-mode-map)
 (circ/p4 "p d"  'org-deadline                         "deadline"                            'org-mode-map)
 (circ/p4 "p p"  'org-set-property                     "set property"                        'org-mode-map)
+(circ/p4 "p p"  'org-agenda-set-property              "set property"                        'org-agenda-mode-map)
 (circ/p4 "p s"  'org-schedule                         "schedule"                            'org-mode-map)
 (circ/p4 "p t"  'circ/org-set-tags                    "set tags"                            'org-mode-map)
 (circ/p4 "p T"  'circ/org-clear-tags                  "clear tags"                          'org-mode-map)

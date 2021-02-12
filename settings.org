@@ -91,6 +91,9 @@ Settings that only work on my home computer. They will probably break other setu
         ("t" "Clock in task"
          entry (file "~/pims/inbox.org")
          "* %^{Task}\n%?" :clock-in t :clock-keep t)
+        ("l" "Link"
+         entry (file "~/pims/inbox.org")
+         "* %a\n%U")
         ("b" "Microblog" ;; I don't know if this works
          entry (file+datetree "~/pims/microblog.org")
          "*%U\n%?\n")))
