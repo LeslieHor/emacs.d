@@ -1974,6 +1974,41 @@ buffer, display it in another window."
   (interactive)
   (org-set-tags-to nil))
 #+END_SRC
+** org-agenda-set-tags
+#+BEGIN_SRC emacs-lisp
+;; TODO: Bug exists in org 9.4.4 where setting a tag in the agenda does not
+;; update the tag property correctly. So the tags shown in the completion list
+;; are out of date
+(defun circ/org-agenda-set-tags ()
+  (interactive)
+  (let* ((curr-tags (org-get-at-bol 'tags))
+         (new-tags (set-difference
+                    (mapcar 'car (org-global-tags-completion-table))
+                    curr-tags
+                    :test 'string=))
+         (completion-list (append
+                           (mapcar (lambda (tag) (concat "+" tag)) new-tags)
+                           (mapcar (lambda (tag) (concat "-" tag)) curr-tags)))
+         (tag-change (completing-read "Tag: " completion-list))
+         (remove (string= "-" (substring tag-change 0 1)))
+         (tag (if (or (string= "-" (substring tag-change 0 1))
+                      (string= "+" (substring tag-change 0 1)))
+                  (substring tag-change 1)
+                tag-change))
+         (tags (remove* "" (if remove
+                               (remove tag curr-tags)
+                             (cons tag curr-tags))
+                        :test 'string=)))
+    (if remove
+        (org-agenda-set-tags tag 'off)
+      (org-agenda-set-tags tag 'on))
+    (circ/org-agenda-set-tags)))
+
+(defun circ/org-agenda-clear-tags ()
+  (interactive)
+  (dolist (tag (org-get-at-bol 'tags))
+    (org-agenda-set-tags tag 'off)))
+#+END_SRC
 ** org agenda toggle blocked tasks
 #+BEGIN_SRC emacs-lisp
 (defun circ/org-agenda-toggle-blocked-tasks ()
@@ -3937,6 +3972,8 @@ Simply send M-f instead
 (circ/p4 "p s"  'org-schedule                         "schedule"                            'org-mode-map)
 (circ/p4 "p t"  'circ/org-set-tags                    "set tags"                            'org-mode-map)
 (circ/p4 "p T"  'circ/org-clear-tags                  "clear tags"                          'org-mode-map)
+(circ/p4 "p t"  'circ/org-agenda-set-tags             "set tags"                            'org-agenda-mode-map)
+(circ/p4 "p T"  'circ/org-agenda-clear-tags           "clear tags"                          'org-agenda-mode-map)
 (circ/p4 "p o"  'org-toggle-ordered-property          "toggle ordered"                      'org-mode-map)
 (circ/p4 "p"    'nil                                  "property"                            'org-mode-map)
 (circ/p4 "r"    'nil                                  "references"                          'org-mode-map)

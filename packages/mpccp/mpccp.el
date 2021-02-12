@@ -224,7 +224,7 @@
                              (mpccp-call-mpc t '("status"))
                              (buffer-string)))
                (mpc-split-status (split-string mpc-status "\n"))
-               (mpc-status-line (replace-regexp-in-string "  *" "\t"
+               (mpc-status-line (replace-regexp-in-string "[: ] *" "\t"
                                                           (nth
                                                            (- (length mpc-split-status) 2)
                                                            mpc-split-status)))
