@@ -3264,6 +3264,7 @@ Completing read tag editing
   "ZQ" 'wdired-abort-changes
   "ZZ" 'wdired-finish-edit
   (kbd "<escape>") 'wdired-exit
+  "q" 'wdired-exit
 )
 #+END_SRC
 
@@ -3425,6 +3426,68 @@ Completing read tag editing
   "f" 'proced-filter-interactive
   "F" 'proced-format-interactive
 )
+#+end_src
+** Bookmarks
+#+begin_src emacs-lisp
+(evil-set-initial-state 'bookmark-bmenu-mode 'normal)
+(evil-define-key 'normal bookmark-bmenu-mode-map
+  "q" 'circ/kill-this-buffer
+  "r" 'revert-buffer
+
+  "j" 'next-line
+  "k" 'previous-line
+
+  "o" 'bookmark-bmenu-this-window
+  "O" 'bookmark-bmenu-switch-other-window
+
+  "m" 'bookmark-bmenu-mark
+  "M" 'bookmark-bmenu-mark-all
+  "u" 'bookmark-bmenu-unmark
+  "U" 'bookmark-bmenu-unmark-all
+  "d" 'bookmark-bmenu-delete
+  "x" 'bookmark-bmenu-execute-deletions
+  "/" 'bookmark-bmenu-search
+  (kbd "DEL") 'bookmark-bmenu-backup-unmark
+
+  "s" 'bookmark-bmenu-save
+  "l" 'bookmark-bmenu-load
+
+  "er" 'bookmark-bmenu-rename
+  "eR" 'bookmark-bmenu-relocate
+  "ea" 'bookmark-bmenu-show-annotation
+  "eA" 'bookmark-bmenu-show-all-annotations
+  "ee" 'bookmark-bmenu-edit-annotation
+)
+(add-hook 'bookmark-bmenu-mode-hook 'circ/disable-evil-quickscope-mode)
+
+(evil-set-initial-state 'bookmark-edit-annotation-mode 'normal)
+(evil-define-key 'normal bookmark-edit-annotation-mode-map
+  "q" 'circ/bookmark-send-edited-annotation
+  (kbd "<escape>") 'circ/bookmark-send-edited-annotation
+  "ZQ" 'circ/kill-this-buffer
+  "ZZ" 'bookmark-send-edited-annotation
+)
+#+end_src
+*** Save annotations
+#+begin_src emacs-lisp
+(defun circ/bookmark-send-edited-annotation ()
+  (interactive)
+  (if (y-or-n-p "Save changes?")
+      (bookmark-send-edited-annotation)
+    (circ/kill-this-buffer)))
+#+end_src
+*** Annotation comment
+#+begin_src emacs-lisp
+(defun circ/bookmark-default-annotation-text (bookmark-name)
+  (concat (format-message
+           "#  Type the annotation for bookmark `%s' here.\n" bookmark-name)
+          (format-message
+           "#  All lines which start with a `#' will be deleted.\n")
+          "#  Type [q] in normal mode when done.\n"
+          "#\n"
+          "#  Date:    " (current-time-string) "\n"))
+(advice-add 'bookmark-default-annotation-text :override
+            #'circ/bookmark-default-annotation-text)
 #+end_src
 ** general
 #+BEGIN_SRC emacs-lisp
