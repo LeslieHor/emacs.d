@@ -3353,26 +3353,99 @@ Completing read tag editing
 (add-hook 'image-dired-display-image-mode-hook 'evil-normalize-keymaps)
 #+end_src
 ** vc-annotate-mode
+*** History for jumping around revisions
+When jumping through revisions, there is no history, and therefore no way to go
+back to the previous revision you were looking at. Implement this.
+#+begin_src emacs-lisp
+(defvar-local circ/vc-annotate-version-history '())
+(defvar-local circ/vc-annotate-version-history-index 0)
+
+(defun circ/vc-annotate ()
+  "Push the current revision onto the vc-annotate history
+stack. Usually I would use the hook, but using the hook doesn't
+work as the `vc-annotate-parent-rev' variable isn't set properly
+at the time of running the hook."
+  (interactive)
+  (call-interactively 'vc-annotate)
+  (circ/vc-annotate-push-version-to-history))
+
+(defun circ/vc-annotate-push-version-to-history ()
+  (interactive)
+  (setq circ/vc-annotate-version-history
+        (cons vc-annotate-parent-rev
+              (subseq circ/vc-annotate-version-history
+                      circ/vc-annotate-version-history-index)))
+  (setq circ/vc-annotate-version-history-index 0))
+
+(defun circ/vc-annotate-history-back ()
+  (interactive)
+  (let ((history circ/vc-annotate-version-history)
+        (index (1+ circ/vc-annotate-version-history-index)))
+    (when (<= (length history) index)
+      (error "Already at earliest history revision"))
+    (vc-annotate-warp-revision (nth index history))
+    (setq circ/vc-annotate-version-history history)
+    (setq circ/vc-annotate-version-history-index index)))
+
+(defun circ/vc-annotate-history-forward ()
+  (interactive)
+  (let ((history circ/vc-annotate-version-history)
+        (index (1- circ/vc-annotate-version-history-index)))
+    (when (< index 0)
+      (error "Already at latest history revision"))
+    (vc-annotate-warp-revision (nth index history))
+    (setq circ/vc-annotate-version-history history)
+    (setq circ/vc-annotate-version-history-index index)))
+
+;; TODO: I think this should be a macro, but I don't know how macros work.
+(defun circ/new-history-branch (fun)
+  (let ((history circ/vc-annotate-version-history)
+        (index circ/vc-annotate-version-history-index))
+
+    (funcall fun)
+
+    (setq circ/vc-annotate-version-history history)
+    (setq circ/vc-annotate-version-history-index index)
+    (circ/vc-annotate-push-version-to-history)))
+
+(defun circ/vc-annotate-revision-previous-to-line ()
+  (interactive)
+  (circ/new-history-branch 'vc-annotate-revision-previous-to-line))
+
+(defun circ/vc-annotate-revision-at-line ()
+  (interactive)
+  (circ/new-history-branch 'vc-annotate-revision-at-line))
+
+(defun circ/vc-annotate-working-revision ()
+  (interactive)
+  (circ/new-history-branch 'vc-annotate-working-revision))
+#+end_src
 *** Keybindings
 #+BEGIN_SRC emacs-lisp
 (evil-set-initial-state 'vc-annotate-mode 'motion)
 (evil-define-key 'motion vc-annotate-mode-map
   "q" 'circ/kill-this-buffer
 
-  "a" 'vc-annotate-revision-previous-to-line
+  "a" 'circ/vc-annotate-revision-previous-to-line
+  "J" 'circ/vc-annotate-revision-at-line
+  "W" 'circ/vc-annotate-working-revision
+
   "d" 'vc-annotate-show-diff-revision-at-line
   "=" 'vc-annotate-show-diff-revision-at-line
   "D" 'vc-annotate-show-changeset-diff-revision-at-linee
+
   "F" 'vc-annotate-find-revision-at-line
-  "J" 'vc-annotate-revision-at-line
-  "L" 'vc-annotate-show-log-revision-at-line
-  "W" 'vc-annotate-working-revision
-  "A" 'vc-annotate-toggle-annotation-visibility
+
+  "gl" 'vc-annotate-show-log-revision-at-line
+
   (kbd "RET") 'vc-annotate-goto-line
   "o" 'vc-annotate-goto-line
 
   "]" 'vc-annotate-next-revision
   "[" 'vc-annotate-prev-revision
+
+  "H" 'circ/vc-annotate-history-back
+  "L" 'circ/vc-annotate-history-forward
 )
 (add-hook 'vc-annotate-mode-hook 'circ/disable-evil-quickscope-mode)
 #+END_SRC
@@ -3925,6 +3998,7 @@ Simply send M-f instead
 (circ/p1 "t R"  'auto-revert-mode                     "toggle auto revert mode")
 (circ/p1 "t W"  'circ/toggle-whitespace-full          "toggle whitespace full")
 (circ/p1 "t a"  'abbrev-mode                          "toggle abbrev mode")
+(circ/p1 "t a"  'vc-annotate-toggle-annotation-visibility "toggle annotations"              'vc-annotate-mode-map)
 (circ/p1 "t b"  'circ/org-agenda-toggle-blocked-tasks "toggle blocked tasks"                'org-agenda-mode-map)
 (circ/p1 "t c"  'circ/org-agenda-toggle-clock-closed  "toggle clock closed"                 'org-agenda-mode-map)
 (circ/p1 "t c"  'comment-line                         "toggle comment line")
@@ -3943,7 +4017,7 @@ Simply send M-f instead
 (circ/p1 "t w"  'whitespace-mode                      "toggle whitespace display")
 (circ/p1 "t"    'nil                                  "toggles")
 (circ/p1 "v D"  'vc-ediff                             "ediff")
-(circ/p1 "v a"  'vc-annotate                          "annotate")
+(circ/p1 "v a"  'circ/vc-annotate                     "annotate")
 (circ/p1 "v b"  'counsel-git-checkout                 "change branch")
 (circ/p1 "v d"  'nil                                  "diff")
 (circ/p1 "v dd" 'vc-version-ediff                     "version ediff")
