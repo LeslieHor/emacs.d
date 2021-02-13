@@ -629,6 +629,10 @@ prefer a state in the current sequence over on in another sequence."
 (advice-add 'org-fast-todo-selection :override
             #'circ/org-fast-todo-selection)
 #+end_src
+** Fix M-S-j/k when changing timestamps on newly opened buffer
+#+begin_src emacs-lisp
+(add-hook 'org-mode-hook 'evil-normalize-keymaps)
+#+end_src
 * Mode Line
 #+BEGIN_SRC emacs-lisp
 (column-number-mode 1) ; show column number
@@ -2714,15 +2718,15 @@ To read rss feed links from an org file:
 #+BEGIN_SRC emacs-lisp
 (defun circ/elfeed-load-and-open ()
   (interactive)
-  (elfeed-db-load)
+;  (elfeed-db-load)
   (elfeed))
 (defun circ/elfeed-save-and-close ()
   (interactive)
-  (elfeed-db-save)
+;  (elfeed-db-save)
   (circ/kill-this-buffer))
 (defun circ/elfeed-db-reload ()
   (interactive)
-  (elfeed-db-load)
+;  (elfeed-db-load)
   (elfeed-search-update--force))
 #+END_SRC
 *** Open elfeed file
@@ -2771,15 +2775,28 @@ To read rss feed links from an org file:
     (elfeed-search-tag-all 'saved)
     (elfeed-search-untag-all 'unread))
   (forward-line))
-(defun circ/elfeed-search-untag-saved ()
-  (interactive)
-  (elfeed-search-untag-all 'saved))
 (defun circ/elfeed-show-tag-saved ()
   (interactive)
   (elfeed-show-tag 'saved))
+
+;; Unused
+(defun circ/elfeed-search-untag-saved ()
+  (interactive)
+  (elfeed-search-untag-all 'saved))
 (defun circ/elfeed-show-untag-saved ()
   (interactive)
   (elfeed-show-untag 'saved))
+
+(defun circ/elfeed-search-untag-saved-unread ()
+  (interactive)
+  (let ((elfeed-search-remain-on-entry t))
+    (elfeed-search-untag-all 'saved)
+    (elfeed-search-untag-all 'unread))
+  (forward-line))
+(defun circ/elfeed-show-untag-saved-unread ()
+  (interactive)
+  (elfeed-show-untag 'saved)
+  (elfeed-show-untag 'unread))
 #+END_SRC
 *** Tag filtering
 Completing read tag editing
@@ -2882,8 +2899,6 @@ Completing read tag editing
   "r" 'elfeed-search-update--force
   "R" 'elfeed-search-fetch
   "gR" 'circ/elfeed-db-reload
-  "m" 'circ/elfeed-search-tag-saved
-  "M" 'circ/elfeed-search-untag-saved
   "f" 'circ/elfeed-search-filter-tag
   "F" 'elfeed/search-clear-filter
   "o" 'nil
@@ -2900,8 +2915,8 @@ Completing read tag editing
 (evil-define-key '(motion visual) elfeed-search-mode-map
   "+" 'elfeed-search-tag-all
   "-" 'elfeed-search-untag-all
-  "u" 'elfeed-search-tag-all-unread
-  "d" 'elfeed-search-untag-all-unread)
+  "u" 'circ/elfeed-search-untag-saved-unread
+  "m" 'circ/elfeed-search-tag-saved)
 
 (evil-set-initial-state 'elfeed-show-mode 'motion)
 (evil-define-key 'motion elfeed-show-mode-map
@@ -2930,7 +2945,7 @@ Completing read tag editing
   "C-d" 'evil-scroll-down
   "C-u" 'evil-scroll-up
   "m" 'circ/elfeed-show-tag-saved
-  "M" 'circ/elfeed-show-untag-saved)
+  "u" 'circ/elfeed-show-untag-saved)
 #+END_SRC
 ** emux
 #+BEGIN_SRC emacs-lisp
@@ -3160,7 +3175,7 @@ Completing read tag editing
       (message "Directory size: %s"
                (circ/strip-last-newline
                 (shell-command-to-string
-                 (format "du -h --max-depth 0 %s" dir)))))))
+                 (format "du -h --max-depth 0 '%s'" dir)))))))
 #+end_src
 
 *** Maybe open with external application
@@ -3204,6 +3219,7 @@ Completing read tag editing
   "j" 'dired-next-line
   "k" 'dired-previous-line
   "l" 'dired-find-file
+  "L" 'dired-find-file-other-window
 
   "i" 'dired-maybe-insert-subdir
   "I" 'dired-kill-subdir
@@ -3633,6 +3649,10 @@ Already built-in.
 (evil-define-key 'insert term-raw-map (kbd "C-r") 'circ/bash-history-search)
 #+END_SRC
 
+*** <delete> - Delete forward
+#+begin_src emacs-lisp
+(evil-define-key 'insert term-raw-map (kbd "<delete>") 'term-send-del)
+#+end_src
 *** C-<backspace> - Delete prevous word
 Not strictly a bash thing, but I'm putting it in anyway.
 Simply send C-w instead
