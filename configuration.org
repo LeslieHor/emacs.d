@@ -3564,6 +3564,16 @@ at the time of running the hook."
 (advice-add 'bookmark-default-annotation-text :override
             #'circ/bookmark-default-annotation-text)
 #+end_src
+** Help
+#+begin_src emacs-lisp
+(defun circ/disable-linum-mode ()
+  "Counteract global nlinum mode"
+  (add-hook 'after-change-major-mode-hook
+            (lambda () (nlinum-mode 0))
+            :append :local))
+
+(add-hook 'help-mode-hook 'circ/disable-linum-mode)
+#+end_src
 ** general
 #+BEGIN_SRC emacs-lisp
 (add-to-list
