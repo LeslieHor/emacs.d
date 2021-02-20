@@ -98,6 +98,14 @@ will call `find-file' with \"~/.emacs.d/init.el\" as the arg")
 (defvar dashboard-persistent-links '()
   "Links to always show in the dashboard.")
 
+(defvar dashboard-greeting " ____            _     _                         _
+|  _ \\  __ _ ___| |__ | |__   ___   __ _ _ __ __| |
+| | | |/ _` / __| '_ \\| '_ \\ / _ \\ / _` | '__/ _` |
+| |_| | (_| \\__ \\ | | | |_) | (_) | (_| | | | (_| |
+|____/ \\__,_|___/_| |_|_.__/ \\___/ \\__,_|_|  \\__,_|
+
+===================================================")
+
 (defun dashboard-get-abbrev (string)
   (car (split-string string  ":")))
 (defun dashboard-get-location (string)
@@ -150,7 +158,8 @@ will call `find-file' with \"~/.emacs.d/init.el\" as the arg")
       (read-only-mode -1)
       (erase-buffer)
       (recentf-load-list)
-      (insert (propertize "Dashboard\n" 'face 'dashboard-header-1)
+      ;; TODO : Escape the string so it prints literally
+      (insert dashboard-greeting "\n"
               "\n"
               " [o] Open link       [q] Quit\n"
               "\n"

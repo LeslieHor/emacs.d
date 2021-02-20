@@ -1,23 +1,37 @@
 #+STARTUP: overview
 #+TITLE: emacs.d config
 
+* Log messages
+#+begin_src emacs-lisp
+(defun circ/log-message (format-string &rest args)
+  (interactive)
+  (apply 'message (cons
+                   (concat "[%s] " format-string)
+                   (cons (format-time-string "%Y-%m-%dT%H:%M:%S.%N")
+                         args))))
+#+end_src
 * Better defaults
 ** Start Up
 #+BEGIN_SRC emacs-lisp
+(circ/log-message "Starting server")
 (server-start) ; Start emacs server
 ;(desktop-save-mode 1) ; Save session and restore on next launch
 #+END_SRC
 
 ** UI
 #+BEGIN_SRC emacs-lisp
+(circ/log-message "Setting UI settings")
 (setq inhibit-startup-screen t) ; inhibit useless and old-school startup screen
 (setq ring-bell-function 'ignore) ; silent bell when you make a mistake
 (setq-default frame-title-format '("%b - Emacs")) ; set the emacs title.
                                         ; overrides the old "emacs@HOST" title
 (set-frame-font "Liberation Mono 7" t t)
+;(set-frame-font "IBM Plex Mono 7" t t)
+;(set-frame-font "Lemon 6" t t)
 ;(set-frame-font "Unifont 12" t t)
 (menu-bar-mode -1)
 
+(circ/log-message "Setting up optional termux settings")
 ;; Disable these in termux mode
 (defvar circ/termux-p 'nil)
 (unless circ/termux-p
@@ -37,7 +51,9 @@
   (setq browse-url-browser-function
     'circ/browse-url-browser-function))
 
+(circ/log-message "Setting up theme")
 (load-theme 'wheatgrass)
+(circ/log-message "Setting up split settings and others")
 ; Split vertically by default
 (setq split-width-threshold 160)
 (setq split-height-threshold 100)
@@ -56,6 +72,7 @@
 
 ** Display buffer behaviour
 #+begin_src emacs-lisp
+(circ/log-message "Setting up display buffer settings")
 (setq display-buffer-alist
       '(("^\\*Proced\\*$"
          (display-buffer-same-window))
@@ -87,11 +104,20 @@
          (window-height . 15))
         ("^\\*Org Src "
          (display-buffer-same-window))
+        ("^\\*Org Note\\*$"
+         (display-buffer-in-side-window)
+         (side . bottom)
+         (window-height . 20))
+        ("^\\*Calendar\\*$"
+         (display-buffer-in-side-window)
+         (side . bottom)
+         (window-height . 20))
         ))
 #+end_src
 
 ** Tab Behaviour
 #+BEGIN_SRC emacs-lisp
+(circ/log-message "Setting up tab settings")
 (setq-default indent-tabs-mode nil) ; don't insert tabs
 (setq-default tab-width 4) ; self-documenting
 (setq indent-line-function 'insert-tab)
@@ -99,6 +125,7 @@
 
 ** Backup and autosave locations
 #+BEGIN_SRC emacs-lisp
+(circ/log-message "Setting up backup and autosave locations")
 (setq auto-save-visited-file-name t)
 (setq auto-save-default nil)
 (setq backup-directory-alist '((".*" . "~/.emacs.d/backup")))
@@ -107,6 +134,7 @@
 
 ** Default major mode
 #+BEGIN_SRC emacs-lisp
+(circ/log-message "Setting up default major mode")
 (setq-default major-mode 'org-mode)
 #+END_SRC
 
@@ -120,12 +148,16 @@ Highlights:
 - tailing blanks
 
 #+BEGIN_SRC emacs-lisp
+(circ/log-message "Setting up whitespace")
 (require 'whitespace)
 (setq whitespace-style '(face empty tabs trailing))
 (global-whitespace-mode t)
 #+END_SRC
 
 * Org
+#+begin_src emacs-lisp
+(circ/log-message "Setting up org mode")
+#+end_src
 ** Load latest org and contribs:
 #+BEGIN_SRC emacs-lisp
 (add-to-list 'load-path "~/.emacs.d/packages/org-9.4.4/lisp")
@@ -213,8 +245,7 @@ Highlights:
 (add-hook 'org-mode-hook 'org-mode-startup-functions)
 
 (defun org-agenda-mode-startup-functions ()
-  (hl-line-mode +1)
-  (evil-quickscope-mode 0))
+  (hl-line-mode +1))
 
 (add-hook 'org-agenda-mode-hook 'org-agenda-mode-startup-functions)
 (add-hook 'org-agenda-mode-hook 'circ/disable-evil-quickscope-mode)
@@ -629,12 +660,62 @@ prefer a state in the current sequence over on in another sequence."
 (advice-add 'org-fast-todo-selection :override
             #'circ/org-fast-todo-selection)
 #+end_src
+*** Redefine =org-add-log-note= to not delete othe windows
+#+begin_src emacs-lisp
+(defun circ/org-add-log-note (&optional _purpose)
+  "Pop up a window for taking a note, and add this note later."
+  (remove-hook 'post-command-hook 'org-add-log-note)
+  (setq org-log-note-window-configuration (current-window-configuration))
+;; DON'T DELETE OTHER WINDOWS
+;;  (delete-other-windows)
+  (move-marker org-log-note-return-to (point))
+  (pop-to-buffer-same-window (marker-buffer org-log-note-marker))
+  (goto-char org-log-note-marker)
+  (org-switch-to-buffer-other-window "*Org Note*")
+  (erase-buffer)
+  (if (memq org-log-note-how '(time state))
+      (org-store-log-note)
+    (let ((org-inhibit-startup t)) (org-mode))
+;; Message altered to include evil keys
+    (insert (format "# Insert note for %s.
+# Finish with [q] / [C-c C-c], or cancel with [Q] / [C-c C-k].\n\n"
+		    (cl-case org-log-note-purpose
+		     (clock-out "stopped clock")
+		     (done  "closed todo item")
+		     (reschedule "rescheduling")
+		     (delschedule "no longer scheduled")
+		     (redeadline "changing deadline")
+		     (deldeadline "removing deadline")
+		     (refile "refiling")
+		     (note "this entry")
+		     (state
+		      (format "state change from \"%s\" to \"%s\""
+			      (or org-log-note-previous-state "")
+			      (or org-log-note-state "")))
+		     (t (error "This should not happen")))))
+    (when org-log-note-extra (insert org-log-note-extra))
+    (setq-local org-finish-function 'org-store-log-note)
+    (run-hooks 'org-log-buffer-setup-hook)))
+
+(advice-add 'org-add-log-note :override
+            #'circ/org-add-log-note)
+#+end_src
 ** Fix M-S-j/k when changing timestamps on newly opened buffer
 #+begin_src emacs-lisp
 (add-hook 'org-mode-hook 'evil-normalize-keymaps)
 #+end_src
+** Set q and Q keys on org add note
+#+begin_src emacs-lisp
+(defun circ/org-note-set-evil-quit-keys ()
+  (interactive)
+  (evil-local-set-key 'normal "q" 'org-ctrl-c-ctrl-c)
+  (evil-local-set-key 'normal "Q" 'org-kill-note-or-show-branches))
+
+(add-hook 'org-log-buffer-setup-hook 'circ/org-note-set-evil-quit-keys)
+#+end_src
 * Mode Line
 #+BEGIN_SRC emacs-lisp
+(circ/log-message "Setting up mode line")
 (column-number-mode 1) ; show column number
 (set-face-attribute 'mode-line nil ; Set active mode line colour
                     :foreground "white"
@@ -2252,6 +2333,28 @@ I want certain windows to have fixed width because they open in a side window.
 
 (add-hook 'help-mode-hook 'circ/set-fixed-window-size-width)
 #+end_src
+** Open in openscad
+#+begin_src emacs-lisp
+(defun circ/open-in-openscad ()
+  (interactive)
+  (start-process "openscad" nil "openscad" buffer-file-name))
+#+end_src
+** Org toggle pinned
+#+begin_src emacs-lisp
+(defun circ/org-toggle-pinned-property ()
+  (interactive)
+  (save-excursion
+    (org-back-to-heading)
+    (if (org-entry-get nil "Pinned")
+        (progn
+          (org-delete-property "Pinned")
+          (org-toggle-tag "PINNED" 'off)
+          (message "Entry unpinned"))
+      (progn
+        (org-entry-put nil "Pinned" "t")
+        (org-toggle-tag "PINNED" 'on)
+        (message "Entry pinned")))))
+#+end_src
 * Local variables
 ** Safe Local Eval Aliases
 #+BEGIN_SRC emacs-lisp
@@ -2580,8 +2683,21 @@ I want relative numbers to display when in evil operator mode.
 #+END_SRC
 
 ** term mode
-Set colours to be more readable
+*** Settings
+#+begin_src emacs-lisp
+(setq term-suppress-hard-newline t)
+(setq term-prompt-regexp "^[0-9][0-9]:[0-9][0-9]:[0-9][0-9] .* >")
+#+end_src
 
+*** Evil keys
+#+begin_src emacs-lisp
+(evil-define-key 'normal 'term-mode-map
+  "[[" 'term-previous-prompt
+  "]]" 'term-next-prompt
+)
+#+end_src
+
+*** Set colours to be more readable
 #+BEGIN_SRC emacs-lisp
 (with-eval-after-load 'term
   (set-face-attribute 'term-color-green   nil :foreground "#55ff55")
@@ -2592,7 +2708,7 @@ Set colours to be more readable
   (set-face-attribute 'term-color-yellow  nil :foreground "#ffff55"))
 #+END_SRC
 
-Disable line number mode for term mode.
+*** Disable line number mode for term mode.
 Requires this hacky double add hook thing because the
 global-nlinum-relative-mode hook is run after the term-mode-hook
 
@@ -2606,7 +2722,7 @@ global-nlinum-relative-mode hook is run after the term-mode-hook
 (add-hook 'term-mode-hook 'setup-term-mode)
 #+END_SRC
 
-Set normal / visual / operator mode to be line mode.
+*** Set normal / visual / operator mode to be line mode.
 Set insert mode to be char mode.
 
 =ignore-errors= added because this crashes term-mode from starting up.
@@ -2624,7 +2740,7 @@ I don't know why.
 (add-hook 'evil-insert-state-entry-hook 'term-mode-insert-switch)
 #+END_SRC
 
-Have the term buffer close automatically when the process has finished.
+*** Have the term buffer close automatically when the process has finished.
 
 Source: https://oremacs.com/2015/01/01/three-ansi-term-tips/
 
@@ -2870,8 +2986,13 @@ Completing read tag editing
 
 *** Setting entry faces for tags
 #+begin_src emacs-lisp
+(defface circ/elfeed-search-unread-title-face
+  '((t :weight bold))
+  "Face used in search mode for unread entry titles."
+  :group 'elfeed)
+
 (defface circ/elfeed-search-saved-face
-  '((t :foreground "#ffff99"))
+  '((t :background "#353500"))
   "Face for saved entries"
   :group 'elfeed)
 
@@ -2881,10 +3002,9 @@ Completing read tag editing
   :group 'elfeed)
 
 ;; Define faces for tagged entries. Earlier faces take priority.
-(setq elfeed-search-face-alist '((unread elfeed-search-unread-title-face)
+(setq elfeed-search-face-alist '((unread circ/elfeed-search-unread-title-face)
                                  (video circ/elfeed-search-video-face)
-                                 (saved circ/elfeed-search-saved-face)
-                                 ))
+                                 (saved circ/elfeed-search-saved-face)))
 #+end_src
 *** Evil Keybindings
 #+BEGIN_SRC emacs-lisp
@@ -3835,7 +3955,7 @@ Simply send M-f instead
 
 ** Unbinding Keys
 #+BEGIN_SRC emacs-lisp
-;(general-unbind 
+;(general-unbind
 ;  '(normal insert visual operator)
 ;  '(global-map org-mode-map evil-org-mode-map)
   ;"C-S-h"
@@ -3888,7 +4008,6 @@ Simply send M-f instead
 (circ/p1 "b y"  'circ/buffer-yank                     "yank buffer")
 (circ/p1 "b"    'nil                                  "buffers")
 (circ/p1 "c"    'delete-window                        "close window")
-(circ/p1 "c"    'ranger-disable                       "close ranger"                        'ranger-mode-map)
 (circ/p1 "d"    'circ/alias-erlang-find-tag           "goto definition"                     'erlang-mode-map)
 (circ/p1 "d"    'evil-goto-definition                 "goto definition")
 (circ/p1 "d"    'org-open-at-point                    "open link"                           'org-agenda-mode-map)
@@ -3911,7 +4030,6 @@ Simply send M-f instead
 (circ/p1 "e fr" 'fill-region                          "fill region")
 (circ/p1 "e i"  'erlang-indent-region                 "indent region"                       'erlang-mode-map)
 (circ/p1 "e j"  'erlang-generate-new-clause           "new clause"                          'erlang-mode-map)
-(circ/p1 "e l"  'org-insert-link                      "edit link"                           'org-mode-map)
 (circ/p1 "e s"  'nil                                  "surround")
 (circ/p1 "e s'" 'circ/surround-s-quote                "single quote '")
 (circ/p1 "e s(" 'circ/surround-parentheses            "parentheses ( )")
@@ -3929,7 +4047,6 @@ Simply send M-f instead
 (circ/p1 "e s}" 'circ/surround-braces                 "braces { }")
 (circ/p1 "e"    'nil                                  "edits")
 (circ/p1 "f b"  'ivy-switch-buffer                    "buffers")
-(circ/p1 "f d"  'dired-create-directory               "create directory"                    'ranger-mode-map)
 (circ/p1 "f f"  'counsel-find-file                    "find file")
 (circ/p1 "f h"  'org-html-export-to-html              "export to html"                      'org-mode-map)
 (circ/p1 "f r"  'counsel-recentf                      "find recent file")
@@ -3969,6 +4086,7 @@ Simply send M-f instead
 (circ/p1 "o m"  'mpccp                                "mpccp")
 (circ/p1 "o p"  'proced                               "proded")
 (circ/p1 "o r"  'circ/elfeed-load-and-open            "elfeed")
+(circ/p1 "o s"  'circ/open-in-openscad                "open in openscad"                    'scad-mode-map)
 (circ/p1 "o tc" 'circ/alias-clisp-shell               "clisp")
 (circ/p1 "o te" 'erlang-shell                         "erlang")
 (circ/p1 "o tp" 'circ/alias-python-shell              "python")
@@ -4016,7 +4134,6 @@ Simply send M-f instead
 (circ/p1 "t c"  'comment-line                         "toggle comment line")
 (circ/p1 "t f"  'font-lock-mode                       "toggle auto font formatting")
 (circ/p1 "t h"  'hl-line-mode                         "toggle highight line mode")
-(circ/p1 "t h"  'ranger-toggle-dotfiles               "toggle hidden"                       'ranger-mode-map)
 (circ/p1 "t h"  'dired-omit-mode                      "toggle hidden"                       'dired-mode-map)
 (circ/p1 "t i"  'org-toggle-inline-images             "toggle images"                       'org-mode-map)
 (circ/p1 "t l"  'nlinum-mode                          "toggle relative line numbers")
@@ -4144,6 +4261,9 @@ Simply send M-f instead
 (circ/p4 "p t"  'circ/org-agenda-set-tags             "set tags"                            'org-agenda-mode-map)
 (circ/p4 "p T"  'circ/org-agenda-clear-tags           "clear tags"                          'org-agenda-mode-map)
 (circ/p4 "p o"  'org-toggle-ordered-property          "toggle ordered"                      'org-mode-map)
+(circ/p4 "p i"  'circ/org-toggle-pinned-property      "toggle pinned"                       'org-mode-map)
+(circ/p4 "p n"  'org-add-note                         "add note"                            'org-mode-map)
+(circ/p4 "p n"  'org-agenda-add-note                  "add note"                            'org-agenda-mode-map)
 (circ/p4 "p"    'nil                                  "property"                            'org-mode-map)
 (circ/p4 "r"    'nil                                  "references"                          'org-mode-map)
 (circ/p4 "r f"  'circ/cortex/find-reference           "find reference")
@@ -4165,6 +4285,8 @@ Simply send M-f instead
 (circ/p4 "u"    'outline-up-heading                   "up heading")
 (circ/p4 "v c"  'circ/insert-created-timestamp        "created date"                        'org-mode-map)
 (circ/p4 "v d"  'org-time-stamp                       "time stamp"                          'org-mode-map)
+(circ/p4 "v n"  'org-add-note                         "add note"                            'org-mode-map)
+(circ/p4 "v l"  'org-insert-link                      "edit link"                           'org-mode-map)
 (circ/p4 "v p"  'counsel-yank-pop                     "paste selector")
 (circ/p4 "v t"  'circ/org-template-insert             "template"                            'org-mode-map)
 (circ/p4 "v"    'nil                                  "insert items"                        'org-mode-map)
@@ -4184,6 +4306,10 @@ Simply send M-f instead
   "<f3>" 'circ/alias-org-agenda-tasks
   "<f4>" 'circ/open-inbox
   "<f5>" 'circ/open-checklists
+)
+
+(general-define-key :keymaps 'override
+  "C-a" 'mark-whole-buffer
 )
 
 (evil-define-key '(normal visual) copy-buffer-mode-map
