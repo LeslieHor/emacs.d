@@ -1166,312 +1166,32 @@ Revert all the buffers in the current project.
   (interactive)
   (kill-buffer (current-buffer)))
 #+END_SRC
-** Cortex
+** References
 #+BEGIN_SRC emacs-lisp
-(defun circ/cortex/create-file (&optional initial-title)
-  "Create a new cortex file"
-  (interactive)
-  (let* ((title (read-string "Title: " initial-title))
-         (id (circ/cortex/create-new-file title)))
-    (find-file (circ/cortex/expand-filepath id))
-    (goto-char (point-max))))
-
-(defun circ/cortex/create-new-file (title)
-  (let ((new-id (circ/cortex/new-id)))
-    (circ/cortex/ensure-file new-id title)
-    new-id))
-
-(defun circ/cortex/get-ids ()
+(defun circ/pims/list-reference-files ()
   (mapcar (lambda (file)
-            (replace-regexp-in-string "\.org" "" file))
-          (directory-files circ/cortex/directory nil "^[0-9]*\.org$")))
-
-(defun circ/cortex/get-title ()
-  (let ((point-location (point)))
-    (goto-char (point-min))
-    (re-search-forward "\* \\(.*\\)")
-    (goto-char point-location)
-    (match-string 1)))
-
-(defun circ/cortex/get-entry ()
-  (let ((point-location (point)))
-    (goto-char (point-min))
-    (let ((entry (cond ((re-search-forward ":END: *\n" nil t)
-                        (buffer-substring (point) (point-max)))
-                       ((re-search-forward "\* .*\n" nil t)
-                        (buffer-substring (point) (point-max)))
-                       (t "ERROR PARSING ENTRY"))))
-      (goto-char point-location)
-      (replace-regexp-in-string "\\[cortex:[0-9]*\\]" "" entry))))
-
-(defun circ/cortex/get-file-previews()
-  (let ((ids (circ/cortex/get-ids)))
-    (mapcar (lambda (id)
-              (with-temp-buffer
-                (insert-file-contents (circ/cortex/expand-filepath id))
-                (concat (propertize id 'face '(:foreground "grey")) ": "
-                        (propertize (circ/cortex/get-title) 'face '(:foreground "green")) "\n"
-                        (circ/cortex/get-entry))))
-            ids)))
-
-(defun circ/cortex/expand-filepath (id)
-  "Given an id, create the full cortex filepath"
-  (concat (file-name-as-directory circ/cortex/directory)
-          id ".org"))
-
-(defun circ/cortex/extract-id (filepath)
-  "Given a cortex filepath, return the id"
-  (let ((filename (file-name-nondirectory filepath)))
-    (string-match "^\\([0-9]*\\)\.org" filename)
-    (match-string 1 filename)))
-
-(defun circ/cortex/ensure-file (id &optional descr)
-  (let ((description (cond (descr descr)
-                           (t "")))
-        (abs-filepath (circ/cortex/expand-filepath id)))
-    (unless (file-exists-p (circ/cortex/expand-filepath id))
-      (write-region (format "* %s\n" (capitalize description)) nil
-                    abs-filepath))))
-
-(defun circ/cortex/format-link (id descr)
-  (format "[[cortex:%s][%s]]" id descr))
-
-(defun circ/cortex/add-backlink (id)
-  "Adds a backlink to the slide ID that links to the currently visited slide"
-  (let ((current-file (buffer-file-name))
-        (current-heading (org-get-heading t t))
-        (abs-filepath (circ/cortex/expand-filepath id)))
-    (with-temp-buffer
-      (let ((file-buffer (get-file-buffer abs-filepath)))
-        (insert-file-contents abs-filepath)
-        (org-mode)
-        (org-entry-put nil "Backlinks"
-                       ;; Ensure we do not add a duplicate backlink
-                       (let* ((backlinks (org-entry-get nil "Backlinks"))
-                              (link (circ/cortex/format-link
-                                     (circ/cortex/extract-id current-file)
-                                     current-heading)))
-                         (cond ((string-match-p (regexp-quote link)
-                                                (cond (backlinks backlinks)
-                                                      (t "")))
-                                backlinks)
-                               (t
-                                (cond (backlinks (concat backlinks " " link))
-                                      (t link))))))
-        (write-file abs-filepath)))))
-
-(defun circ/cortex/new-id ()
-  (format-time-string "%Y%m%d%H%M%S"))
-
-(defun circ/cortex/interactive-slide-picker (&optional initial-input)
-  "Prompts user to interactively pick a slide and returns the id and the
-description in a cons.
-
-(id . description)
-
-If no slide is found, a new id is generated and the search term is returned as
-the description"
-  (let* ((result (completing-read "Cortex link (C-M-j to done): "
-                                  (circ/cortex/get-file-previews)
-                                  nil nil
-                                  initial-input))
-         (id (progn
-               (string-match "^\\([0-9]*\\):" result)
-               (match-string 1 result)))
-         (description (cond
-                       (id
-                        (string-match "^[0-9]*: \\(.*\\)" result)
-                        (match-string 1 result))
-                       (t
-                        (string-match "^\\(.*\\)" result)
-                        (match-string 1 result)))))
-
-    ;; Remove any font properties
-    (set-text-properties 0 (length id) nil id)
-    (set-text-properties 0 (length description) nil description)
-    (message "ID: %s" id)
-    (message "Des: %s" description)
-
-    (cons (cond ((file-exists-p (circ/cortex/expand-filepath id)) id)
-                (t (circ/cortex/new-id)))
-          description)))
-
-(defun circ/cortex/add-link (id description)
-  "Create a cortex link. If a region is highlighted, it is replaced with the
-generated link"
-  (when (region-active-p)
-    (delete-region (region-beginning) (region-end)))
-  (insert (circ/cortex/format-link id description)))
-
-(defun circ/cortex/link (start end)
-  "Create a cortex link.
-
-When a region is highlighted, the initial search input is set to the highlighted
-text, and the initial default description is also set to the highlighted text.
-
-When no region is highlighed, the initial search input and initial description
-are blank.
-
-If the link given does not exist, the file is created with an initial heading
-of the inputted description.
-
-The targeted file is assigned a backlink for the original file the link was
-created from."
-  (interactive "r")
-  (let* ((initial-input (when (region-active-p)
-                               (circ/strip-font-properties
-                                (buffer-substring start end))))
-         (id-desc (circ/cortex/interactive-slide-picker initial-input))
-         (id (car id-desc))
-         (desc (cdr id-desc))
-         (description (read-string "Description: " (cond (initial-input initial-input)
-                                                         (t desc)))))
-
-    ;; Firstly, ensure that a target file exists with the proper heading
-    (circ/cortex/ensure-file id desc)
-    (circ/cortex/add-backlink id)
-    (circ/cortex/add-link id description)
-    (save-buffer)))
-
-(defun circ/cortex/get-all-links ()
-  "Returns all cortex links in the current file in a list of conses."
-  (let ((point-location (point))) ; Save pointer to restore later
-    ;; Go to the beginning of the buffer
-    (goto-char (point-min))
-    ;; Move past the properties (if any)
-    (re-search-forward (regexp-quote ":END:") nil t)
-    (let (links)
-      ;; Generate list of links in current buffer
-      (while (re-search-forward "\\[\\[cortex:\\([0-9]*\\)\\]\\[\\(.*?\\)\\]\\]"
-                                nil t)
-        (let ((id (match-string 1))
-              (desc (match-string 2)))
-          (set-text-properties 0 (length id) nil id)
-          (set-text-properties 0 (length desc) nil desc)
-          (push (cons id desc) links)))
-      (goto-char point-location)
-      (cl-remove-duplicates links :test #'equal))))
-
-(defun circ/cortex/update-backlink (slide-id link-id old-desc new-desc)
-  "For the slide of `slide-id`, update the backlink of `link-id` to update the
-description"
-  (message "Updating cortex slide %s" slide-id)
-  (with-temp-buffer
-    (let ((filepath (circ/cortex/expand-filepath slide-id)))
-      (insert-file-contents filepath)
-      (org-mode)
-      (let ((backlinks (org-entry-get nil "Backlinks")))
-        (org-entry-put nil "Backlinks"
-                       (replace-regexp-in-string
-                        (regexp-quote (circ/cortex/format-link link-id old-desc))
-                        (circ/cortex/format-link link-id new-desc)
-                        backlinks)))
-      (write-file filepath))))
-
-(defun circ/cortex/rename-current-title (new-title)
-  "Renames the title in the current slide"
-  (let ((old-title (org-get-heading t t))
-        (point-location (point))) ; Restore pointer later
-    (goto-char (point-min))
-    (re-search-forward (regexp-quote (concat "* " old-title)))
-    (replace-match (concat "* " new-title))
-    (goto-char (- point-location (- (length old-title) (length new-title)))))
-  (save-buffer))
-
-(defun circ/cortex/get-current-id ()
-  (circ/cortex/extract-id (buffer-file-name)))
-
-(defun circ/cortex/rename-slide ()
-  "Rename the current slide and update the backlinks for any linked slides"
-  (interactive)
-  (let* ((current-id (circ/cortex/get-current-id))
-         (old-title (org-get-heading t t))
-         (new-title (read-string "New title: " old-title)))
-    (message "Changing %s to %s" old-title new-title)
-    (circ/cortex/rename-current-title new-title)
-    (dolist (link (circ/cortex/get-all-links))
-      (let ((link-id (car link)))
-        (circ/cortex/update-backlink link-id current-id
-                                       old-title new-title)))))
-
-(defun circ/cortex/search-slides ()
-  "Search all slides and open"
-  (interactive)
-  (let* ((search-term (circ/cortex/interactive-slide-picker))
-         (filepath (circ/cortex/expand-filepath (car search-term))))
-    (cond ((not (file-exists-p filepath))
-           (message "Slide does not exist. Creating")
-           (circ/cortex/create-file (cdr search-term)))
-          (t
-           (find-file filepath)))))
-
-(defun circ/cortex/continue ()
-  "Creates a continue link at the bottom of the current slide.
-
-If the current slide has no index, set the index property to 1.
-
-The new slide is created with an incremented index."
-  (interactive)
-  (let* ((point-location (point))
-         (buffer-size (point-max))
-         (current-title (org-get-heading t t))
-         (org-index (org-entry-get nil "Index"))
-         (current-index (cond (org-index org-index) (t "1")))
-         (new-index (number-to-string (+ 1 (string-to-number current-index))))
-         (new-id (circ/cortex/new-id))
-         (new-title (read-string "New title: " current-title)))
-    (goto-char (point-max))
-    (insert "\n")
-    (circ/cortex/ensure-file new-id new-title)
-    (circ/cortex/add-backlink new-id)
-    (circ/cortex/add-link new-id "Continued...")
-
-    ;; If the continued slide has the same title, increment indexes
-    (when (equal current-title new-title)
-      (message "Indexing slides")
-      (unless (org-entry-get nil "Index")
-        (org-entry-put nil "Index" current-index))
-      (circ/cortex/add-index new-id new-index))
-
-    (goto-char (+ point-location (- (point-max) buffer-size)))
-    (save-buffer)
-    (find-file (circ/cortex/expand-filepath new-id))
-    (goto-char (point-max))
-    (message "%s continued..." current-title)))
-
-(defun circ/cortex/add-index (id index)
-  "Add index to given slide id"
-  (with-temp-buffer
-    (let ((abs-filepath (circ/cortex/expand-filepath id)))
-      (insert-file-contents abs-filepath)
-      (org-mode)
-      (org-entry-put nil "Index" index)
-      (write-file abs-filepath))))
-
-(defun circ/cortex/list-reference-files ()
-  (mapcar (lambda (file)
-            (replace-regexp-in-string (regexp-quote (expand-file-name circ/cortex/reference-directory))
+            (replace-regexp-in-string (regexp-quote (expand-file-name circ/pims/reference-directory))
                                       "" file))
-          (directory-files-recursively circ/cortex/reference-directory "")))
+          (directory-files-recursively circ/pims/reference-directory "")))
 
-(defun circ/cortex/reference-completing-read (&optional initial-input)
+(defun circ/pims/reference-completing-read (&optional initial-input)
   (completing-read "Reference: "
-                   (circ/cortex/list-reference-files)
+                   (circ/pims/list-reference-files)
                    nil nil initial-input))
 
-(defun circ/cortex/find-reference ()
+(defun circ/pims/find-reference ()
   (interactive)
-  (let* ((filepath (circ/cortex/reference-completing-read))
-         (full-filepath (concat (expand-file-name circ/cortex/reference-directory) filepath)))
+  (let* ((filepath (circ/pims/reference-completing-read))
+         (full-filepath (concat (expand-file-name circ/pims/reference-directory) filepath)))
     (circ/ensure-file full-filepath)
     (find-file full-filepath)))
 
-(defun circ/cortex/insert-reference-link ()
+(defun circ/pims/insert-reference-link ()
   (interactive)
-  (let* ((filepath (circ/cortex/reference-completing-read))
+  (let* ((filepath (circ/pims/reference-completing-read))
          (description (read-string "Description: " (concat "Ref: " filepath)))
          (org-link (concat "ref:" filepath))
-         (full-filepath (concat (expand-file-name circ/cortex/reference-directory) filepath)))
+         (full-filepath (concat (expand-file-name circ/pims/reference-directory) filepath)))
     (circ/ensure-file full-filepath)
     (insert (org-make-link-string org-link description))))
 
@@ -1483,24 +1203,24 @@ The new slide is created with an incremented index."
                                 "_" " " (file-name-base filepath))))
                   nil full-filepath)))
 
-(defun circ/cortex/reference-directories ()
+(defun circ/pims/reference-directories ()
   (seq-uniq
    (mapcar (lambda (f)
              (replace-regexp-in-string "/$" ""
                                        (file-name-directory f)))
-           (circ/cortex/list-reference-files))))
+           (circ/pims/list-reference-files))))
 
 
-(defun circ/cortex/file-web-page-archive ()
+(defun circ/pims/file-web-page-archive ()
   (interactive)
   (dolist (file (directory-files (expand-file-name "~/Downloads/web_page_archive")
                                  t directory-files-no-dot-files-regexp))
     (let* ((filename (concat (file-name-base file)
                              (file-name-extension file t)))
            (directory (completing-read (format "File %s to: " filename)
-                                       (circ/cortex/reference-directories)))
+                                       (circ/pims/reference-directories)))
            (target-dir (file-name-as-directory
-                          (concat (expand-file-name circ/cortex/reference-directory)
+                          (concat (expand-file-name circ/pims/reference-directory)
                                   directory)))
            (target-path (concat target-dir filename)))
       (message "Moving %s to %s" file target-path)
@@ -2035,12 +1755,16 @@ buffer, display it in another window."
                     curr-tags
                     :test 'string=))
          (completion-list (append
-                           (mapcar (lambda (tag)
-                                     (concat "+" tag))
-                                   new-tags)
-                           (mapcar (lambda (tag)
-                                     (concat "-" tag))
-                                   curr-tags)))
+                           '("<DONE>")
+                           (sort (mapcar (lambda (tag)
+                                           (concat "+" tag))
+                                         new-tags)
+                                 'string<)
+                           (sort (mapcar (lambda (tag)
+                                           (concat "-" tag))
+                                         curr-tags)
+                                 'string<)))
+         (ivy-sort-functions-alist nil)
          (tag-change (completing-read "Tag: " completion-list))
          (remove (string= "-" (substring tag-change 0 1)))
          (tag (if (or (string= "-" (substring tag-change 0 1))
@@ -2051,9 +1775,11 @@ buffer, display it in another window."
                                (remove tag curr-tags)
                              (cons tag curr-tags))
                         :test 'string=)))
-    (org-set-tags-to tags)
-    (org--align-tags-here org-tags-column)
-    (circ/org-set-tags)))
+    (if (not (string= tag-change "<DONE>"))
+        (progn
+          (org-set-tags-to tags)
+          (org--align-tags-here org-tags-column)
+          (circ/org-set-tags)))))
 
 (defun circ/org-clear-tags ()
   (interactive)
@@ -2777,7 +2503,7 @@ Open man pages in current window
 (add-to-list 'dashboard-persistent-links "file:~/.emacs.d/configuration.org")
 (add-to-list 'dashboard-persistent-links "file:~/.emacs.d/settings.org")
 (add-to-list 'dashboard-persistent-links "file:~/.emacs.d/personalsettings.org")
-(add-to-list 'dashboard-persistent-links "file:~/pims/cortex/reference/books/read_books_list.org")
+(add-to-list 'dashboard-persistent-links "file:~/pims/reference/books/read_books_list.org")
 (add-to-list 'dashboard-persistent-links "url:http://duckduckgo.com")
 (setq initial-buffer-choice 'dashboard)
 (add-hook 'dashboard-mode-hook 'circ/disable-evil-quickscope-mode)
@@ -2855,34 +2581,44 @@ To read rss feed links from an org file:
 #+END_SRC
 *** Open in custom application
  #+BEGIN_SRC emacs-lisp
- (defun circ/eww-readable (url &rest args)
-   (interactive)
-   (eww url)
-   (add-hook 'eww-after-render-hook 'eww-readable nil t))
+  (defun circ/eww-readable (url &rest args)
+    (interactive)
+    (eww url)
+    (add-hook 'eww-after-render-hook 'eww-readable nil t))
 
- (defun circ/open-in-mpv (url &rest args)
-   (message "Opening in mpv: %s" url)
-   (call-process "mpv" nil 0 nil url))
+  (defun circ/open-in-mpv (url &rest args)
+    (message "Opening in mpv: %s" url)
+    (call-process "mpv" nil 0 nil url))
 
- (defun circ/elfeed-show-open-in-mpv ()
-   (interactive)
-   (let ((browse-url-browser-function 'circ/open-in-mpv)) (elfeed-show-visit)))
- (defun circ/elfeed-show-open-eww-readable()
-   (interactive)
-   (let ((browse-url-browser-function 'circ/eww-readable)) (elfeed-show-visit)))
- (defun circ/elfeed-show-open-eww()
-   (interactive)
-   (let ((browse-url-browser-function 'eww-browse-url)) (elfeed-show-visit)))
+  (defun circ/elfeed-show-open-in-mpv ()
+    (interactive)
+    (let ((browse-url-browser-function 'circ/open-in-mpv)) (elfeed-show-visit)))
+  (defun circ/elfeed-show-open-eww-readable()
+    (interactive)
+    (let ((browse-url-browser-function 'circ/eww-readable)) (elfeed-show-visit)))
+  (defun circ/elfeed-show-open-eww()
+    (interactive)
+    (let ((browse-url-browser-function 'eww-browse-url)) (elfeed-show-visit)))
 
- (defun circ/elfeed-search-open-in-mpv ()
+  (defun circ/elfeed-search-open-in-mpv ()
+    (interactive)
+    (let ((elfeed-search-remain-on-entry t)
+          (browse-url-browser-function 'circ/open-in-mpv))
+      (elfeed-search-browse-url)))
+  (defun circ/elfeed-search-open-eww-readable()
+    (interactive)
+    (let ((elfeed-search-remain-on-entry t)
+          (browse-url-browser-function 'circ/eww-readable))
+      (elfeed-search-browse-url)))
+  (defun circ/elfeed--search-open-eww()
+    (interactive)
+    (let ((elfeed-search-remain-on-entry t)
+          (browse-url-browser-function 'eww-browse-url))
+      (elfeed-search-browse-url)))
+ (defun circ/elfeed-search-browse-url ()
    (interactive)
-   (let ((browse-url-browser-function 'circ/open-in-mpv)) (elfeed-search-browse-url)))
- (defun circ/elfeed-search-open-eww-readable()
-   (interactive)
-   (let ((browse-url-browser-function 'circ/eww-readable)) (elfeed-search-browse-url)))
- (defun circ/elfeed--search-open-eww()
-   (interactive)
-   (let ((browse-url-browser-function 'eww-browse-url)) (elfeed-search-browse-url)))
+   (let ((elfeed-search-remain-on-entry t))
+     (elfeed-search-browse-url)))
 #+END_SRC
 
 *** Saved tags
@@ -3012,7 +2748,7 @@ Completing read tag editing
 (evil-define-key 'motion elfeed-search-mode-map
   (kbd "RET") 'elfeed-search-show-entry
   (kbd "S-<return>") 'elfeed-search-browse-url
-  "b" 'elfeed-search-browse-url
+  "b" 'circ/elfeed-search-browse-url
   "y" 'elfeed-search-yank
   (kbd "SPC") 'scroll-up-command
   (kbd "S-SPC") 'scroll-down-command
@@ -4230,12 +3966,6 @@ Simply send M-f instead
 (circ/p4 "b t"  'circ/open-todo                       "todo")
 (circ/p4 "b vc" 'org-columns                          "columns"                             'org-mode-map)
 (circ/p4 "b"    'nil                                  "buffer switching")
-(circ/p4 "c c"  'circ/cortex/continue                 "continue in another slide"           'org-mode-map)
-(circ/p4 "c f"  'circ/cortex/search-slides            "search slides")
-(circ/p4 "c l"  'circ/cortex/link                     "cortex link"                         'org-mode-map)
-(circ/p4 "c n"  'circ/cortex/create-file              "create cortex file")
-(circ/p4 "c r"  'circ/cortex/rename-slide             "rename slide"                        'org-mode-map)
-(circ/p4 "c"    'nil                                  "cortex"                              'org-mode-map)
 (circ/p4 "e"    'nil                                  "org edit"                            'org-mode-map)
 (circ/p4 "e s"  'circ/org-sort-headlines              "sort headlines"                      'org-mode-map)
 (circ/p4 "e c"  'org-clone-subtree-with-time-shift    "clone subtree with time shirt"       'org-mode-map)
@@ -4243,6 +3973,7 @@ Simply send M-f instead
 (circ/p4 "f p"  'circ/pims/set-project                "set as project"                      'org-mode-map)
 (circ/p4 "f r"  'org-refile                           "org refile"                          'org-mode-map)
 (circ/p4 "f t"  'circ/pims/set-todo                   "set as todo"                         'org-mode-map)
+(circ/p4 "f d"  'circ/pims/refile-to-tickler          "refile to tickler"                   'org-mode-map)
 (circ/p4 "f"    'nil                                  "filing"                              'org-mode-map)
 (circ/p4 "h"    'outline-backward-same-level          "back same level")
 (circ/p4 "i"    'org-clock-in                         "clock in"                            'org-mode-map)
@@ -4266,8 +3997,8 @@ Simply send M-f instead
 (circ/p4 "p n"  'org-agenda-add-note                  "add note"                            'org-agenda-mode-map)
 (circ/p4 "p"    'nil                                  "property"                            'org-mode-map)
 (circ/p4 "r"    'nil                                  "references"                          'org-mode-map)
-(circ/p4 "r f"  'circ/cortex/find-reference           "find reference")
-(circ/p4 "r l"  'circ/cortex/insert-reference-link    "insert reference link"               'org-mode-map)
+(circ/p4 "r f"  'circ/pims/find-reference             "find reference")
+(circ/p4 "r l"  'circ/pims/insert-reference-link      "insert reference link"               'org-mode-map)
 (circ/p4 "t c"  'org-table-create-or-convert-from-region "create / convert table"           'org-mode-map)
 (circ/p4 "t d"  'nil                                  "delete"                              'org-mode-map)
 (circ/p4 "t dd" 'org-cut-special                      "delete cell"                         'org-mode-map)
@@ -4330,11 +4061,13 @@ Simply send M-f instead
 
 (general-define-key
  :keymaps 'ivy-minibuffer-map
- "<escape>"  'minibuffer-keyboard-quit)
+ "<escape>"  'minibuffer-keyboard-quit
+  "C-l" 'delete-minibuffer-contents)
 
 (general-define-key
  :keymaps 'swiper-map
- "<escape>"  'minibuffer-keyboard-quit)
+ "<escape>"  'minibuffer-keyboard-quit
+  "C-l" 'delete-minibuffer-contents)
 #+END_SRC
 
 *** Help

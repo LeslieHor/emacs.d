@@ -3,7 +3,7 @@
 
 Settings that only work on my home computer. They will probably break other setups.
 
-* Org
+* Review: Org
 #+BEGIN_SRC emacs-lisp
 (setq org-enforce-todo-dependencies t)
 (setq org-track-ordered-property-with-tag t)
@@ -31,15 +31,11 @@ Settings that only work on my home computer. They will probably break other setu
 (setq org-agenda-start-on-weekday nil)
 (setq org-agenda-span 14)
 
-;; Cortex
-(setq circ/cortex/directory "~/pims/cortex")
-(setq circ/cortex/reference-directory "~/pims/cortex/reference/")
-(setq circ/cortex/max-file-preview 200)
+(setq circ/pims/reference-directory "~/pims/reference/")
 
 ;; Link abbreviations
 (setq org-link-abbrev-alist
-      '(("cortex"  . "file:~/pims/cortex/%s.org")
-        ("ref"     . "file:~/pims/cortex/reference/%s")
+      '(("ref"     . "file:~/pims/reference/%s")
         ("pims"    . "file:~/pims/%s")
         ("l.wiki"  . "http://billy/search?content=wikipedia_en_all_maxi&pattern=%s")
         ("l.emacs" . "http://billy/search?content=emacs.stackexchange.com_en_all&patten=%s")
@@ -48,7 +44,7 @@ Settings that only work on my home computer. They will probably break other setu
 
 
 ;; Set refile targets
-(setq circ/org-reference-directory "~/pims/cortex/reference")
+(setq circ/org-reference-directory "~/pims/reference")
 (setq org-refile-allow-creating-parent-nodes 'confirm)
 (setq org-refile-use-outline-path 'file)
 (setq org-refile-targets '(("~/pims/todo.org"     :maxlevel . 99)
@@ -122,6 +118,15 @@ Settings that only work on my home computer. They will probably break other setu
 ;; Stuck projects search
 (setq org-stuck-projects '("+PROJ/-DONE-CANCELLED" ("TODO" "WAIT" "INPROGRESS") nil ""))
 
+(defun circ/org-refile-target (file headline)
+  (let* ((pos (with-current-buffer (or (get-buffer file)
+                                       (find-file-noselect file))
+                (or (org-find-exact-headline-in-buffer headline)
+                    (error "Can't find headline `%s'" headline))))
+         (filepath (buffer-file-name (marker-buffer pos)))
+         (rfloc (list headline filepath nil pos)))
+    (org-refile nil nil rfloc)))
+
 ;; Automate filing process
 (defun circ/pims/set-todo ()
   "Convert item under point into todo item"
@@ -149,4 +154,13 @@ Settings that only work on my home computer. They will probably break other setu
     (circ/org-set-tags)
     (org-refile nil nil '(nil "~/pims/todo.org" nil nil))
     (org-save-all-org-buffers)))
+
+(defun circ/pims/refile-to-tickler ()
+  "Delay an inbox item until later"
+  (interactive)
+  (let ((headline (org-get-heading t t t t)))
+    (org-edit-headline (concat "Review: " headline))
+    (org-todo "TODO")
+    (call-interactively 'org-schedule)
+    (circ/org-refile-target "~/pims/calendar.org" "Tickler")))
 #+END_SRC
