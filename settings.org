@@ -3,7 +3,7 @@
 
 Settings that only work on my home computer. They will probably break other setups.
 
-* Review: Org
+* Org
 #+BEGIN_SRC emacs-lisp
 (setq org-enforce-todo-dependencies t)
 (setq org-track-ordered-property-with-tag t)

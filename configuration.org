@@ -2081,6 +2081,20 @@ I want certain windows to have fixed width because they open in a side window.
         (org-toggle-tag "PINNED" 'on)
         (message "Entry pinned")))))
 #+end_src
+** Split window functions
+#+begin_src emacs-lisp
+(defun circ/split-window-right ()
+  (interactive)
+  (let ((win (split-window-right)))
+    (previous-buffer)
+    (select-window win)))
+
+(defun circ/split-window-below ()
+  (interactive)
+  (let ((win (split-window-below)))
+    (previous-buffer)
+    (select-window win)))
+#+end_src
 * Local variables
 ** Safe Local Eval Aliases
 #+BEGIN_SRC emacs-lisp
@@ -3894,10 +3908,10 @@ Simply send M-f instead
 (circ/p1 "v mp" 'smerge-prev                          "prev merge conflict"                 'smerge-mode-map)
 (circ/p1 "v"    'nil                                  "version control")
 (circ/p1 "w e"  'balance-windows                      "balance windows")
-(circ/p1 "w h"  'split-window-right                   "split horizontal")
+(circ/p1 "w h"  'circ/split-window-right              "split horizontal")
 (circ/p1 "w o"  'delete-other-windows                 "delete other windows")
 (circ/p1 "w r"  'revert-buffer                        "reload from disk")
-(circ/p1 "w v"  'split-window-below                   "split vertical")
+(circ/p1 "w v"  'circ/split-window-below              "split vertical")
 (circ/p1 "w z"  'maximize-window                      "maximize")
 (circ/p1 "w"    'nil                                  "windows")
 (circ/p1 "x S"  'circ/alias-sh-cmd-whole-buffer-split-lines "sh cmd whole buffer split lines")

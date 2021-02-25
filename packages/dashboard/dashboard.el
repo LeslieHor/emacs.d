@@ -77,6 +77,7 @@
     (kbd "l") 'circ/open-checklists
     (kbd "r") 'circ/elfeed-load-and-open
     (kbd "m") 'mpccp
+    (kbd "c") 'copy-buffer
     )
   )
 (evil-dashboard-set-keys)
@@ -165,7 +166,7 @@ will call `find-file' with \"~/.emacs.d/init.el\" as the arg")
               "\n"
               (propertize "Shortcuts\n" 'face 'dashboard-header-2)
               " [a] Agenda          [t] Tasks           [i] Inbox           [l] Checklists\n"
-              " [r] Elfeed          [m] Mpccp           \n"
+              " [r] Elfeed          [m] Mpccp           [c] Copy buffer\n"
               "\n"
               (propertize "Persistent Links\n" 'face 'dashboard-header-2)
               (dashboard-print-links-list dashboard-persistent-links)
