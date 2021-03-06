@@ -2095,6 +2095,22 @@ I want certain windows to have fixed width because they open in a side window.
     (previous-buffer)
     (select-window win)))
 #+end_src
+** Maximise windows
+#+begin_src emacs-lisp
+(defun circ/maximise-window-vertical (&optional window)
+  (interactive)
+  (setq window (window-normalize-window window))
+  (window-resize
+   window (window-max-delta window nil nil nil nil nil window-resize-pixelwise)
+   nil nil window-resize-pixelwise))
+
+(defun circ/maximise-window-horizontal (&optional window)
+  (interactive)
+  (setq window (window-normalize-window window))
+  (window-resize
+   window (window-max-delta window t nil nil nil nil window-resize-pixelwise)
+   t nil window-resize-pixelwise))
+#+end_src
 * Local variables
 ** Safe Local Eval Aliases
 #+BEGIN_SRC emacs-lisp
@@ -2624,7 +2640,7 @@ To read rss feed links from an org file:
     (let ((elfeed-search-remain-on-entry t)
           (browse-url-browser-function 'circ/eww-readable))
       (elfeed-search-browse-url)))
-  (defun circ/elfeed--search-open-eww()
+  (defun circ/elfeed-search-open-eww()
     (interactive)
     (let ((elfeed-search-remain-on-entry t)
           (browse-url-browser-function 'eww-browse-url))
@@ -3913,6 +3929,8 @@ Simply send M-f instead
 (circ/p1 "w r"  'revert-buffer                        "reload from disk")
 (circ/p1 "w v"  'circ/split-window-below              "split vertical")
 (circ/p1 "w z"  'maximize-window                      "maximize")
+(circ/p1 "w H"  'circ/maximise-window-horizontal      "maximize horizontal")
+(circ/p1 "w V"  'circ/maximise-window-vertical        "maximize vertical")
 (circ/p1 "w"    'nil                                  "windows")
 (circ/p1 "x S"  'circ/alias-sh-cmd-whole-buffer-split-lines "sh cmd whole buffer split lines")
 (circ/p1 "x X"  'circ/alias-sh-cmd-whole-buffer       "sh cmd whole buffer")
@@ -3956,8 +3974,12 @@ Simply send M-f instead
 (circ/p3 "f q"  'delete-frame                         "close frame")
 (circ/p3 "f o"  'pop-out-config-to-new-frame          "pop out to frame")
 (circ/p3 "f"    'nil                                  "frames")
-(circ/p3 "h"    'evil-jump-backward                   "jump back")
-(circ/p3 "l"    'evil-jump-forward                    "jump forward")
+(circ/p3 "h"    'circ/alias-cast-buffer-left          "cast buffer left")
+(circ/p3 "j"    'circ/alias-cast-buffer-down          "cast buffer down")
+(circ/p3 "k"    'circ/alias-cast-buffer-up            "cast buffer up")
+(circ/p3 "l"    'circ/alias-cast-buffer-right         "cast buffer right")
+(circ/p3 "p"    'evil-jump-backward                   "jump back")
+(circ/p3 "n"    'evil-jump-forward                    "jump forward")
 #+END_SRC
 
 ** P4
