@@ -3964,6 +3964,10 @@ Simply send M-f instead
 (circ/p2 "p p"  'circ/pass/copy-password              "copy password")
 (circ/p2 "p g"  'circ/pass/generate-entry             "generate")
 (circ/p2 "p o"  'circ/pass/open-entry                 "open entry")
+(circ/p2 "e"    'balance-windows                      "balance window")
+(circ/p2 "z"    'maximize-window                      "maximise window")
+(circ/p2 "t"    'circ/maximise-window-horizontal      "maximise window horizontal")
+(circ/p2 "v"    'circ/maximise-window-vertical        "maximise window vertical")
 #+END_SRC
 
 ** P3
