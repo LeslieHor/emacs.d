@@ -152,6 +152,9 @@ will call `find-file' with \"~/.emacs.d/init.el\" as the arg")
          (fun  (cdr (assoc abbrev dashboard-link-abbrev-alist))))
     (funcall fun location)))
 
+(defun dashboard-read-bookmarks ()
+  )
+
 (defun dashboard (&optional ignore-auto noconfirm)
   (interactive)
   (let ((buf (get-buffer-create "*dashboard*")))

@@ -2111,6 +2111,24 @@ I want certain windows to have fixed width because they open in a side window.
    window (window-max-delta window t nil nil nil nil window-resize-pixelwise)
    t nil window-resize-pixelwise))
 #+end_src
+** Minimize windows
+#+begin_src emacs-lisp
+(defun circ/minimise-window-vertical (&optional window)
+  (interactive)
+  (setq window (window-normalize-window window))
+  (window-resize
+   window
+   (- (window-min-delta window nil nil nil nil nil window-resize-pixelwise))
+   nil nil window-resize-pixelwise))
+
+(defun circ/minimise-window-horizontal (&optional window)
+  (interactive)
+  (setq window (window-normalize-window window))
+  (window-resize
+   window
+   (- (window-min-delta window t nil nil nil nil window-resize-pixelwise))
+   t nil window-resize-pixelwise))
+#+end_src
 * Local variables
 ** Safe Local Eval Aliases
 #+BEGIN_SRC emacs-lisp
@@ -3965,9 +3983,12 @@ Simply send M-f instead
 (circ/p2 "p g"  'circ/pass/generate-entry             "generate")
 (circ/p2 "p o"  'circ/pass/open-entry                 "open entry")
 (circ/p2 "e"    'balance-windows                      "balance window")
-(circ/p2 "z"    'maximize-window                      "maximise window")
-(circ/p2 "t"    'circ/maximise-window-horizontal      "maximise window horizontal")
-(circ/p2 "v"    'circ/maximise-window-vertical        "maximise window vertical")
+(circ/p2 "z z"  'maximize-window                      "maximise window")
+(circ/p2 "z h"  'circ/maximise-window-horizontal      "maximise window horizontal")
+(circ/p2 "z v"  'circ/maximise-window-vertical        "maximise window vertical")
+(circ/p2 "c c"  'minimize-window                      "minimise window")
+(circ/p2 "c h"  'circ/minimise-window-horizontal      "minimise window horizontal")
+(circ/p2 "c v"  'circ/minimise-window-vertical        "minimise window vertical")
 #+END_SRC
 
 ** P3
