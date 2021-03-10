@@ -119,7 +119,7 @@
 #+BEGIN_SRC emacs-lisp
 (circ/log-message "Setting up tab settings")
 (setq-default indent-tabs-mode nil) ; don't insert tabs
-(setq-default tab-width 4) ; self-documenting
+(setq-default tab-width 2) ; self-documenting
 (setq indent-line-function 'insert-tab)
 #+END_SRC
 
@@ -3983,9 +3983,11 @@ Simply send M-f instead
 (circ/p2 "p g"  'circ/pass/generate-entry             "generate")
 (circ/p2 "p o"  'circ/pass/open-entry                 "open entry")
 (circ/p2 "e"    'balance-windows                      "balance window")
+(circ/p2 "z"    'nil                                  "maximise window")
 (circ/p2 "z z"  'maximize-window                      "maximise window")
 (circ/p2 "z h"  'circ/maximise-window-horizontal      "maximise window horizontal")
 (circ/p2 "z v"  'circ/maximise-window-vertical        "maximise window vertical")
+(circ/p2 "c"    'nil                                  "minimise window")
 (circ/p2 "c c"  'minimize-window                      "minimise window")
 (circ/p2 "c h"  'circ/minimise-window-horizontal      "minimise window horizontal")
 (circ/p2 "c v"  'circ/minimise-window-vertical        "minimise window vertical")
