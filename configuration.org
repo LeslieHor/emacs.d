@@ -2603,7 +2603,7 @@ To read rss feed links from an org file:
  (add-to-list 'load-path "~/.emacs.d/packages/elfeed-org-77b6bbf222487809813de260447d31c4c59902c9")
  (require 'elfeed-org)
  (elfeed-org)
- (setq rmh-elfeed-org-files (list "~/rss_elfeed/rss_feeds.org"))
+ (setq rmh-elfeed-org-files (list "~/pims/rss_feeds.org"))
  #+END_SRC
 
 *** Load and Save DB on open and close
@@ -3088,7 +3088,7 @@ Completing read tag editing
 #+begin_src emacs-lisp
 (setq circ/dired-external-app-extensions
       '("mp3" "flac"
-        "mkv" "mp4" "flv" "avi"))
+        "mkv" "mp4" "flv" "avi" "wmv"))
 (defun circ/dired-maybe-open-with-external-app ()
   "If file extension matches with any in
 `circ/dired-external-app-extensions' then open with
@@ -3477,6 +3477,10 @@ at the time of running the hook."
             :append :local))
 
 (add-hook 'help-mode-hook 'circ/disable-linum-mode)
+#+end_src
+** Undo tree
+#+begin_src emacs-lisp
+(setq undo-tree-visualizer-diff t)
 #+end_src
 ** general
 #+BEGIN_SRC emacs-lisp
@@ -4049,9 +4053,11 @@ Simply send M-f instead
 (circ/p4 "n"    'org-capture                          "org capture")
 (circ/p4 "o"    'org-clock-out                        "clock out"                           'org-mode-map)
 (circ/p4 "p d"  'org-deadline                         "deadline"                            'org-mode-map)
+(circ/p4 "p d"  'org-agenda-deadline                  "deadline"                            'org-agenda-mode-map)
 (circ/p4 "p p"  'org-set-property                     "set property"                        'org-mode-map)
 (circ/p4 "p p"  'org-agenda-set-property              "set property"                        'org-agenda-mode-map)
 (circ/p4 "p s"  'org-schedule                         "schedule"                            'org-mode-map)
+(circ/p4 "p s"  'org-agenda-schedule                  "schedule"                            'org-agenda-mode-map)
 (circ/p4 "p t"  'circ/org-set-tags                    "set tags"                            'org-mode-map)
 (circ/p4 "p T"  'circ/org-clear-tags                  "clear tags"                          'org-mode-map)
 (circ/p4 "p t"  'circ/org-agenda-set-tags             "set tags"                            'org-agenda-mode-map)
