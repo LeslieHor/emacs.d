@@ -3088,7 +3088,8 @@ Completing read tag editing
 #+begin_src emacs-lisp
 (setq circ/dired-external-app-extensions
       '("mp3" "flac"
-        "mkv" "mp4" "flv" "avi" "wmv"))
+        "mkv" "mp4" "flv" "avi" "wmv"
+        "odt" "ods"))
 (defun circ/dired-maybe-open-with-external-app ()
   "If file extension matches with any in
 `circ/dired-external-app-extensions' then open with

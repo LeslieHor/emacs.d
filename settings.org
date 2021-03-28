@@ -70,10 +70,9 @@ Settings that only work on my home computer. They will probably break other setu
                       (tags "+TODO=\"WAIT\"" ((org-agenda-overriding-header "Wait")))))
         ("x" "x" ((tags-todo "+TODO=\"PROJECT\"")))))
 
-(setq org-agenda-sorting-strategy '((tags tag-up)
-                                    (agenda habit-down time-up priority-down category-keep)
+(setq org-agenda-sorting-strategy '((agenda habit-down time-up priority-down category-keep)
                                     (todo priority-down category-keep)
-                                    (tags priority-down category-keep)
+                                    (tags priority-down category-up tag-up)
                                     (search category-keep)))
 
 (setq org-default-notes-file "~/pims/inbox.org")
