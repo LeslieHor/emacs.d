@@ -60,7 +60,7 @@ Settings that only work on my home computer. They will probably break other setu
 (setq org-agenda-custom-commands
       '(("A" "Agenda" ((agenda "")
                        (tags-todo "STYLE=\"habit\"" ((org-agenda-overriding-header
-                                                      "Habits\nBlue:   Not to be done          !: Today\nGreen:  Could have been done    *: Done that day\nYellow: Overdue the next day\nRed:    Overdue that day                                         Today V")))
+                                                      "Habits\nBlue:   Not to be done          !: Today\nGreen:  Could have been done    *: Done that day\nYellow: Overdue the next day\nRed:    Overdue that day                                                   Today V")))
                        (tags "STYLE=\"timebucket\"" ((org-agenda-overriding-header "Time Buckets")))
                        (tags "+CATEGORY=\"inbox\"" ((org-agenda-overriding-header "Inbox")))
                        (tags "+PROJ&+CATEGORY=\"\"" ((org-agenda-overriding-header "Projects Without Category")))))
@@ -104,7 +104,7 @@ Settings that only work on my home computer. They will probably break other setu
                                  (tags     . " %i %-12:c %-6:e")
                                  (search   . " %i %-12:c")))
 (setq org-agenda-tags-column -80)
-(setq org-habit-graph-column 50)
+(setq org-habit-graph-column 60)
 
 (setq org-show-context-detail '((agenda . canonical)
                                 (bookmark-jump . lineage)
