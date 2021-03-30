@@ -372,7 +372,7 @@ hardcoded 200ms timeout in case no notification service is alive"
 
 ** Tag cloud for org mode
 #+BEGIN_SRC emacs-lisp
-(defvar-local circ/org-agenda-filter-list nil)
+(defvar-local circ/org-agenda-filter-list-tags nil)
 
 (defun circ/agenda-count-tags ()
   (interactive)
@@ -448,8 +448,9 @@ alist, to ensure correct results."
 
       (goto-char (point-min))
       (insert (propertize (format
-                           "Tag Cloud (%s)\n"
-                           (string-join circ/org-agenda-filter-list " "))
+                           "Tag Cloud (Current Tag Filter: %s, Current Effort Filter:  %s)\n"
+                           (string-join circ/org-agenda-filter-list-tags " ")
+                           (string-join circ/org-agenda-filter-list-effort " "))
                           'face 'org-agenda-structure)
               (circ/agenda-format-tag-cloud (circ/agenda-count-tags)) "\n\n"
               (make-string (window-width) ?*) "\n")
@@ -464,37 +465,68 @@ alist, to ensure correct results."
          (tag-candidates (remove-duplicates
                           (append (mapcar (lambda (tag) (concat "+" tag)) tag-list)
                                   (mapcar (lambda (tag) (concat "-" tag)) tag-list)
-                                  circ/org-agenda-filter-list)
+                                  circ/org-agenda-filter-list-tags)
                           :test 'string=))
          (new-tag (completing-read "Tag: " tag-candidates)))
-    (cond ((member new-tag circ/org-agenda-filter-list)
-           (setq circ/org-agenda-filter-list (remove new-tag circ/org-agenda-filter-list))
+    (cond ((member new-tag circ/org-agenda-filter-list-tags)
+           (setq circ/org-agenda-filter-list-tags (remove new-tag circ/org-agenda-filter-list-tags))
            (circ/org-agenda-show-all-tags))
           (t
-           (setq circ/org-agenda-filter-list (cons new-tag circ/org-agenda-filter-list))))
+           (setq circ/org-agenda-filter-list-tags (cons new-tag circ/org-agenda-filter-list-tags))))
     (circ/org-agenda-apply-filter)))
 
 (defun circ/org-agenda-apply-filter ()
   (interactive)
-  (org-agenda-filter-apply circ/org-agenda-filter-list 'tag)
+  (org-agenda-filter-apply circ/org-agenda-filter-list-tags 'tag)
+  (org-agenda-filter-apply circ/org-agenda-filter-list-effort 'effort)
   (run-hooks 'org-agenda-filter-hook))
 
 (defun circ/org-agenda-show-all-tags ()
   (interactive)
-  (setq circ/org-agenda-filter-list nil)
+  (setq circ/org-agenda-filter-list-tags nil)
   (org-agenda-filter-show-all-tag)
-  (run-hooks 'org-agenda-filter-hook))
+  (circ/org-agenda-redo))
 
 (defun circ/org-agenda-redo ()
   (interactive)
-  (let ((filter-list circ/org-agenda-filter-list))
+  (let ((filter-list-tags circ/org-agenda-filter-list-tags)
+        (filter-list-effort circ/org-agenda-filter-list-effort))
     (org-agenda-redo)
-    (setq circ/org-agenda-filter-list filter-list)
+    (setq circ/org-agenda-filter-list-tags filter-list-tags)
+    (setq circ/org-agenda-filter-list-effort filter-list-effort)
     (circ/org-agenda-apply-filter)))
 
 (add-hook 'org-agenda-finalize-hook 'circ/org-agenda-insert-tag-cloud)
 (add-hook 'org-agenda-filter-hook 'circ/org-agenda-insert-tag-cloud)
 #+END_SRC
+
+** Org agenda filter effort
+#+begin_src emacs-lisp
+(defvar-local circ/org-agenda-filter-list-effort nil)
+
+(defun circ/org-agenda-filter-effort ()
+  (interactive)
+  (let* ((effort-list '("0:05" "0:10" "0:30" "0:45" "1:00" "2:00" "3:00" "4:00" "8:00"))
+         (effort-candidates (append (mapcar (lambda (e) (concat "<= " e)) effort-list)
+                                    (mapcar (lambda (e) (concat "== " e)) effort-list)
+                                    (mapcar (lambda (e) (concat ">= " e)) effort-list)))
+         (new-effort (concat "+" (replace-regexp-in-string "^<= " "<"
+                                   (replace-regexp-in-string "^== " "="
+                                     (replace-regexp-in-string "^>= " ">"
+                                  (completing-read "Effort: " effort-candidates)))))))
+    (cond ((member new-effort circ/org-agenda-filter-list-effort)
+           (setq circ/org-agenda-filter-list-effort (remove new-effort circ/org-agenda-filter-list-effort))
+           (circ/org-agenda-show-all-efforts))
+          (t
+           (setq circ/org-agenda-filter-list-effort (cons new-effort circ/org-agenda-filter-list-effort))))
+    (circ/org-agenda-apply-filter)))
+
+(defun circ/org-agenda-show-all-efforts ()
+  (interactive)
+  (setq circ/org-agenda-filter-list-effort nil)
+  (org-agenda-filter-show-all-effort)
+  (circ/org-agenda-redo))
+#+end_src
 ** Org capture
 *** Set a custom header
 Override the current org-capture header by assigning a new header after the mode
@@ -2080,6 +2112,27 @@ I want certain windows to have fixed width because they open in a side window.
         (org-entry-put nil "Pinned" "t")
         (org-toggle-tag "PINNED" 'on)
         (message "Entry pinned")))))
+
+;; Code taken from `org-agenda-set-propert' which navigates to the headline and
+;; calls some function.
+(defun circ/org-agenda-toggle-pinned-property ()
+  "Toggles the pin property on the current headline."
+  (interactive)
+  (org-agenda-check-no-diary)
+  (org-agenda-maybe-loop
+   #'org-agenda-set-property nil nil nil
+   (let* ((hdmarker (or (org-get-at-bol 'org-hd-marker)
+                        (org-agenda-error)))
+          (buffer (marker-buffer hdmarker))
+          (pos (marker-position hdmarker))
+          (inhibit-read-only t)
+          newhead)
+     (org-with-remote-undo buffer
+       (with-current-buffer buffer
+         (widen)
+         (goto-char pos)
+         (org-show-context 'agenda)
+         (circ/org-toggle-pinned-property))))))
 #+end_src
 ** Split window functions
 #+begin_src emacs-lisp
@@ -4084,6 +4137,7 @@ Simply send M-f instead
 (circ/p4 "p T"  'circ/org-agenda-clear-tags           "clear tags"                          'org-agenda-mode-map)
 (circ/p4 "p o"  'org-toggle-ordered-property          "toggle ordered"                      'org-mode-map)
 (circ/p4 "p i"  'circ/org-toggle-pinned-property      "toggle pinned"                       'org-mode-map)
+(circ/p4 "p i"  'circ/org-agenda-toggle-pinned-property "toggle pinned"                     'org-agenda-mode-map)
 (circ/p4 "p n"  'org-add-note                         "add note"                            'org-mode-map)
 (circ/p4 "p n"  'org-agenda-add-note                  "add note"                            'org-agenda-mode-map)
 (circ/p4 "p"    'nil                                  "property"                            'org-mode-map)
@@ -4138,9 +4192,13 @@ Simply send M-f instead
   "q" 'copy-buffer-copy-quit)
 
 (evil-define-key 'motion org-agenda-mode-map
-  "f" 'circ/org-agenda-filter-tag
-  "F" 'circ/org-agenda-show-all-tags
-  "r" 'circ/org-agenda-redo)
+  "f" 'nil
+  "ft" 'circ/org-agenda-filter-tag
+  "fT" 'circ/org-agenda-show-all-tags
+  "fe" 'circ/org-agenda-filter-effort
+  "fE" 'circ/org-agenda-show-all-efforts
+  "r" 'circ/org-agenda-redo
+  "R" 'org-agenda-redo)
 
 (evil-define-key 'normal org-capture-mode-map
   "q" 'org-capture-finalize
