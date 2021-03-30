@@ -103,7 +103,7 @@ Settings that only work on my home computer. They will probably break other setu
          "* %a\n%U")
         ))
 
-(setq org-agenda-prefix-format '((agenda   . " %i %-12:c%?-12t% s")
+(setq org-agenda-prefix-format '((agenda   . " %i %-12:c %-6:e%?-12t% s")
                                  (timeline . "  % s")
                                  (todo     . " %i %-12:c")
                                  (tags     . " %i %-12:c %-6:e")
