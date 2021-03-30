@@ -2129,6 +2129,22 @@ I want certain windows to have fixed width because they open in a side window.
    (- (window-min-delta window t nil nil nil nil window-resize-pixelwise))
    t nil window-resize-pixelwise))
 #+end_src
+** Org goto today
+When in task view, jump to todos. Else perform normal action.
+#+begin_src emacs-lisp
+(defun circ/org-agenda-goto-todo ()
+  (goto-char (point-min))
+  (search-forward-regexp "==*\nTodo")
+  (move-beginning-of-line 1))
+
+(defun circ/org-agenda-goto-today ()
+  "In PIMs task view, go to the Todo list. Else, do `org-agenda-goto-today'"
+  (interactive)
+  (cond ((string= (buffer-name) "*Org Agenda(T)*")
+         (circ/org-agenda-goto-todo))
+        (t
+         (org-agenda-goto-today))))
+#+end_src
 * Local variables
 ** Safe Local Eval Aliases
 #+BEGIN_SRC emacs-lisp
@@ -2240,7 +2256,8 @@ Override for :wq"
 ;; Fix them here
 (evil-define-key 'motion org-agenda-mode-map
   (kbd "RET") 'org-agenda-switch-to
-  (kbd "TAB") 'org-agenda-goto)
+  (kbd "TAB") 'org-agenda-goto
+  "." 'circ/org-agenda-goto-today)
 
 (evil-define-key '(normal visual) evil-org-mode-map
   (kbd "TAB") 'org-cycle
@@ -4053,6 +4070,8 @@ Simply send M-f instead
 (circ/p4 "d"    'org-agenda-archive                   "archive"                             'org-agenda-mode-map)
 (circ/p4 "n"    'org-capture                          "org capture")
 (circ/p4 "o"    'org-clock-out                        "clock out"                           'org-mode-map)
+(circ/p4 "p e"  'org-set-effort                       "effort"                              'org-mode-map)
+(circ/p4 "p e"  'org-agenda-set-effort                "effort"                              'org-agenda-mode-map)
 (circ/p4 "p d"  'org-deadline                         "deadline"                            'org-mode-map)
 (circ/p4 "p d"  'org-agenda-deadline                  "deadline"                            'org-agenda-mode-map)
 (circ/p4 "p p"  'org-set-property                     "set property"                        'org-mode-map)

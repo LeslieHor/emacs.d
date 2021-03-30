@@ -67,7 +67,8 @@ Settings that only work on my home computer. They will probably break other setu
         ("T" "Tasks" ((tags "+PINNED=\"t\"" ((org-agenda-overriding-header "Pinned")))
                       (tags "+TODO=\"INPROGRESS\"" ((org-agenda-overriding-header "In Progress")))
                       (tags "+TODO=\"TODO\"-DEADLINE={.+}-SCHEDULED={.+}" ((org-agenda-overriding-header "Todo")))
-                      (tags "+TODO=\"WAIT\"" ((org-agenda-overriding-header "Wait")))))
+                      (tags "+TODO=\"WAIT\"" ((org-agenda-overriding-header "Wait")))
+                      (stuck "" ((org-agenda-overriding-header "Stuck")))))
         ("x" "x" ((tags-todo "+TODO=\"PROJECT\"")))))
 
 (setq org-agenda-sorting-strategy '((agenda habit-down time-up priority-down category-keep)
@@ -79,19 +80,23 @@ Settings that only work on my home computer. They will probably break other setu
 (setq org-capture-templates
       '(("n" "New Inbox Item"
          entry (file "~/pims/inbox.org")
-         "* %^{Item}\n")
+         "* %^{Item}\n%?")
         ("c" "Clipboard"
          entry (file "~/pims/inbox.org")
-         "* %x\n")
+         "* %^{Item}\n%x%?")
         ("t" "Clock in task"
          entry (file "~/pims/inbox.org")
          "* %^{Task}\n%?" :clock-in t :clock-keep t)
+        ("a" "Appointment"
+         entry (file+headline "~/pims/calendar.org" "Appointments")
+         "* TODO %^{Appointment Title}\nSCHEDULED: %^t")
+        ("e" "Event"
+         entry (file+headline "~/pims/calendar.org" "Events")
+         "* %^{Event Title}\n%^t")
         ("l" "Link"
          entry (file "~/pims/inbox.org")
          "* %a\n%U")
-        ("b" "Microblog" ;; I don't know if this works
-         entry (file+datetree "~/pims/microblog.org")
-         "*%U\n%?\n")))
+        ))
 
 (setq org-agenda-prefix-format '((agenda   . " %i %-12:c%?-12t% s")
                                  (timeline . "  % s")
