@@ -24,7 +24,7 @@ Settings that only work on my home computer. They will probably break other setu
 
 ;; Set global values
 (setq org-global-properties
-      '(("Effort_ALL" . "0:05 0:10 0:30 0:45 1:00 2:00 3:00 4:00 8:00")))
+      '(("Effort_ALL" . "0:05 0:10 0:15 0:30 0:45 1:00 2:00 3:00 4:00 8:00")))
 
 ;; Set agenda files
 ;; inbox.org is for timekeeping purposes
