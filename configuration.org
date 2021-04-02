@@ -193,9 +193,6 @@ Highlights:
 (setq org-catch-invisible-edits 'show-and-error)
 (setq org-adapt-indentation nil)
 
-;(setq org-clock-persist 'clock)
-;(org-clock-persistence-insinuate)
-
 (add-to-list 'org-link-frame-setup '(file . find-file))
 
 ;; Enable habit tracking in org-mode
@@ -748,6 +745,21 @@ prefer a state in the current sequence over on in another sequence."
   (evil-local-set-key 'normal "Q" 'org-kill-note-or-show-branches))
 
 (add-hook 'org-log-buffer-setup-hook 'circ/org-note-set-evil-quit-keys)
+#+end_src
+** Org Clocking settings
+#+begin_src emacs-lisp
+(setq org-clock-persist t)
+(org-clock-persistence-insinuate)
+(setq org-clock-persists-file "~/pims/org-clock-save.el")
+(add-hook 'org-clock-in-hook 'org-clock-save)
+(add-hook 'org-clock-out-hook 'org-clock-save)
+
+(defun circ/after-revert-maybe-load-clock ()
+  (when (circ/org-agenda-file-p)
+    (org-clock-load)))
+(add-hook 'after-revert-hook 'circ/after-revert-maybe-load-clock)
+
+(org-clock-load)
 #+end_src
 * Mode Line
 #+BEGIN_SRC emacs-lisp
@@ -1446,13 +1458,49 @@ has no effect."
 
 /What features does this have?/
 
-/How could such features solve your problem?/")))
+/How could such features solve your problem?/")
+        ("Research" . 'circ/org-research-template)))
+
+(defun circ/org-research-template ()
+  (interactive)
+  (let ((phrase (read-string "Phrase to search: ")))
+    (move-end-of-line 1)
+    (org-insert-heading nil)
+    (insert "TODO Research \"" phrase "\"")
+    (org-toggle-ordered-property)
+
+    (move-end-of-line 1)
+    (org-insert-subheading nil)
+    (insert "TODO Search \"" phrase "\" And Note Any Links")
+    (org-set-tags '("internet" "search"))
+
+    (move-end-of-line 1)
+    (insert "\n")
+    (insert "[[ddg:" phrase "]]\n"
+            "\n"
+            "Reference Links:\n"
+            "- ")
+
+    (move-end-of-line 1)
+    (org-insert-heading nil)
+    (insert "TODO Read Links And Make Notes On Each One")
+    (org-set-tags '("internet" "notetaking"))
+
+    (move-end-of-line 1)
+    (org-insert-heading nil)
+    (insert "TODO Write Down Conclusion Based On Notes")
+    (org-set-tags '("internet" "notetaking"))))
 
 (defun circ/org-template-insert ()
   (interactive)
-  (let ((template (completing-read "Template: "
-                                   circ/org-template-alist)))
-    (insert (cdr (assoc template circ/org-template-alist)))))
+  (let ((template (cdr (assoc (completing-read "Template: "
+                                               circ/org-template-alist)
+                              circ/org-template-alist))))
+    (cond ((stringp template)
+           (move-end-of-line 1)
+           (insert "\n" template))
+          (t
+           (funcall (cadr template))))))
 #+END_SRC
 ** Org sort headlines
 Sorts the level 0 headlines by todo state
@@ -2271,13 +2319,9 @@ Load evil, and its dependencies in it comes with.
 Rebind the ~q~ and ~quit~ commands to make more sense.
 
 #+BEGIN_SRC emacs-lisp
-(evil-ex-define-cmd "q" 'kill-this-buffer) ; :q should kill the buffer rather
-                                        ; than quiting emacs
+(evil-ex-define-cmd "q" 'circ/kill-this-buffer) ; :q should kill the buffer rather
+                                           ; than quiting emacs
 (evil-ex-define-cmd "quit" 'evil-quit-all) ; :quit to quit emacs
-;; Deal with common mistakes
-(evil-ex-define-cmd "W"  'evil-write)
-(evil-ex-define-cmd "Wq" 'evil-save-and-close)
-(evil-ex-define-cmd "WQ" 'evil-save-and-close)
 
 (evil-define-command evil-save-and-kill-buffer (file &optional bang)
   "Save current buffer and close buffer.
@@ -2285,8 +2329,13 @@ Override for :wq"
   :repeat nil
   (interactive "<f><!>")
   (evil-write nil nil nil file bang)
-  (kill-this-buffer))
+  (circ/kill-this-buffer))
 (evil-ex-define-cmd "wq" 'evil-save-and-kill-buffer)
+
+;; Deal with common mistakes
+(evil-ex-define-cmd "W"  'evil-write)
+(evil-ex-define-cmd "Wq" 'evil-save-and-kill-buffer)
+(evil-ex-define-cmd "WQ" 'evil-save-and-kill-buffer)
 #+END_SRC
 
 ** evil-leader
@@ -2643,7 +2692,7 @@ Evil bindings for =eww=.
   (kbd "o") 'eww
   (kbd "r") 'eww-reload
   (kbd "R") 'eww-readable
-  (kbd "q") 'kill-this-buffer
+  (kbd "q") 'circ/kill-this-buffer
 )
 #+END_SRC
 
@@ -3885,6 +3934,7 @@ Simply send M-f instead
 (circ/p1 "e ah" 'circ/align-once-head                 "regex ahead of match")
 (circ/p1 "e at" 'circ/align-once-tail                 "regex to tail of match")
 (circ/p1 "e c"  'dabbrev-completion                   "dabbrev completion")
+(circ/p1 "e C"  'capitalize-dwim                      "capitalise")
 (circ/p1 "e d"  'erlang-clone-arguments               "duplicate arguments"                 'erlang-mode-map)
 (circ/p1 "e f"  'nil                                  "formatting")
 (circ/p1 "e fb" 'json-mode-beautify                   "json beautify"                       'json-mode-map)

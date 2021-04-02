@@ -142,6 +142,7 @@ Settings that only work on my home computer. They will probably break other setu
   (interactive)
   (org-todo "TODO")
   (circ/org-set-tags)
+  (org-set-effort)
   (org-refile nil nil '(nil "~/pims/todo.org" nil nil))
   (org-save-all-org-buffers))
 
@@ -153,6 +154,7 @@ Settings that only work on my home computer. They will probably break other setu
     (org-demote)
     (org-todo "TODO")
     (circ/org-set-tags)
+    (org-set-effort)
     (move-beginning-of-line nil)
     (insert "\n")
     (previous-line)
