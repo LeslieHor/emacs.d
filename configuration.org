@@ -747,38 +747,41 @@ prefer a state in the current sequence over on in another sequence."
 (add-hook 'org-log-buffer-setup-hook 'circ/org-note-set-evil-quit-keys)
 #+end_src
 ** Org Clocking settings
+To sync clocks with multiple devices.
+
+Disabled cause it doesn't work very well.
 #+begin_src emacs-lisp
-(setq org-clock-persist 'clock)
-(setq org-clock-persist-query-resume nil)
-(setq org-clock-persist-file "~/pims/org-clock-save.el")
-(org-clock-persistence-insinuate)
-(add-hook 'org-clock-in-hook 'org-clock-save)
-(add-hook 'org-clock-out-hook 'org-clock-save)
+;; (setq org-clock-persist 'clock)
+;; (setq org-clock-persist-query-resume nil)
+;; (setq org-clock-persist-file "~/pims/org-clock-save.el")
+;; (org-clock-persistence-insinuate)
+;; (add-hook 'org-clock-in-hook 'org-clock-save)
+;; (add-hook 'org-clock-out-hook 'org-clock-save)
 
-(defun circ/after-revert-maybe-load-clock ()
-  (when (circ/org-agenda-file-p)
-    (org-clock-load)))
-(add-hook 'after-revert-hook 'circ/after-revert-maybe-load-clock)
+;; (defun circ/after-revert-maybe-load-clock ()
+;;   (when (circ/org-agenda-file-p)
+;;     (org-clock-load)))
+;; (add-hook 'after-revert-hook 'circ/after-revert-maybe-load-clock)
 
-(defun circ/org-clock-save-file-fix-paths ()
-  (let ((full-home-dir (expand-file-name "~/"))
-        (abbrev-home-dir "~/"))
-    (with-temp-file org-clock-persist-file
-      (insert-file-contents org-clock-persist-file)
-      (while (search-forward full-home-dir nil t)
-        (replace-match abbrev-home-dir)))))
+;; (defun circ/org-clock-save-file-fix-paths ()
+;;   (let ((full-home-dir (expand-file-name "~/"))
+;;         (abbrev-home-dir "~/"))
+;;     (with-temp-file org-clock-persist-file
+;;       (insert-file-contents org-clock-persist-file)
+;;       (while (search-forward full-home-dir nil t)
+;;         (replace-match abbrev-home-dir)))))
 
-(advice-add 'org-clock-load
-            :before
-            (lambda () (setq org-clock-loaded nil))
-            '((name . "set-org-clock-loaded-nil")))
+;; (advice-add 'org-clock-load
+;;             :before
+;;             (lambda () (setq org-clock-loaded nil))
+;;             '((name . "set-org-clock-loaded-nil")))
 
-(advice-add 'org-clock-save
-            :after
-            'circ/org-clock-save-file-fix-paths
-            '((name . "circ/org-clock-save-file-fix-paths")))
+;; (advice-add 'org-clock-save
+;;             :after
+;;             'circ/org-clock-save-file-fix-paths
+;;             '((name . "circ/org-clock-save-file-fix-paths")))
 
-(org-clock-load)
+;; (org-clock-load)
 #+end_src
 * Mode Line
 #+BEGIN_SRC emacs-lisp
