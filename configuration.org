@@ -750,7 +750,7 @@ prefer a state in the current sequence over on in another sequence."
 #+begin_src emacs-lisp
 (setq org-clock-persist t)
 (org-clock-persistence-insinuate)
-(setq org-clock-persists-file "~/pims/org-clock-save.el")
+(setq org-clock-persist-file "~/pims/org-clock-save.el")
 (add-hook 'org-clock-in-hook 'org-clock-save)
 (add-hook 'org-clock-out-hook 'org-clock-save)
 
