@@ -1467,7 +1467,7 @@ has no effect."
   (balance-windows)
   (circ/set-frame-name "PIMS"))
 #+END_SRC
-** Org agenda templates
+** Org mode templates
 #+BEGIN_SRC emacs-lisp
 (setq circ/org-template-alist
       '(("Is this useful?" . "*Is this useful?*
@@ -1489,9 +1489,10 @@ has no effect."
     (move-end-of-line 1)
     (org-insert-heading nil)
     (insert "TODO Research \"" phrase "\"")
-    (org-toggle-ordered-property)
+    (org-set-tags '("ORDERED"))
+	  (org-entry-put nil "ORDERED" "t")
 
-    (move-end-of-line 1)
+    (move-end-of-line 2)
     (org-insert-subheading nil)
     (insert "TODO Search \"" phrase "\" And Note Any Links")
     (org-set-tags '("internet" "search"))
@@ -2264,11 +2265,18 @@ When in task view, jump to todos. Else perform normal action.
   (search-forward-regexp "==*\nTodo")
   (move-beginning-of-line 1))
 
+(defun circ/org-agenda-goto-today-custom ()
+  (beginning-of-buffer)
+  (org-agenda-update-agenda-type)
+  (org-agenda-goto-today))
+
 (defun circ/org-agenda-goto-today ()
   "In PIMs task view, go to the Todo list. Else, do `org-agenda-goto-today'"
   (interactive)
   (cond ((string= (buffer-name) "*Org Agenda(T)*")
          (circ/org-agenda-goto-todo))
+        ((string= (buffer-name) "*Org Agenda(A)*")
+         (circ/org-agenda-goto-today-custom))
         (t
          (org-agenda-goto-today))))
 #+end_src
