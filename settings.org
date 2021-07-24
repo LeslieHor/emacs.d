@@ -47,7 +47,6 @@ Settings that only work on my home computer. They will probably break other setu
         ("ddg"     . "https://duckduckgo.com/?q=%s")
         ("google"  . "http://www.google.com/search?q=")))
 
-
 ;; Set refile targets
 (setq circ/org-reference-directory "~/pims/reference")
 (setq org-refile-allow-creating-parent-nodes 'confirm)
