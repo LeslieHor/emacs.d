@@ -1,0 +1,15 @@
+(defcustom {{1:Mode}}-mode-hook nil
+  "{{1:Mode}} hook"
+  :group '{{1:Mode}}
+  :type 'hook)
+
+(defvar {{1:Mode}}-mode-map
+  (let ((map (make-sparse-keymap)))
+    map)
+  "Keymap for `{{1:Mode}}-mode'.")
+
+(define-derived-mode {{1:Mode}}-mode special-mode "{{1:Mode}}"
+  "Major mode for {{1:Mode}}."
+  (set (make-local-variable 'revert-buffer-function) #'{{1:Mode}}))
+
+{{0}}

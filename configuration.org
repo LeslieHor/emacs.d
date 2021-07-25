@@ -68,6 +68,10 @@
 
 ;; Use emacs to put in gpg password
 (setq epa-pinentry-mode 'loopback)
+
+;; Scrolling
+(setq scroll-margin 0)
+(setq scroll-conservatively 101)
 #+END_SRC
 
 ** Display buffer behaviour
@@ -112,6 +116,10 @@
          (display-buffer-in-side-window)
          (side . bottom)
          (window-height . 20))
+        ("^\\*vc-dir\\*$"
+         (display-buffer-same-window))
+        ("^\\*vc-diff\\*$"
+         (display-buffer-same-window))
         ))
 #+end_src
 
@@ -152,6 +160,10 @@ Highlights:
 (require 'whitespace)
 (setq whitespace-style '(face empty tabs trailing))
 (global-whitespace-mode t)
+
+;; Disable in certain modes
+(setq whitespace-global-modes '((not erc-mode)
+                                (not org-mode)))
 #+END_SRC
 
 * Org
@@ -292,8 +304,8 @@ Set up nice fonts
    `(org-level-8          ((t (,@headline :height 1.00 :foreground "#f032e6"))))
    `(org-block-background ((t (:height 1.00 :background "#222222"))))
    `(org-block            ((t (:height 1.00 :background "#222222"))))
-   `(org-block-begin-line ((t (:height 1.00 :foreground "#222222" :background "#070707"))))
-   `(org-block-end-line   ((t (:height 1.00 :foreground "#222222" :background "#070707"))))
+   `(org-block-begin-line ((t (:height 1.00 :foreground "#118811" :background "#181818"))))
+   `(org-block-end-line   ((t (:height 1.00 :foreground "#118811" :background "#181818"))))
 ))
 #+END_SRC
 
@@ -445,9 +457,10 @@ alist, to ensure correct results."
 
       (goto-char (point-min))
       (insert (propertize (format
-                           "Tag Cloud (Current Tag Filter: %s, Current Effort Filter:  %s)\n"
+                           "Tag Cloud (Tag Filter: %s, Effort Filter:  %s, Cat Filter: %s)\n"
                            (string-join circ/org-agenda-filter-list-tags " ")
-                           (string-join circ/org-agenda-filter-list-effort " "))
+                           (string-join circ/org-agenda-filter-list-effort " ")
+                           (string-join circ/org-agenda-filter-list-categories " "))
                           'face 'org-agenda-structure)
               (circ/agenda-format-tag-cloud (circ/agenda-count-tags)) "\n\n"
               (make-string (window-width) ?*) "\n")
@@ -467,15 +480,19 @@ alist, to ensure correct results."
          (new-tag (completing-read "Tag: " tag-candidates)))
     (cond ((member new-tag circ/org-agenda-filter-list-tags)
            (setq circ/org-agenda-filter-list-tags (remove new-tag circ/org-agenda-filter-list-tags))
-           (circ/org-agenda-show-all-tags))
+           (circ/org-agenda-redo))
           (t
            (setq circ/org-agenda-filter-list-tags (cons new-tag circ/org-agenda-filter-list-tags))))
     (circ/org-agenda-apply-filter)))
 
 (defun circ/org-agenda-apply-filter ()
   (interactive)
-  (org-agenda-filter-apply circ/org-agenda-filter-list-tags 'tag)
-  (org-agenda-filter-apply circ/org-agenda-filter-list-effort 'effort)
+  (when circ/org-agenda-filter-list-tags
+    (org-agenda-filter-apply circ/org-agenda-filter-list-tags 'tag))
+  (when circ/org-agenda-filter-list-effort
+    (org-agenda-filter-apply circ/org-agenda-filter-list-effort 'effort))
+  (when circ/org-agenda-filter-list-categories
+    (org-agenda-filter-apply circ/org-agenda-filter-list-categories 'category))
   (run-hooks 'org-agenda-filter-hook))
 
 (defun circ/org-agenda-show-all-tags ()
@@ -487,10 +504,12 @@ alist, to ensure correct results."
 (defun circ/org-agenda-redo ()
   (interactive)
   (let ((filter-list-tags circ/org-agenda-filter-list-tags)
-        (filter-list-effort circ/org-agenda-filter-list-effort))
+        (filter-list-effort circ/org-agenda-filter-list-effort)
+        (filter-list-categories circ/org-agenda-filter-list-categories))
     (org-agenda-redo)
     (setq circ/org-agenda-filter-list-tags filter-list-tags)
     (setq circ/org-agenda-filter-list-effort filter-list-effort)
+    (setq circ/org-agenda-filter-list-categories filter-list-categories)
     (circ/org-agenda-apply-filter)))
 
 (add-hook 'org-agenda-finalize-hook 'circ/org-agenda-insert-tag-cloud)
@@ -517,7 +536,7 @@ alist, to ensure correct results."
                                   (completing-read "Effort: " effort-candidates)))))))
     (cond ((member new-effort circ/org-agenda-filter-list-effort)
            (setq circ/org-agenda-filter-list-effort (remove new-effort circ/org-agenda-filter-list-effort))
-           (circ/org-agenda-show-all-efforts))
+           (circ/org-agenda-redo))
           (t
            (setq circ/org-agenda-filter-list-effort (cons new-effort circ/org-agenda-filter-list-effort))))
     (circ/org-agenda-apply-filter)))
@@ -526,6 +545,48 @@ alist, to ensure correct results."
   (interactive)
   (setq circ/org-agenda-filter-list-effort nil)
   (org-agenda-filter-show-all-effort)
+  (circ/org-agenda-redo))
+#+end_src
+** Org agenda filter category
+#+begin_src emacs-lisp
+(defvar-local circ/org-agenda-filter-list-categories nil)
+
+(defun circ/org-agenda-filter-category ()
+  (interactive)
+  (let* ((category-list (circ/org-agenda-get-categories))
+         (category-candidates (remove-duplicates
+                               (append (mapcar (lambda (c) (concat "+" c)) category-list)
+                                       (mapcar (lambda (c) (concat "-" c)) category-list)
+                                       circ/org-agenda-filter-list-categories)
+                               :test 'string=))
+         (new-category (completing-read "Category: " category-candidates)))
+    (cond ((member new-category circ/org-agenda-filter-list-categories)
+
+           (setq circ/org-agenda-filter-list-categories (remove new-category circ/org-agenda-filter-list-categories))
+           (circ/org-agenda-redo))
+          (t
+           (setq circ/org-agenda-filter-list-categories (cons new-category circ/org-agenda-filter-list-categories))))
+    (circ/org-agenda-apply-filter)))
+
+(defun circ/org-agenda-get-categories ()
+  (interactive)
+  (save-excursion
+    (goto-char (point-min))
+    (let ((category-list '())
+          (last-pos 0))
+      (while (not (= last-pos (progn
+                                (ignore-errors (org-agenda-next-item 1))
+                                (move-beginning-of-line nil))))
+        (setq last-pos (point))
+        (let ((category (org-get-at-bol 'org-category)))
+          (when (and category (not (member category category-list)))
+            (setq category-list (cons category category-list)))))
+      category-list)))
+
+(defun circ/org-agenda-show-all-categories ()
+  (interactive)
+  (setq circ/org-agenda-filter-list-categories nil)
+  (org-agenda-filter-show-all-cat)
   (circ/org-agenda-redo))
 #+end_src
 ** Org capture
@@ -1461,10 +1522,16 @@ has no effect."
 #+BEGIN_SRC emacs-lisp
 (defun circ/setup-agenda-view()
   (interactive)
+  (circ/open-inbox)
+  (split-window-right)
   (circ/alias-org-agenda-tasks)
   (split-window-right)
   (circ/alias-org-agenda-agenda)
   (balance-windows)
+  (windmove-right)
+  (circ/org-agenda-redo)
+  (windmove-left)
+  (circ/org-agenda-redo)
   (circ/set-frame-name "PIMS"))
 #+END_SRC
 ** Org mode templates
@@ -1481,6 +1548,7 @@ has no effect."
 /What features does this have?/
 
 /How could such features solve your problem?/")
+        ("")
         ("Research" . 'circ/org-research-template)))
 
 (defun circ/org-research-template ()
@@ -1726,19 +1794,19 @@ Subscribe to youtube channel
 #+BEGIN_SRC emacs-lisp
 (defvar circ/notify-command nil)
 
-(defun circ/desktop-notify (message timeout)
-  (format "timeout 0.2 notify-send -t %s \"%s\"" timeout message))
-(defun circ/termux-notify (message timeout)
-  (format "timeout 5 termux-notification -t \"%s\"" message))
+(defun circ/desktop-notify (subject message timeout)
+  (format "timeout 0.2 notify-send -t %s \"%s\" \"%s\"" timeout subject message))
+(defun circ/termux-notify (subject message timeout)
+  (format "timeout 5 termux-notification -t \"%s\"" subject))
 
-(defun circ/notify (message &optional timeout)
+(defun circ/notify (subject &optional message timeout)
   (interactive)
   (let ((timeout-secs (cond (timeout (* 1000 timeout))
                             (t 0))))
     (when (functionp circ/notify-command)
-      (when (< 0 (shell-command (funcall circ/notify-command message timeout-secs)))
+      (when (< 0 (shell-command (funcall circ/notify-command subject message timeout-secs)))
         (user-error "Notification failure: %s" message)))
-    (message "Notification: %s" message)))
+    (message "Notification: %s %s" subject message)))
 #+END_SRC
 ** vc shortcuts
 #+BEGIN_SRC emacs-lisp
@@ -2069,6 +2137,11 @@ buffer, display it in another window."
     (circ/pass/copy-password entry))
   (when (y-or-n-p (format "Open entry %s?" entry))
     (circ/pass/open-entry entry)))
+
+
+(defun circ/pass/cache-passphrase ()
+  (interactive)
+  (circ/pass/get-value "access" "value"))
 #+end_src
 ** balance-window fix
 Balance window doesn't work when you have a side window with a fixed size.
@@ -2279,6 +2352,119 @@ When in task view, jump to todos. Else perform normal action.
          (circ/org-agenda-goto-today-custom))
         (t
          (org-agenda-goto-today))))
+#+end_src
+** Snippets
+#+begin_src emacs-lisp
+(defvar circ/snippets nil)
+
+(defun circ/snippet-option-index (option)
+  (when (string-match "{{\\([0-9]*\\)\\(:[A-Za-z0-9 \-_]*\\)?}}" option)
+    (match-string 1 option)))
+(defun circ/snippet-option-name (option)
+  (when (string-match "{{\\([0-9]*\\)\\(:[A-Za-z0-9 \-_]*\\)?}}" option)
+    (when (match-string 2 option)
+      (substring (match-string 2 option) 1))))
+
+(defun circ/snippet-find-options (snippet)
+  (let ((placeholder-options nil))
+    (with-temp-buffer
+      (insert snippet)
+      (goto-char (point-min))
+      (while (search-forward-regexp "{{[0-9]+\\(:[a-zA-Z0-9\-_ ]+\\)?}}" nil t)
+        (setq placeholder-options (cons (match-string 0) placeholder-options))))
+    ;; Sort the place holder options and remove the {{0}} point option
+    (setq placeholder-options (cdr (sort placeholder-options 'string<)))
+    placeholder-options))
+
+(defun circ/snippet-find-snippet-mode (snippet-symbol mode)
+  (cdr (assoc snippet-symbol (cdr (assoc mode circ/snippets)))))
+
+(defun circ/snippet-find-snippet (snippet-symbol)
+  (or (circ/snippet-find-snippet-mode snippet-symbol major-mode)
+      (circ/snippet-find-snippet-mode snippet-symbol 'all)))
+
+(defun circ/snippet-expand ()
+  (interactive)
+  (let ((snippet-symbol nil)
+        (snippet "")
+        (end-point (+ (point) (if (eq evil-state 'normal) 1 0)))
+        (start-point nil)
+        (placeholder-options nil))
+    ;; Find and delete the snippet symbol
+    (save-excursion
+      (goto-char end-point)
+      (search-backward-regexp "<\\([A-Za-z0-9 \-_]*\\)")
+      (setq snippet-symbol (match-string 1))
+      (setq snippet (circ/snippet-find-snippet snippet-symbol))
+      (unless snippet (user-error "No snippet found for %s" snippet-symbol)))
+    ;; Set the starting point of the buffer that the snippet will be inserted to
+    (setq start-point (match-beginning 0))
+
+    ;; Insert the snippet as a place holder for preview
+    (delete-region start-point end-point)
+    (insert snippet)
+
+    ;; Get the end point of the snippet, so we can continually replace it.
+    (setq end-point (+ start-point (length snippet)))
+
+    ;; Gather a starting list of options
+    (setq placeholder-options (circ/snippet-find-options snippet))
+
+    ;; Go through each option and prompt for replacement
+    (while placeholder-options
+      (let* ((current-placeholder (car placeholder-options))
+             (current-index (circ/snippet-option-index current-placeholder))
+             (current-name (circ/snippet-option-name current-placeholder))
+             (replacement (read-string (format "(%s) %s: "
+                                               current-index
+                                               (cond (current-name current-name)
+                                                     (t ""))))))
+        (with-temp-buffer
+          (insert snippet)
+          (goto-char (point-min))
+          (while (search-forward-regexp
+                  (format "{{\\(%s\\)\\(:[A-Za-z0-9 \-_]*\\)?}}" current-index)
+                  nil t)
+            (replace-match replacement t t nil 0))
+          (setq snippet  (buffer-substring (point-min) (point-max))))
+
+        (delete-region start-point end-point)
+        (insert snippet)
+        (setq end-point (+ start-point (length snippet)))
+      (setq placeholder-options (circ/snippet-find-options snippet))))
+
+    ;; Find the {{0}} marker, remove it, and set the cursor there.
+    (goto-char end-point)
+    (when (search-backward "{{0}}" nil t)
+      (delete-region (match-beginning 0) (match-end 0))
+      (goto-char (match-beginning 0)))
+    )
+  )
+
+(defvar circ/snippet-directory "~/.emacs.d/snippets")
+(defun circ/snippet-load-snippets ()
+  (interactive)
+  (setq circ/snippets nil)
+  (dolist (file (directory-files-recursively circ/snippet-directory ""))
+    (let* ((clean-file-name (replace-regexp-in-string
+                             (regexp-quote (concat
+                                            (expand-file-name circ/snippet-directory)
+                                            "/"))
+                             "" file))
+           (file-list (split-string clean-file-name "/"))
+           (mode (intern (car file-list)))
+           (snippet-symbol (replace-regexp-in-string
+                            "\.txt$" "" (cadr file-list)))
+           (snippet (with-temp-buffer
+                      (insert-file-contents file)
+                      (buffer-substring (point-min) (point-max))))
+           (entry (cons snippet-symbol snippet)))
+      (unless (assoc mode circ/snippets)
+        (setq circ/snippets (cons (cons mode '()) circ/snippets)))
+      (setf (cdr (assq mode circ/snippets))
+            (cons entry (cdr (assoc mode circ/snippets)))))))
+
+(circ/snippet-load-snippets)
 #+end_src
 * Local variables
 ** Safe Local Eval Aliases
@@ -2612,13 +2798,13 @@ I want relative numbers to display when in evil operator mode.
 ** term mode
 *** Settings
 #+begin_src emacs-lisp
-(setq term-suppress-hard-newline t)
+(setq term-suppress-hard-newline nil)
 (setq term-prompt-regexp "^[0-9][0-9]:[0-9][0-9]:[0-9][0-9] .* >")
 #+end_src
 
 *** Evil keys
 #+begin_src emacs-lisp
-(evil-define-key 'normal 'term-mode-map
+(evil-define-key 'normal term-mode-map
   "[[" 'term-previous-prompt
   "]]" 'term-next-prompt
 )
@@ -2687,9 +2873,28 @@ Source: https://oremacs.com/2015/01/01/three-ansi-term-tips/
 ** man
 Open man pages in current window
 #+BEGIN_SRC emacs-lisp
+(require 'man)
 (setq Man-notify-method 'pushy)
 #+END_SRC
 
+#+begin_src emacs-lisp
+(evil-set-initial-state 'Man-mode 'normal)
+(evil-define-key 'normal Man-mode-map
+  "q" 'circ/kill-this-buffer
+  "r" 'Man-update-manpage
+  "]" 'Man-next-manpage
+  "[" 'Man-previous-manpage
+  "J" 'Man-next-section
+  "K" 'Man-previous-section
+  "m" 'man
+  "gR" 'Man-follow-manual-reference
+  "gs" 'Man-goto-see-also-section
+  (kbd "SPC") 'scroll-up-command
+  (kbd "S-SPC") 'scroll-down-command
+  (kbd "<tab>") 'forward-button
+  (kbd "<backtab>") 'backward-button
+)
+#+end_src
 ** mpccp
 #+BEGIN_SRC emacs-lisp
 (add-to-list 'load-path "~/.emacs.d/packages/mpccp")
@@ -2723,6 +2928,9 @@ Evil bindings for =eww=.
   (kbd "r") 'eww-reload
   (kbd "R") 'eww-readable
   (kbd "q") 'circ/kill-this-buffer
+  "go" 'eww-browse-with-external-browser
+  "gh" 'eww-list-histories
+  "yy" 'eww-copy-page-url
 )
 #+END_SRC
 
@@ -2744,6 +2952,8 @@ multiple eww buffers to be open"
 (require 'elfeed)
 (setq elfeed-db-directory "~/rss_elfeed/elfeed/")
 (add-hook 'elfeed-search-mode-hook 'circ/disable-evil-quickscope-mode)
+
+(setq elfeed-show-unique-buffers t)
 #+END_SRC
 
 *** elfeed-org
@@ -2778,7 +2988,7 @@ To read rss feed links from an org file:
 #+BEGIN_SRC emacs-lisp
 (defun circ/open-rss-elfeed-file ()
   (interactive)
-  (find-file "~/rss_elfeed/rss_feeds.org"))
+  (find-file (car rmh-elfeed-org-files)))
 #+END_SRC
 *** Open in custom application
  #+BEGIN_SRC emacs-lisp
@@ -2943,6 +3153,19 @@ Completing read tag editing
                                  (video circ/elfeed-search-video-face)
                                  (saved circ/elfeed-search-saved-face)))
 #+end_src
+
+*** Toggle Sorting Order
+#+begin_src emacs-lisp
+(defun circ/elfeed-toggle-sort-order ()
+  (interactive)
+  (cond ((eq elfeed-sort-order 'descending)
+         (setq elfeed-sort-order 'ascending))
+        ((eq elfeed-sort-order 'ascending)
+         (setq elfeed-sort-order 'descending)))
+  (elfeed-search-update--force)
+  (goto-char (point-min)))
+#+end_src
+
 *** Evil Keybindings
 #+BEGIN_SRC emacs-lisp
 (evil-set-initial-state 'elfeed-search-mode 'motion)
@@ -2969,6 +3192,7 @@ Completing read tag editing
   "gs" 'circ/elfeed-search-saved
   "C-d" 'evil-scroll-down
   "C-u" 'evil-scroll-up
+  "t" 'circ/elfeed-toggle-sort-order
   "q" 'circ/elfeed-save-and-close)
 
 (evil-define-key '(motion visual) elfeed-search-mode-map
@@ -3034,6 +3258,10 @@ Completing read tag editing
   (interactive)
   (kill-all-abbrevs)
   (read-abbrev-file))
+
+(defun circ/open-abbrev-file ()
+  (interactive)
+  (find-file abbrev-file-name))
 #+END_SRC
 ** avy
 #+BEGIN_SRC emacs-lisp
@@ -3636,6 +3864,792 @@ at the time of running the hook."
 #+begin_src emacs-lisp
 (setq undo-tree-visualizer-diff t)
 #+end_src
+** mu4e
+Email
+
+*** Set up
+#+begin_src emacs-lisp
+(add-to-list 'load-path "/usr/share/emacs/site-lisp/mu4e")
+(require 'mu4e)
+(require 'mu4e-contrib)
+(require 'org-mu4e)
+#+end_src
+*** Settings
+#+begin_src emacs-lisp
+(setq mail-user-agent 'mu4e-user-agent)
+
+(setq mu4e-change-filenames-when-moving t)
+(setq mu4e-update-interval (* 10 60)) ; 10 mins
+(setq mu4e-get-mail-command "mbsync -a")
+(setq mu4e-maildir "~/mail")
+
+(setq mu4e-view-show-addresses t)
+(setq mu4e-view-show-images t)
+(setq mu4e-split-view 'horizontal)
+; This mostly just clutters up the inbox. So turn it off
+(setq mu4e-headers-include-related nil)
+(setq mu4e-headers-show-threads nil)
+
+(setq mu4e-view-html-plaintext-ratio-heuristic most-positive-fixnum)
+(setq mu4e-headers-date-format "%Y-%m-%d")
+(setq mu4e-headers-time-format "%H:%M:%S")
+(setq mu4e-headers-fields '((:human-date . 12)
+                            (:flags . 4)
+                            (:from . 22)
+                            (:size . 10)
+                            (:subject)))
+
+;;; Contexts in personalsettings.org
+(circ/set-mu4e-contexts)
+
+(setq message-send-mail-function 'smtpmail-send-it)
+(setq mu4e-compose-context-policy 'ask)
+(setq mu4e-compose-format-flowed t)
+(setq mu4e-compose-signature 'circ/mu4e-compose-signature)
+
+; On 01/05/2021 19:11, Joe Bloggs <joe.bloggs@domain.com> wrote:
+(setq message-citation-line-format "On %d/%m/%Y %R, %f wrote:\n")
+
+(setq message-citation-line-function 'message-insert-formatted-citation-line)
+
+(defun circ/mu4e-compose-signature ()
+  (format (concat "Leslie Hor\n"
+                  "\n"
+                  "Mobile: %s\n"
+                  "Email: %s")
+          (circ/pass/get-value "leslie_mobile_number" "mobilenumber")
+          user-mail-address))
+
+(defun circ/mu4e-get-my-addresses (&optional context)
+  (let ((context (if context context (mu4e-context-name (mu4e-context-current)))))
+    (split-string (circ/pass/get-value "leslie_email_addresses" context)
+                  ";")))
+
+(defun circ/mu4e-choose-from-address ()
+  (setq user-mail-address
+        (completing-read "From address: "
+                         (circ/mu4e-get-my-addresses)
+                         nil t nil nil
+                         user-mail-address)))
+
+(add-hook 'mu4e-compose-pre-hook 'circ/mu4e-choose-from-address)
+
+(setq mu4e-view-actions '(("capture message" . mu4e-action-capture-message)
+                          ("view as pdf" . mu4e-action-view-as-pdf)
+                          ("show this thread" . mu4e-action-show-thread)
+                          ("b view in browser" . mu4e-action-view-in-browser)))
+
+;; Don't render html colours.
+(setq shr-use-colors nil)
+#+end_src
+*** Notifications
+#+begin_src emacs-lisp
+;; Functions to send desktop notifications for new messages in mu4e.
+(defun circ/mu4e-unread-messages ()
+  (let* ((query "flag:unread AND NOT flag:trashed AND NOT maildir:/gmail/[Gmail]/Spam")
+         (command (concat mu4e-mu-binary " find --format xml \"" query "\"")))
+    (string-trim (shell-command-to-string command))))
+
+(defun circ/parse-xml (xml)
+  (with-temp-buffer
+    (insert (circ/mu4e-unread-messages))
+    (libxml-parse-xml-region (point-min) (point-max))))
+
+(defun circ/mu4e-get-message-ids ()
+  (let* ((xml (circ/parse-xml (circ/mu4e-unread-messages)))
+         (messages (dom-children (dom-by-tag xml 'messages))))
+    (mapcar (lambda (msg)
+              (dom-text (dom-by-tag msg 'msgid)))
+            messages)))
+
+(defun circ/mu4e-get-new-messages ()
+  (let* ((xml (circ/parse-xml (circ/mu4e-unread-messages)))
+         (messages (dom-children (dom-by-tag xml 'messages))))
+    (mapcar (lambda (msg)
+              (list
+               (cons 'msgid  (dom-text (dom-by-tag msg 'msgid)))
+               (cons 'from (dom-text (dom-by-tag msg 'from)))
+               (cons 'to (dom-text (dom-by-tag msg 'to)))
+               (cons 'date (dom-text (dom-by-tag msg 'date)))
+               (cons 'subject (dom-text (dom-by-tag msg 'subject)))))
+            messages)))
+
+(defvar circ/mu4e-known-messages nil
+  "Used to store the ids of messages we already know about, so we
+don't double notify them")
+
+(defun circ/mu4e-store-known-messages ()
+  (setq circ/mu4e-known-messages (circ/mu4e-get-message-ids)))
+
+(defun circ/mu4e-notify-new-messages ()
+  (mapcar (lambda (msg)
+            (when (not (member (cdr (assoc 'msgid msg)) circ/mu4e-known-messages))
+              (circ/notify
+               (format "New Email @ %s\n\nFrom: %s\nTo: %s"
+                       (format-time-string "%Y-%m-%d %H:%M:%S"
+                                           (seconds-to-time
+                                            (string-to-number
+                                             (cdr (assoc 'date msg)))))
+                       (cdr (assoc 'from msg))
+                       (cdr (assoc 'to msg)))
+               (format "\n\n%s" (cdr (assoc 'subject msg)))
+               0)))
+          (circ/mu4e-get-new-messages))
+  (setq circ/mu4e-known-messages nil))
+
+(add-hook 'mu4e-update-pre-hook 'circ/mu4e-store-known-messages)
+(add-hook 'mu4e-index-updated-hook 'circ/mu4e-notify-new-messages)
+#+end_src
+*** Signature above reply:
+#+begin_src emacs-lisp
+(defun circ/mu4e-insert-signature ()
+  (interactive)
+  (cond ((stringp mu4e-compose-signature)
+         (insert mu4e-compose-signature))
+        ((functionp mu4e-compose-signature)
+         (insert (funcall mu4e-compose-signature)))))
+
+(defun circ/mu4e-insert-signature-before-reply ()
+  "Mimics the way outlook and gmail do signatures. Which is
+unfortunately the standard these days. Call this immediately on
+composing a message."
+  (search-forward "--text follows this line--" nil t)
+  (insert "\n")
+  (circ/mu4e-insert-signature)
+  (insert "\n")
+  (goto-char (point-min))
+  (search-forward "--text follows this line--" nil t)
+  (insert "\n"))
+
+;; If you want to use this style, make sure to disable the native mu4e signature
+;; insert function
+;; TODO: Bug - Causes point to end up in message instead of To field
+(setq mu4e-compose-signature-auto-include nil)
+(add-hook 'mu4e-compose-mode-hook 'circ/mu4e-insert-signature-before-reply)
+
+;; If you tried it, and want to disable, run these:
+(setq mu4e-compose-signature-auto-include t)
+(remove-hook 'mu4e-compose-mode-hook 'circ/mu4e-insert-signature-before-reply)
+#+end_src
+*** Evil Keybindings
+#+begin_src emacs-lisp
+(evil-set-initial-state 'mu4e-main-mode 'normal)
+(evil-set-initial-state 'mu4e-view-mode 'normal)
+(evil-set-initial-state 'mu4e-org-mode 'normal)
+;; I don't know why, but if I start mu4e in normal mode, I get a bunch of
+;; telephone line errors. So start in insert mode instead.
+(evil-set-initial-state 'mu4e-compose-mode 'normal)
+(evil-set-initial-state 'mu4e-headers-mode 'normal)
+(add-hook 'mu4e-compose-mode-hook 'circ/mu4e-enable-nlinum-mode)
+
+;; Hacky workaround for a error when global-nlinum-relative-mode is on
+;; Change the global-nlinum-relative-mode to ignore mu4e-compose-mode
+(define-globalized-minor-mode global-nlinum-relative-mode nlinum-relative-mode
+  (lambda () (unless (or (minibufferp)
+                         (eq major-mode 'mu4e-compose-mode))
+               (nlinum-relative-mode))))
+
+;; Enable the nlinum-mode for compose again.
+(defun circ/mu4e-enable-nlinum-mode ()
+  (nlinum-mode 1))
+
+(evil-define-key 'normal mu4e-main-mode-map
+  "q" 'mu4e-quit
+  "j" 'mu4e~headers-jump-to-maildir
+  "s" 'mu4e-headers-search
+  "C" 'mu4e-compose-new
+  "c" 'mu4e-compose-new
+  "b" 'mu4e-headers-search-bookmark
+  "B" 'mu4e-headers-search-bookmark-edit
+  ";" 'mu4e-context-switch
+  "U" 'mu4e-update-mail-and-index
+  "u" 'mu4e-update-mail-and-index
+  "N" 'mu4e-news
+  "A" 'mu4e-about
+  "H" 'mu4e-display-manual
+
+  "f" 'smtpmail-send-queued-mail
+  "m" 'mu4e~main-toggle-mail-sending-mode
+  "x" 'mu4e-kill-update-mail
+)
+
+(defun circ/mu4e-mark-as-read ()
+  (interactive)
+  (mu4e-headers-mark-thread nil '(read)))
+
+(evil-define-key 'normal mu4e-headers-mode-map
+  "q"  'mu4e~headers-quit-buffer
+  "J"  'mu4e~headers-jump-to-maildir
+  "C"  'mu4e-compose-new
+  "E"  'mu4e-compose-edit
+  "F"  'mu4e-compose-forward
+  "R"  'mu4e-compose-reply
+  "cc" 'mu4e-compose-new
+  "ce" 'mu4e-compose-edit
+  "cf" 'mu4e-compose-forward
+  "cr" 'mu4e-compose-reply
+  "o"  'mu4e-headers-change-sorting
+  "j"  'mu4e-headers-next
+  "k"  'mu4e-headers-prev
+  "gr" 'mu4e-headers-rerun-search
+  "b"  'mu4e-headers-search-bookmark
+  "B"  'mu4e-headers-search-bookmark-edit
+  ";"  'mu4e-context-switch
+  (kbd "RET") 'mu4e-headers-view-message
+  "/"  'mu4e-headers-search-narrow
+  "s"  'mu4e-headers-search
+  "S"  'mu4e-headers-search-edit
+  "x"  'mu4e-mark-execute-all
+  "a"  'mu4e-headers-action
+  "*"  'mu4e-headers-mark-for-something ; TODO: Don't override evil-seach-word-forward?
+  "&"  'mu4e-headers-mark-custom
+  "A"  'mu4e-headers-mark-for-action
+  "m"  'mu4e-headers-mark-for-move
+  "r"  'mu4e-headers-mark-for-refile
+  "D"  'mu4e-headers-mark-for-delete
+  "d"  'mu4e-headers-mark-for-trash
+  "="  'mu4e-headers-mark-for-untrash
+  "u"  'mu4e-headers-mark-for-unmark
+  "U"  'mu4e-mark-unmark-all
+  "?"  'mu4e-headers-mark-for-unread
+  "!"  'mu4e-headers-mark-for-read
+  "%"  'mu4e-headers-mark-pattern
+  "+"  'mu4e-headers-mark-for-flag
+  "-"  'mu4e-headers-mark-for-unflag
+  "["  'mu4e-headers-prev-unread
+  "]"  'mu4e-headers-next-unread
+  "gk" 'mu4e-headers-prev-unread
+  "gj" 'mu4e-headers-next-unread
+  "\C-j" 'mu4e-headers-next
+  "\C-k" 'mu4e-headers-prev
+  "zr" 'mu4e-headers-toggle-include-related
+  "zt" 'mu4e-headers-toggle-threading
+  "zd" 'mu4e-headers-toggle-skip-duplicates
+  "gl" 'mu4e-show-log
+  "gv" 'mu4e-select-other-view
+  "T"  'circ/mu4e-mark-as-read
+  "M"  'mu4e-headers-mark-all
+)
+
+(defun circ/mu4e-compose-quit ()
+  (interactive)
+  (let ((action (completing-read "Action " '("send and exit"
+                                             "save as draft and exit"
+                                             "don't save and exit"))))
+    (cond ((string= action "send and exit")
+           (message-send-and-exit))
+          ((string= action "save as draft and exit")
+           (message-dont-save))
+          ((string= action "don't save and exit")
+           (mu4e-message-kill-buffer))
+          (t
+           (message "No choice selected")))))
+
+(evil-define-key 'normal mu4e-compose-mode-map
+  "gg" 'mu4e-compose-goto-top
+  "G"  'mu4e-compose-goto-bottom
+)
+
+(evil-define-key 'normal mu4e-view-mode-map
+  " "  'mu4e-view-scroll-up-or-next
+  [tab] 'shr-next-link
+  [backtab] 'shr-previous-link
+  "q"  'mu4e~view-quit-buffer
+  "gx" 'mu4e-view-go-to-url
+  "gX" 'mu4e-view-fetch-url
+  "C"  'mu4e-compose-new
+  "H"  'mu4e-view-toggle-html
+  ;; "E"               mu4e-compose-edit
+  ;; "F"               mu4e-compose-forward
+  "R"  'mu4e-compose-reply
+  "cc" 'mu4e-compose-new
+  "ce" 'mu4e-compose-edit
+  "cf" 'mu4e-compose-forward
+  "cr" 'mu4e-compose-reply
+  "p"  'mu4e-view-save-attachment
+  "P"  'mu4e-view-save-attachment-multi ; Since mu4e 1.0, -multi is same as normal.
+  "O"  'mu4e-headers-change-sorting
+  "o"  'mu4e-view-open-attachment
+  "A"  'mu4e-view-attachment-action
+  "a"  'mu4e-view-action
+  "J"  'mu4e~headers-jump-to-maildir
+  "[[" 'mu4e-view-headers-prev-unread
+  "]]" 'mu4e-view-headers-next-unread
+  "gk" 'mu4e-view-headers-prev-unread
+  "gj" 'mu4e-view-headers-next-unread
+  "\C-j" 'mu4e-view-headers-next
+  "\C-k" 'mu4e-view-headers-prev
+  "x"  'mu4e-view-marked-execute
+  "&"  'mu4e-view-mark-custom
+  "*"  'mu4e-view-mark-for-something   ; TODO: Don't override "*".
+  "m"  'mu4e-view-mark-for-move
+  "r"  'mu4e-view-mark-for-refile
+  "D"  'mu4e-view-mark-for-delete
+  "d"  'mu4e-view-mark-for-trash
+  "="  'mu4e-view-mark-for-untrash
+  "u"  'mu4e-view-unmark
+  "U"  'mu4e-view-unmark-all
+  "?"  'mu4e-view-mark-for-unread
+  "!"  'mu4e-view-mark-for-read
+  "%"  'mu4e-view-mark-pattern
+  "+"  'mu4e-view-mark-for-flag
+  "-"  'mu4e-view-mark-for-unflag
+  "zr" 'mu4e-headers-toggle-include-related
+  "zt" 'mu4e-headers-toggle-threading
+  "za" 'mu4e-view-toggle-hide-cited
+  "gl" 'mu4e-show-log
+  "s"  'mu4e-view-search-edit
+  "|"  'mu4e-view-pipe
+  "."  'mu4e-view-raw-message
+  (kbd "C--") 'mu4e-headers-split-view-shrink
+  (kbd "C-+") 'mu4e-headers-split-view-grow
+  "T" 'circ/mu4e-mark-as-read
+  (kbd "<home>") 'move-beginning-of-line
+  (kbd "<end>") 'move-end-of-line
+)
+#+end_src
+** rcirc
+*** Set up
+#+begin_src emacs-lisp
+(require 'rcirc)
+
+;; rcirc-default-nick in personalsettings.org
+(setq rcirc-default-full-name "unknown")
+(setq rcirc-omit-responses '("JOIN" "PART" "QUIT" "NICK"))
+(setq rcirc-fill-column 80)
+;; If a user has been active within X messages, don't omit messages from them
+(setq rcirc-omit-threshold 100)
+;; rcirc-omit-mode is buffer local
+
+;; rcirc-server-alist in personalsettings.org
+
+;; Users to highlight / dim/ ignore
+;; rcirc-bright-nicks
+;; rcirc-dim-nicks
+;; rcirc-ignore-list
+;; In personalsettings.org
+
+(add-hook 'rcirc-mode-hook 'circ/disable-linum-mode)
+#+end_src
+*** Connection functions
+#+begin_src emacs-lisp
+;; Connection functions in personalsettings.org
+#+end_src
+*** Colourise nicks
+#+begin_src emacs-lisp
+;; Colour the nicks
+(setq circ/rcirc-colours-list
+  '("#404040" "#404080" "#4040C0" "#4040FF" "#408040" "#408080" "#4080C0" "#4080FF"
+    "#40C040" "#40C080" "#40C0C0" "#40C0FF" "#40FF40" "#40FF80" "#40FFC0" "#40FFFF"
+    "#804040" "#804080" "#8040C0" "#8040FF" "#808040" "#808080" "#8080C0" "#8080FF"
+    "#80C040" "#80C080" "#80C0C0" "#80C0FF" "#80FF40" "#80FF80" "#80FFC0" "#80FFFF"
+    "#C04040" "#C04080" "#C040C0" "#C040FF" "#C08040" "#C08080" "#C080C0" "#C080FF"
+    "#C0C040" "#C0C080" "#C0C0C0" "#C0C0FF" "#C0FF40" "#C0FF80" "#C0FFC0" "#C0FFFF"
+    "#FF4040" "#FF4080" "#FF40C0" "#FF40FF" "#FF8040" "#FF8080" "#FF80C0" "#FF80FF"
+    "#FFC040" "#FFC080" "#FFC0C0" "#FFC0FF" "#FFFF40" "#FFFF80" "#FFFFC0" "#FFFFFF"))
+
+(defun circ/rcirc-get-colour-for-nick (nick)
+  "Given a nick string, use md5 to pick and return a colour from
+`circ/rcirc-colours-list'"
+  (nth
+   (mod (string-to-number
+         (substring (md5 (downcase nick)) 0 6) 16)
+        (length circ/rcirc-colours-list))
+   circ/rcirc-colours-list))
+
+(defun circ/rcirc-colour-nicks (sender response)
+  "rcirc markup function to set a colour for the nick of the
+message sender, based on `circ/rcirc-colours-list'"
+  (save-excursion
+    (goto-char (point-min))
+    (re-search-forward "<\\([^>]*\\)>" nil t)
+    (let ((nick (match-string 1)))
+      (when nick
+        (rcirc-add-face (match-beginning 1) (match-end 1)
+                        (cons 'foreground-color (circ/rcirc-get-colour-for-nick nick)))))))
+(add-to-list 'rcirc-markup-text-functions 'circ/rcirc-colour-nicks)
+#+end_src
+*** Line up usernames
+#+begin_src emacs-lisp
+;; Line up usernames
+(defvar circ/rcirc-nick-length 15
+  "Length to pad nicks in rcirc. Set to 0 to disable")
+(defun circ/rcirc-pad-nick (nick)
+  "Pad the nick string with spaces so it is at least
+`circ/rcirc-nick-lenght' long"
+  (cond ((< (length nick) circ/rcirc-nick-length)
+         (concat (make-string (- circ/rcirc-nick-length (length nick)) ?\s)
+                 nick))
+        (t nick)))
+
+(defun circ/rcirc-align-nicks (sender response)
+  "rcirc markup function to align nicks so that the messages
+appear lined up. Similar to ERC's center option"
+  (save-excursion
+    (goto-char (point-min))
+    (re-search-forward "\\(<[^>]*>\\)" nil t)
+    (let ((nick (match-string 1)))
+      (when nick
+        (replace-match (circ/rcirc-pad-nick nick) t t)))))
+(add-to-list 'rcirc-markup-text-functions 'circ/rcirc-align-nicks)
+#+end_src
+*** Authentication
+#+begin_src emacs-lisp
+;; Auth without keeping password in config or memory
+;; Auth functions in personalsettings.org
+(advice-add 'rcirc-authenticate :before 'circ/rcirc-set-authinfo)
+(advice-add 'rcirc-authenticate :after 'circ/rcirc-clear-authinfo)
+#+end_src
+*** Omit based on channel
+#+begin_src emacs-lisp
+;; Auto omit on certain server channels
+(defvar circ/rcirc-channels-auto-omit '())
+;; circ/rcirc-channels-auto-omit in personal-settings.org
+
+(defun circ/rcirc-server-channel-in-list-p (list)
+  (let* ((server (process-name (rcirc-buffer-process)))
+         (channel rcirc-target)
+         (omit-channels (cdr (assoc server list))))
+    (when (and server channel)
+      (member channel omit-channels))))
+
+(defun circ/rcirc-channel-auto-omit ()
+  "Checks the current server and channel, and enables
+`rcirc-omit-mode' if the server and channel are in
+`circ/rcirc-channels-auto-omit'"
+  (interactive)
+  (message "Checking omit mode")
+  ;; TODO: Bug. Sometimes the `rcirc-target' is not set when this function is run
+  ;; I don't know why.
+  (unless rcirc-target
+    (message "No channel in rcirc-target: %s" rcirc-target))
+  (when (and (rcirc-buffer-process)
+             rcirc-target
+             (circ/rcirc-server-channel-in-list-p circ/rcirc-channels-auto-omit))
+    (message "Enabling omit-mode for %s" rcirc-target)
+    (rcirc-omit-mode 1)))
+(add-hook 'rcirc-mode-hook 'circ/rcirc-channel-auto-omit)
+
+;; Used to determine if the message is worth tracking.
+;; Omitted messages shouldn't trigger tracking.
+(defun circ/rcirc-omit-message-p (process sender response target)
+  "Check if the message should be omitted based on the server,
+channel, and message type"
+  (when rcirc-omit-mode
+    (let ((last-activity-lines (rcirc-elapsed-lines process sender target)))
+      (and (not (string= (rcirc-nick process) sender))
+           (member response rcirc-omit-responses)
+           (or (not last-activity-lines)
+               (< rcirc-omit-threshold last-activity-lines))))))
+#+end_src
+*** Tracking
+#+begin_src emacs-lisp
+;; Tracking
+(rcirc-track-minor-mode 0)
+(defvar circ/rcirc-channels-no-track '())
+;; circ/rcirc-channels-no-track set in personalsettings.org
+
+;; Set tracking name to full channel name
+(defun circ/rcirc-set-short-buffer-name ()
+  "Set the current buffers name to the channel"
+  (interactive)
+  (setq rcirc-short-buffer-name rcirc-target))
+(defun circ/rcirc-set-all-short-buffer-names ()
+  "Set all rcirc buffer names to the full channel name"
+  (let ((bufalist
+         (apply 'append (mapcar (lambda (process)
+                                  (with-rcirc-process-buffer process
+                                    rcirc-buffer-alist))
+                                (rcirc-process-list)))))
+    (dolist (i bufalist)
+      (when (buffer-live-p (cdr i))
+	(with-current-buffer (cdr i)
+	  (setq rcirc-short-buffer-name (car i)))))))
+(advice-add 'rcirc-update-short-buffer-names :after 'circ/rcirc-set-all-short-buffer-names)
+
+(defun circ/update-rcirc-tracking (process sender response target text)
+  "On a new message, check if the window is selected. If not, and
+if the message is NOT ommitted, add it to the
+tracking (`rcirc-activity') variable."
+  (unless (or (circ/rcirc-omit-message-p process sender response target)
+              (circ/rcirc-server-channel-in-list-p circ/rcirc-channels-no-track))
+    (let ((server (process-name process))
+          (channel target)
+          (window-in-view (eq (selected-window) (get-buffer-window nil t))))
+      (when (and (not window-in-view)
+                 (bufferp (rcirc-get-buffer process target))
+                 server channel)
+        (add-to-list 'rcirc-activity (rcirc-get-buffer process target)))
+      (when window-in-view
+        (setq rcirc-activity
+              (delete (rcirc-get-buffer process target) rcirc-activity)))
+      (rcirc-update-activity-string))))
+(add-hook 'rcirc-print-functions 'circ/update-rcirc-tracking)
+
+(defun circ/rcirc-clear-buffer-tracking ()
+  "Clears the current buffer from `rcirc-activity' tracking
+variable and clears the unread line from the buffer"
+  (interactive)
+  (when (equal major-mode 'rcirc-mode)
+    ;; (setq rcirc-activity
+    ;;       (delete (rcirc-get-buffer (rcirc-buffer-process) rcirc-target) rcirc-activity)))
+    (setq rcirc-activity
+          (delete (get-buffer (buffer-name)) rcirc-activity)))
+  (rcirc-update-activity-string)
+  (circ/rcirc-clear-unread-line))
+
+(defun circ/rcirc-get-all-rcirc-buffers ()
+  (let (rcirc-buffers)
+    (dolist (buffer (buffer-list))
+      (with-current-buffer buffer
+          (when (eq major-mode 'rcirc-mode)
+            (setq rcirc-buffers (cons buffer rcirc-buffers)))))
+    rcirc-buffers))
+
+(defun circ/rcirc-clear-all-buffer-tracking ()
+  "Go through all rcirc buffers and clear all their tracking"
+  (interactive)
+  (dolist (buffer (circ/rcirc-get-all-rcirc-buffers))
+    (with-current-buffer buffer
+      (circ/rcirc-clear-buffer-tracking))
+  (rcirc-update-activity-string)))
+
+(setq global-mode-string (append global-mode-string '(rcirc-activity-string)))
+#+end_src
+*** Unread line marker
+#+begin_src emacs-lisp
+(defvar-local circ/rcirc-unread-line-p nil
+  "Variable to keep track of if the unread line was added")
+(defun circ/rcirc-add-unread-line (sender response)
+  "rcirc markup function that adds a red line before a new message if the window
+is not selected and the message is a message is one that is not omitted. Only do
+this once. Keep tracking using `circ/rcirc-unread-line-p'"
+  ;; If you are in omit mode and the message is one of the omitted messages, skip
+  (unless (circ/rcirc-omit-message-p (rcirc-buffer-process) sender response rcirc-target)
+    (save-excursion
+      ;; When window is NOT in view
+      (unless (or (eq (selected-window) (get-buffer-window nil t))
+                  circ/rcirc-unread-line-p)
+        (let ((string (concat (make-string rcirc-fill-column ?-) "\n")))
+          (goto-char (point-min))
+          (insert string)
+          (goto-char (point-min))
+          (search-forward string)
+          (rcirc-add-face (match-beginning 0) (match-end 0)
+                          (cons 'foreground-color "red"))
+          (setq circ/rcirc-unread-line-p t))))))
+(add-to-list 'rcirc-markup-text-functions 'circ/rcirc-add-unread-line)
+
+(defun circ/rcirc-clear-unread-line ()
+  "Remove the red unread line and unsets `circ/rcirc-unread-line-p'"
+  (interactive)
+  (save-excursion
+    (let ((inhibit-read-only t)
+          (string (concat (make-string rcirc-fill-column ?-) "\n")))
+      (when (search-backward string nil t)
+        (replace-match "" nil nil nil 0))))
+  (setq circ/rcirc-unread-line-p nil))
+#+end_src
+*** Highlight and dim user messages
+#+begin_src emacs-lisp
+(defun circ/rcirc-highlight-bright-nick-message (sender response)
+  "rcirc markup function to highlight the entire message for nicks that have
+bright enabled."
+  (when (member sender rcirc-bright-nicks)
+    (save-excursion
+      (goto-char (point-min))
+      (re-search-forward "<[^>]*> \\(.*\\)" nil t)
+      (rcirc-add-face (match-beginning 1) (match-end 1)
+                      (cons 'foreground-color "Aquamarine")))))
+(add-to-list 'rcirc-markup-text-functions 'circ/rcirc-highlight-bright-nick-message)
+
+(defun circ/rcirc-highlight-dim-nick-message (sender response)
+  "rcirc markup function to dim the entire message for nicks that have
+dim enabled."
+  (when (member sender rcirc-dim-nicks)
+    (save-excursion
+      (goto-char (point-min))
+      (re-search-forward "<[^>]*> \\(.*\\)" nil t)
+      (rcirc-add-face (match-beginning 1) (match-end 1)
+                      (cons 'foreground-color "#555555")))))
+(add-to-list 'rcirc-markup-text-functions 'circ/rcirc-highlight-dim-nick-message)
+#+end_src
+*** Open urls
+#+begin_src emacs-lisp
+(defun circ/rcirc-open-url ()
+  (interactive)
+  (let (urls
+        ;; Disable ivy default sorting
+        (ivy-sort-functions-alist nil))
+    (save-excursion
+      (goto-char (point-min))
+      (while (re-search-forward rcirc-url-regexp nil t)
+        (setq urls (cons (match-string-no-properties 0) urls))))
+    (browse-url (completing-read "Select URL: " urls))))
+#+end_src
+*** Count users in channel
+#+begin_src emacs-lisp
+(defun circ/rcirc-show-user-count ()
+  (interactive)
+  (when (and rcirc-target (rcirc-buffer-process)
+             (message "User count in %s: %s" rcirc-target
+                      (length (rcirc-channel-nicks (rcirc-buffer-process) rcirc-target))))))
+#+end_src
+*** Evil
+#+begin_src emacs-lisp
+(evil-set-initial-state 'rcirc-mode 'normal)
+
+(evil-define-key 'normal rcirc-mode-map
+  "gr" 'circ/rcirc-clear-buffer-tracking
+  "gR" 'circ/rcirc-clear-all-buffer-tracking
+  "gc" 'circ/rcirc-clear-all-buffer-tracking
+  "f" 'circ/rcirc-open-url
+  )
+#+end_src
+** elpher
+*** Set up
+#+begin_src emacs-lisp
+(add-to-list 'load-path "~/.emacs.d/packages/elpher-20200919.1025")
+(require 'elpher)
+#+end_src
+
+*** Evil keybindings
+#+begin_src emacs-lisp
+(evil-define-key 'motion elpher-mode-map
+  "q" 'circ/kill-this-buffer
+  "H" 'elpher-back
+  "f" 'elpher-jump
+  "o" 'elpher-go
+  "O" 'elpher-go-current
+  "]" 'elpher-next-link
+  "[" 'elpher-prev-link
+  "n" 'elpher-next-link
+  "p" 'elpher-prev-link
+)
+
+(add-hook 'elpher-mode-hook 'circ/disable-evil-quickscope-mode)
+#+end_src
+** vc-diff
+*** Evil Bindings
+#+begin_src emacs-lisp
+(evil-set-initial-state 'vc-dir-mode 'motion)
+(evil-define-key 'motion vc-dir-mode-map
+  "q" 'circ/kill-this-buffer
+  "r" 'revert-buffer
+
+  "c" 'vc-next-action
+  "d" 'vc-diff
+  "D" 'vc-root-diff
+
+  "s" 'circ-git/add ;; add new file
+
+  "m" 'vc-dir-mark
+  "M" 'vc-dir-mark-all-files
+  "u" 'vc-dir-unmark
+  "U" 'vc-dir-unmark-all-files
+)
+#+end_src
+** Magit
+*** Set up
+#+begin_src emacs-lisp
+;; Dependencies
+(add-to-list 'load-path "~/.emacs.d/packages/dash.el-2.16.0") ;; Already used for elfeed
+(add-to-list 'load-path "~/.emacs.d/packages/ghub-3.5.1")
+(add-to-list 'load-path "~/.emacs.d/packages/graphql.el-0.1.1")
+(add-to-list 'load-path "~/.emacs.d/packages/magit-popup-2.13.3")
+(add-to-list 'load-path "~/.emacs.d/packages/treepy.el-0.1.2")
+(add-to-list 'load-path "~/.emacs.d/packages/with-editor-3.0.4")
+
+
+(add-to-list 'load-path "~/.emacs.d/packages/magit-2.90.1/lisp")
+(require 'magit)
+
+(with-eval-after-load 'info
+  (info-initialize)
+  (add-to-list 'Info-directory-list
+                "~/.emacs.d/packages/magit-2.90.1/Documentation/"))
+#+end_src
+*** Display mode
+#+begin_src emacs-lisp
+;; Display the magit buffer in the current window, unless it is a diff
+(setq magit-display-buffer-function 'magit-display-buffer-same-window-except-diff-v1)
+
+;; Quit the magit window and do not restore the previous window config
+(setq magit-bury-buffer-function 'quit-window)
+#+end_src
+
+** Evil magit
+*** Set up
+#+begin_src emacs-lisp
+(add-to-list 'load-path "~/.emacs.d/packages/evil-magit-0.4.2")
+(require 'evil-magit)
+#+end_src
+*** Kill Magit Buffer
+#+begin_src emacs-lisp
+(defun circ/magit-mode-kill-buffer () (interactive) (magit-mode-bury-buffer t))
+(defun circ/magit-log-kill-buffer () (interactive) (magit-log-bury-buffer 2))
+#+end_src
+*** Evil keybindings
+#+begin_src emacs-lisp
+;; Removed in favour of evil-magit
+;; (evil-set-initial-state 'magit-mode 'normal)
+;; (evil-define-key 'normal magit-mode-map
+;;   "g" 'magit-refresh
+
+;;   "r" 'magit-rebase-popup
+;;   "?" 'magit-dispatch-popup
+;;   "c" 'magit-commit-popup
+;;   "l" 'magit-log-popup
+;;   "d" 'magit-diff-popup
+
+;;   "j" 'magit-section-forward
+;;   "k" 'magit-section-backward
+;;   "\C-J" 'magit-section-forward-sibling
+;;   "\C-K" 'magit-section-backward-sibling
+
+;;   "1" 'magit-section-show-level-1
+;;   "2" 'magit-section-show-level-2
+;;   "3" 'magit-section-show-level-3
+;;   "4" 'magit-section-show-level-4
+
+;;   "\M-1" 'magit-section-show-level-1-all
+;;   "\M-2" 'magit-section-show-level-2-all
+;;   "\M-3" 'magit-section-show-level-3-all
+;;   "\M-4" 'magit-section-show-level-4-all
+
+;;   (kbd "TAB") 'magit-section-toggle
+;; )
+
+;; (evil-set-initial-state 'magit-status-mode 'normal)
+;; (evil-define-key 'normal magit-status-mode-map
+;;   "q" 'circ/magit-mode-kill-buffer
+
+;;   "J" 'nil
+;;   "Jfp" 'magit-jump-to-unpulled-from-pushremote
+;;   "Jfu" 'magit-jump-to-unpulled-from-upstream
+;;   "Jn" 'magit-jump-to-untracked
+;;   "Jpp" 'magit-jump-to-unpushed-to-pushremote
+;;   "Jpu" 'magit-jump-to-unpushed-to-upstream
+;;   "Js" 'magit-jump-to-staged
+;;   "Jt" 'magit-jump-to-tracked
+;;   "Ju" 'magit-jump-to-unstaged
+;;   "Jz" 'magit-jump-to-stashes
+
+;;   (kbd "RET") 'magit-diff-visit-file
+;; )
+
+;; (evil-set-initial-state 'magit-log-mode 'normal)
+;; (evil-define-key 'normal magit-log-mode-map
+;;   "q" 'circ/magit-log-kill-buffer
+
+;;   (kbd "RET") 'magit-show-commit
+;; )
+
+;; (evil-set-initial-state 'magit-diff-mode 'normal)
+;; (evil-define-key 'normal magit-log-mode-map
+;;   "q" 'circ/magit-mode-kill-buffer
+;; )
+#+end_src
 ** general
 #+BEGIN_SRC emacs-lisp
 (add-to-list
@@ -3895,6 +4909,17 @@ Simply send M-f instead
   'circ/term/go-to-next-word)
 #+END_SRC
 
+** mu4e
+#+begin_src emacs-lisp
+(general-define-key
+  :keymaps 'mu4e-compose-mode-map
+  :states '(normal)
+  "q" 'nil :which-key "Quit"
+  "qq" '(mu4e-message-kill-buffer :which-key "Cancel message and quit")
+  "qd" '(message-dont-save :which-key "Save as draft and quit")
+  "qs" '(message-send-and-exit :which-key "Send message and quit")
+)
+#+end_src
 ** Unbinding Keys
 #+BEGIN_SRC emacs-lisp
 ;(general-unbind
@@ -3924,7 +4949,10 @@ Simply send M-f instead
 (circ/p1 "/"    'circ/alias-search-buffer             "search buffer")
 (circ/p1 ";"    'counsel-M-x                          "M-x")
 (circ/p1 "="    'circ/alias-text-scale-up             "text scale up")
-(circ/p1 "a"    'circ/add-abbrev                      "add abbrev")
+(circ/p1 "a"    'nil                                  "abbrevs / snippets")
+(circ/p1 "a a"  'circ/add-abbrev                      "add abbrev")
+(circ/p1 "a e"  'circ/snippet-expand                  "snippet expand")
+(circ/p1 "a r"  'circ/snippet-load-snippets           "load snippets")
 (circ/p1 "b b"  'ivy-switch-buffer                    "switch buffers")
 (circ/p1 "b c"  'nil                                  "cast buffers")
 (circ/p1 "b ch" 'circ/alias-cast-buffer-left          "cast buffer left")
@@ -3954,6 +4982,7 @@ Simply send M-f instead
 (circ/p1 "d"    'evil-goto-definition                 "goto definition")
 (circ/p1 "d"    'org-open-at-point                    "open link"                           'org-agenda-mode-map)
 (circ/p1 "d"    'org-open-at-point                    "open link"                           'org-mode-map)
+(circ/p1 "d"    'circ/rcirc-open-url                  "open link"                           'rcirc-mode-map)
 (circ/p1 "e #"  'nil                                  "number increment / decrement")
 (circ/p1 "e #a" 'evil-numbers/inc-at-pt               "increment")
 (circ/p1 "e #x" 'evil-numbers/dec-at-pt               "decrement")
@@ -4024,6 +5053,7 @@ Simply send M-f instead
 (circ/p1 "o c"  'copy-buffer                          "copy buffer")
 (circ/p1 "o d"  'dired-jump                           "dired jump")
 (circ/p1 "o D"  'dired                                "dired")
+(circ/p1 "o e"  'mu4e                                 "mu4e")
 (circ/p1 "o i"  'circ/open-in-intellij                "open in intellij")
 (circ/p1 "o i"  'image-dired                          "image-dired"                         'dired-mode-map)
 (circ/p1 "o m"  'mpccp                                "mpccp")
@@ -4080,6 +5110,7 @@ Simply send M-f instead
 (circ/p1 "t h"  'dired-omit-mode                      "toggle hidden"                       'dired-mode-map)
 (circ/p1 "t i"  'org-toggle-inline-images             "toggle images"                       'org-mode-map)
 (circ/p1 "t l"  'nlinum-mode                          "toggle relative line numbers")
+(circ/p1 "t o"  'rcirc-omit-mode                      "toggle omit mode"                    'rcirc-mode-map) ;; TODO WORKING?
 (circ/p1 "t p"  'projectile-mode                      "toggle projectile mode")
 (circ/p1 "t r"  'rainbow-delimiters-mode              "toggle rainbow delimiters")
 (circ/p1 "t t"  'nil                                  "tables"                              'org-mode-map)
@@ -4099,6 +5130,7 @@ Simply send M-f instead
 (circ/p1 "v m"  'nil                                  "merge conflict"                      'smerge-mode-map)
 (circ/p1 "v mn" 'smerge-next                          "next merge conflict"                 'smerge-mode-map)
 (circ/p1 "v mp" 'smerge-prev                          "prev merge conflict"                 'smerge-mode-map)
+(circ/p1 "v s"  'magit-status                         "magit status")
 (circ/p1 "v"    'nil                                  "version control")
 (circ/p1 "w e"  'balance-windows                      "balance windows")
 (circ/p1 "w h"  'circ/split-window-right              "split horizontal")
@@ -4166,6 +5198,8 @@ Simply send M-f instead
 (circ/p3 "l"    'circ/alias-cast-buffer-right         "cast buffer right")
 (circ/p3 "p"    'evil-jump-backward                   "jump back")
 (circ/p3 "n"    'evil-jump-forward                    "jump forward")
+(circ/p3 "x"    'nil                                  "clearing notifications")
+(circ/p3 "x e"  'circ/rcirc-clear-all-buffer-tracking "clear all rcirc tracking")
 #+END_SRC
 
 ** P4
@@ -4175,7 +5209,18 @@ Simply send M-f instead
 (circ/p4 "]"    'org-next-link                        "next link"                           'org-mode-map)
 (circ/p4 "["    'org-previous-link                    "previous link"                       'org-agenda-mode-map)
 (circ/p4 "]"    'org-next-link                        "next link"                           'org-agenda-mode-map)
+(circ/p4 "["    'shr-previous-link                    "previous link"                       'mu4e-view-mode-map)
+(circ/p4 "]"    'shr-next-link                        "next link"                           'mu4e-view-mode-map)
+(circ/p4 "["    'backward-button                      "backward button"                     'Man-mode-map)
+(circ/p4 "]"    'forward-button                       "forward button"                      'Man-mode-map)
+(circ/p4 "["    'eww-previous-url                     "previous url"                        'eww-mode-map)
+(circ/p4 "]"    'eww-next-url                         "next url"                            'eww-mode-map)
+(circ/p4 "["    'shr-previous-link                    "previous link"                       'elfeed-show-mode-map)
+(circ/p4 "]"    'elfeed-show-next-link                "next link"                           'elfeed-show-mode-map)
+(circ/p4 "["    'backward-button                      "backward button"                     'help-mode-map)
+(circ/p4 "]"    'forward-button                       "forward button"                      'help-mode-map)
 (circ/p4 "/"    'counsel-org-goto                     "org goto"                            'org-mode-map)
+(circ/p4 "/"    'Man-goto-section                     "man goto section"                    'Man-mode-map)
 (circ/p4 "a"    'nil                                  "org-agenda")
 (circ/p4 "a a"  'circ/alias-org-agenda-agenda         "agenda")
 (circ/p4 "a t"  'circ/alias-org-agenda-tasks          "tasks")
@@ -4249,6 +5294,7 @@ Simply send M-f instead
 (circ/p4 "v l"  'org-insert-link                      "edit link"                           'org-mode-map)
 (circ/p4 "v p"  'counsel-yank-pop                     "paste selector")
 (circ/p4 "v t"  'circ/org-template-insert             "template"                            'org-mode-map)
+(circ/p4 "v f"  'mml-attach-file                      "attach file"                         'mu4e-compose-mode-map)
 (circ/p4 "v"    'nil                                  "insert items"                        'org-mode-map)
 (circ/p4 "x"    'nil                                  "none")
 (circ/p4 "x"    'org-toggle-checkbox                  "toggle checkbox"                     'org-mode-map)
@@ -4281,6 +5327,8 @@ Simply send M-f instead
   "fT" 'circ/org-agenda-show-all-tags
   "fe" 'circ/org-agenda-filter-effort
   "fE" 'circ/org-agenda-show-all-efforts
+  "fc" 'circ/org-agenda-filter-category
+  "fC" 'circ/org-agenda-show-all-categories
   "r" 'circ/org-agenda-redo
   "R" 'org-agenda-redo)
 

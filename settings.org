@@ -68,7 +68,7 @@ Settings that only work on my home computer. They will probably break other setu
                        (tags "STYLE=\"timebucket\"" ((org-agenda-overriding-header "Time Buckets")))
                        (tags "+CATEGORY=\"inbox\"" ((org-agenda-overriding-header "Inbox")))
                        (tags "+PROJ&+CATEGORY=\"\"" ((org-agenda-overriding-header "Projects Without Category")))))
-        ("T" "Tasks" ((tags "+PINNED=\"t\"" ((org-agenda-overriding-header "Pinned")))
+        ("T" "Tasks" ((tags "+PINNED=\"t\"-TODO=\"DONE\"-TODO=\"CANCELLED\"" ((org-agenda-overriding-header "Pinned")))
                       (tags "+TODO=\"INPROGRESS\"" ((org-agenda-overriding-header "In Progress")))
                       (tags "+TODO=\"TODO\"-DEADLINE={.+}-SCHEDULED={.+}" ((org-agenda-overriding-header "Todo")))
                       (tags "+TODO=\"WAIT\"" ((org-agenda-overriding-header "Wait")))
@@ -100,6 +100,11 @@ Settings that only work on my home computer. They will probably break other setu
         ("l" "Link"
          entry (file "~/pims/inbox.org")
          "* %a\n%U")
+        ("m" "Emails")
+        ("mf" "Follow up email" entry (file "~/pims/inbox.org")
+         "* Follow up with %:from on %a\n%i%?")
+        ("mr" "Read email" entry (file "~/pims/inbox.org")
+         "* Read email %:from - %a\n%i%?")
         ))
 
 (setq org-agenda-prefix-format '((agenda   . " %i %-12:c %-6:e%?-12t% s")
