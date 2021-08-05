@@ -3869,6 +3869,7 @@ Email
 
 *** When
 #+begin_src emacs-lisp
+(defvar circ/require-mu4e nil)
 (when circ/require-mu4e
 #+end_src
 *** Set up
