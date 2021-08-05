@@ -3867,6 +3867,10 @@ at the time of running the hook."
 ** mu4e
 Email
 
+*** When
+#+begin_src emacs-lisp
+(when circ/require-mu4e
+#+end_src
 *** Set up
 #+begin_src emacs-lisp
 (add-to-list 'load-path "/usr/share/emacs/site-lisp/mu4e")
@@ -4206,6 +4210,10 @@ composing a message."
   "T" 'circ/mu4e-mark-as-read
   (kbd "<home>") 'move-beginning-of-line
   (kbd "<end>") 'move-end-of-line
+)
+#+end_src
+*** When
+#+begin_src emacs-lisp
 )
 #+end_src
 ** rcirc

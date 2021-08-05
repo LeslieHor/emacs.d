@@ -165,6 +165,7 @@ will call `find-file' with \"~/.emacs.d/init.el\" as the arg")
       (recentf-load-list)
       ;; TODO : Escape the string so it prints literally
       (insert dashboard-greeting "\n"
+              "Load Time: " (emacs-init-time) "\n"
               "\n"
               " [o] Open link       [q] Quit\n"
               "\n"
