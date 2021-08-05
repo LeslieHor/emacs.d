@@ -2459,17 +2459,16 @@ When in task view, jump to todos. Else perform normal action.
       (goto-char (match-beginning 0)))))
 
 (defun circ/snippet-replacement-interaction (options)
-  (message "%s" options)
   (let* ((index (nth 0 options))
         (name (nth 1 options))
         (prompt (format "(%s) %s: " index (cond (name name) (t "")))))
-  (cond ((= (length options) 2)
-         (read-string prompt))
-        ((string= (nth 2 options) "LIST")
+  (cond ((string= (nth 2 options) "LIST")
          (let ((ivy-sort-functions-alist nil))
            (completing-read prompt (nthcdr 3 options))))
         ((string= (nth 2 options) "DEFAULT")
-         (read-string prompt (nth 3 options))))))
+         (read-string prompt (nth 3 options)))
+        (t
+         (read-string prompt)))))
 
 (defvar circ/snippet-directory "~/.emacs.d/snippets")
 (defun circ/snippet-load-snippets ()
