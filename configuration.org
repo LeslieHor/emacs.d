@@ -2383,6 +2383,22 @@ When in task view, jump to todos. Else perform normal action.
   (or (circ/snippet-find-snippet-mode snippet-symbol major-mode)
       (circ/snippet-find-snippet-mode snippet-symbol 'all)))
 
+(defun circ/snippet-select ()
+  (interactive)
+  (let ((candidates nil)
+        (selected-option nil)
+        (selected-mode nil)
+        (selected-symbol nil))
+    (dolist (mode circ/snippets)
+      (dolist (symbol (cdr mode))
+        (setq candidates (cons (format "%s/%s" (car mode) (car symbol))
+                               candidates))))
+    (setq selected-option (split-string (completing-read "Snippet: " candidates) "/"))
+    (setq selected-mode (car selected-option))
+    (setq selected-symbol (cadr selected-option))
+    (circ/snippet-insert-and-fill
+     (circ/snippet-find-snippet-mode selected-symbol (intern selected-mode)))))
+
 (defun circ/snippet-expand ()
   (interactive)
   (let ((snippet-symbol nil)
@@ -2402,6 +2418,12 @@ When in task view, jump to todos. Else perform normal action.
 
     ;; Insert the snippet as a place holder for preview
     (delete-region start-point end-point)
+
+    (circ/snippet-insert-and-fill snippet)))
+
+(defun circ/snippet-insert-and-fill (snippet)
+  (let ((end-point)
+        (start-point (point)))
     (insert snippet)
 
     ;; Get the end point of the snippet, so we can continually replace it.
@@ -2431,15 +2453,13 @@ When in task view, jump to todos. Else perform normal action.
         (delete-region start-point end-point)
         (insert snippet)
         (setq end-point (+ start-point (length snippet)))
-      (setq placeholder-options (circ/snippet-find-options snippet))))
+        (setq placeholder-options (circ/snippet-find-options snippet))))
 
     ;; Find the {{0}} marker, remove it, and set the cursor there.
     (goto-char end-point)
     (when (search-backward "{{0}}" nil t)
       (delete-region (match-beginning 0) (match-end 0))
-      (goto-char (match-beginning 0)))
-    )
-  )
+      (goto-char (match-beginning 0)))))
 
 (defvar circ/snippet-directory "~/.emacs.d/snippets")
 (defun circ/snippet-load-snippets ()
@@ -4962,6 +4982,7 @@ Simply send M-f instead
 (circ/p1 "a a"  'circ/add-abbrev                      "add abbrev")
 (circ/p1 "a e"  'circ/snippet-expand                  "snippet expand")
 (circ/p1 "a r"  'circ/snippet-load-snippets           "load snippets")
+(circ/p1 "a l"  'circ/snippet-select                  "select snippets")
 (circ/p1 "b b"  'ivy-switch-buffer                    "switch buffers")
 (circ/p1 "b c"  'nil                                  "cast buffers")
 (circ/p1 "b ch" 'circ/alias-cast-buffer-left          "cast buffer left")
