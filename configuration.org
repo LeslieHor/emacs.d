@@ -2357,20 +2357,13 @@ When in task view, jump to todos. Else perform normal action.
 #+begin_src emacs-lisp
 (defvar circ/snippets nil)
 
-(defun circ/snippet-option-index (option)
-  (when (string-match "{{\\([0-9]*\\)\\(:[A-Za-z0-9 \-_]*\\)?}}" option)
-    (match-string 1 option)))
-(defun circ/snippet-option-name (option)
-  (when (string-match "{{\\([0-9]*\\)\\(:[A-Za-z0-9 \-_]*\\)?}}" option)
-    (when (match-string 2 option)
-      (substring (match-string 2 option) 1))))
-
 (defun circ/snippet-find-options (snippet)
   (let ((placeholder-options nil))
     (with-temp-buffer
       (insert snippet)
       (goto-char (point-min))
-      (while (search-forward-regexp "{{[0-9]+\\(:[a-zA-Z0-9\-_ ]+\\)?}}" nil t)
+      ;; There are MULTIPLE places this regexp is!
+      (while (search-forward-regexp "{{[0-9]+\\(:[a-zA-Z0-9\-_ !]+\\)*}}" nil t)
         (setq placeholder-options (cons (match-string 0) placeholder-options))))
     ;; Sort the place holder options and remove the {{0}} point option
     (setq placeholder-options (cdr (sort placeholder-options 'string<)))
@@ -2435,17 +2428,21 @@ When in task view, jump to todos. Else perform normal action.
     ;; Go through each option and prompt for replacement
     (while placeholder-options
       (let* ((current-placeholder (car placeholder-options))
-             (current-index (circ/snippet-option-index current-placeholder))
-             (current-name (circ/snippet-option-name current-placeholder))
-             (replacement (read-string (format "(%s) %s: "
-                                               current-index
-                                               (cond (current-name current-name)
-                                                     (t ""))))))
+             (options-list
+              (split-string
+               (replace-regexp-in-string
+                "^{{" ""
+                (replace-regexp-in-string
+                 "}}$" ""
+                 current-placeholder)) ":"))
+             (current-index (nth 0 options-list))
+             (replacement (circ/snippet-replacement-interaction options-list)))
         (with-temp-buffer
           (insert snippet)
           (goto-char (point-min))
           (while (search-forward-regexp
-                  (format "{{\\(%s\\)\\(:[A-Za-z0-9 \-_]*\\)?}}" current-index)
+                  ;; There are MULTIPLE places this regexp is!
+                  (format "{{\\(%s\\)\\(:[A-Za-z0-9 \-_ !]*\\)*}}" current-index)
                   nil t)
             (replace-match replacement t t nil 0))
           (setq snippet  (buffer-substring (point-min) (point-max))))
@@ -2460,6 +2457,19 @@ When in task view, jump to todos. Else perform normal action.
     (when (search-backward "{{0}}" nil t)
       (delete-region (match-beginning 0) (match-end 0))
       (goto-char (match-beginning 0)))))
+
+(defun circ/snippet-replacement-interaction (options)
+  (message "%s" options)
+  (let* ((index (nth 0 options))
+        (name (nth 1 options))
+        (prompt (format "(%s) %s: " index (cond (name name) (t "")))))
+  (cond ((= (length options) 2)
+         (read-string prompt))
+        ((string= (nth 2 options) "LIST")
+         (let ((ivy-sort-functions-alist nil))
+           (completing-read prompt (nthcdr 3 options))))
+        ((string= (nth 2 options) "DEFAULT")
+         (read-string prompt (nth 3 options))))))
 
 (defvar circ/snippet-directory "~/.emacs.d/snippets")
 (defun circ/snippet-load-snippets ()
