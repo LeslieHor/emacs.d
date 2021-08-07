@@ -1,0 +1,15 @@
+this is a test
+Option one: {{1:First Option}}
+Repeat option one: {{1}}
+Option two repeat: {{2:second option}} {{2}}
+This is an option with a default: {{3:Option with default:DEFAULT:Hello}}
+This is an option with a default 2: {{3}}
+This is an option with a defined list: {{4:Lists:LIST:one:two:even three!}}
+This is an option with a defined list 2: {{4}}
+5: {{5}}
+6: {{6}}
+7: {{7}}
+8: {{8}}
+9: {{9}}
+10: {{10}}
+

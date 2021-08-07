@@ -2368,9 +2368,12 @@ When in task view, jump to todos. Else perform normal action.
         (setq placeholder-options (cons (match-string 0) placeholder-options))))
     ;; Sort the place holder options and remove the {{0}} point option if it
     ;; exists
-    (setq placeholder-options (sort placeholder-options 'string<))
+    ;; Firstly, reverse the sorting so it reflects the order found in the
+    ;; snippet template
+    (setq placeholder-options (reverse placeholder-options))
+    (setq placeholder-options (circ/sort-snippets placeholder-options))
     (when (string= (car placeholder-options) "{{0}}")
-      (setq placeholder-options (cdr (sort placeholder-options 'string<))))
+      (setq placeholder-options (cdr placeholder-options)))
     placeholder-options))
 
 (defun circ/snippet-find-snippet-mode (snippet-symbol mode)
@@ -2432,13 +2435,7 @@ When in task view, jump to todos. Else perform normal action.
     ;; Go through each option and prompt for replacement
     (while placeholder-options
       (let* ((current-placeholder (car placeholder-options))
-             (options-list
-              (split-string
-               (replace-regexp-in-string
-                "^{{" ""
-                (replace-regexp-in-string
-                 "}}$" ""
-                 current-placeholder)) ":"))
+             (options-list (circ/snippet-parse-placeholder current-placeholder))
              (current-index (nth 0 options-list))
              (replacement (circ/snippet-replacement-interaction options-list)))
         (with-temp-buffer
@@ -2461,6 +2458,24 @@ When in task view, jump to todos. Else perform normal action.
     (when (search-backward "{{0}}" nil t)
       (delete-region (match-beginning 0) (match-end 0))
       (goto-char (match-beginning 0)))))
+
+(defun circ/snippet-parse-placeholder (snippet-string)
+  (split-string
+   (replace-regexp-in-string
+    "^{{" ""
+    (replace-regexp-in-string
+     "}}$" ""
+     snippet-string)) ":"))
+
+(defun circ/sort-snippets (snippet-list)
+  (mapcar
+   'cdr
+   (sort
+    (mapcar (lambda (x)
+              (cons (string-to-number (car (circ/snippet-parse-placeholder x))) x))
+            snippet-list)
+    (lambda (a b)
+      (< (car a) (car b))))))
 
 (defun circ/snippet-replacement-interaction (options)
   (let* ((index (nth 0 options))
