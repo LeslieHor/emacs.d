@@ -160,6 +160,7 @@ Highlights:
 (require 'whitespace)
 (setq whitespace-style '(face empty tabs trailing))
 (global-whitespace-mode t)
+(setq whitespace-line-column 80)
 
 ;; Disable in certain modes
 (setq whitespace-global-modes '((not erc-mode)
