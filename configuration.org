@@ -2747,6 +2747,7 @@ Set the colours to be as distinct as possible.
 Telephone line customization.
 
 #+BEGIN_SRC emacs-lisp
+(setq telephone-line-evil-use-short-tag t)
 (setq-default header-line-format "| %b | %I | %f")
 (telephone-line-defsegment* circ/telephone-line-indicator-segment
   `(""
