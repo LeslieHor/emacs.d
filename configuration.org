@@ -2246,6 +2246,8 @@ When in task view, jump to todos. Else perform normal action.
            (completing-read prompt (nthcdr 3 options))))
         ((string= (nth 2 options) "DEFAULT")
          (read-string prompt (nth 3 options)))
+        ((string= (nth 2 options) "CLIP")
+         (org-get-x-clipboard 'CLIPBOARD))
         (t
          (read-string prompt)))))
 
