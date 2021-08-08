@@ -5,3 +5,4 @@
 (org-babel-load-file "~/.emacs.d/personalsettings.org")
 (org-babel-load-file "~/.emacs.d/settings.org")
 (org-babel-load-file "~/.emacs.d/configuration.org")
+(org-babel-load-file "~/.emacs.d/org-redefinitions.org")

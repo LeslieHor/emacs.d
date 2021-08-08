@@ -1,0 +1,178 @@
+#+TITLE: Org Redefinitions
+
+* Force org mode to display buffers my way
+Requires rules in =display-buffer-alist= to work properly.
+=org-fit-window-to-buffer= overrides some display-buffer-alist rules. I am keeping
+the call to =org-fit-window-to-buffer= because I like the behaviour.
+** Redefine =org-switch-to-buffer-other-window=
+#+begin_src emacs-lisp
+(defun circ/org-switch-to-buffer-other-window (&rest args)
+  "Redefinition of `org-switch-to-buffer-other-window' to force
+org to abide by `display-buffer-alist'"
+  (apply #'switch-to-buffer-other-window args))
+
+(advice-add 'org-switch-to-buffer-other-window :override
+            #'circ/org-switch-to-buffer-other-window)
+#+end_src
+** Redefine =org-capture-place-template= to not delete other windows
+#+begin_src emacs-lisp
+(defun circ/org-capture-place-template (&optional inhibit-wconf-store)
+  "Insert the template at the target location, and display the buffer.
+When `inhibit-wconf-store', don't store the window configuration, as it
+may have been stored before."
+  (unless inhibit-wconf-store
+    (org-capture-put :return-to-wconf (current-window-configuration)))
+  ;; ----------------------------------------------------------
+  ;; Don't delete other windows. Just be a normal buffer
+  ;; (delete-other-windows)
+  ;; ----------------------------------------------------------
+  (org-switch-to-buffer-other-window
+   (org-capture-get-indirect-buffer (org-capture-get :buffer) "CAPTURE"))
+  (widen)
+  (org-show-all)
+  (goto-char (org-capture-get :pos))
+  (setq-local outline-level 'org-outline-level)
+  (pcase (org-capture-get :type)
+    ((or `nil `entry) (org-capture-place-entry))
+    (`table-line (org-capture-place-table-line))
+    (`plain (org-capture-place-plain-text))
+    (`item (org-capture-place-item))
+    (`checkitem (org-capture-place-item)))
+  (setq-local org-capture-current-plist org-capture-plist)
+  (org-capture-mode 1))
+
+(advice-add 'org-capture-place-template :override
+            #'circ/org-capture-place-template)
+#+end_src
+** Redefine =org-fast-todo-selection= to not delete other windows
+#+begin_src emacs-lisp
+(defun circ/org-fast-todo-selection (&optional current-state)
+  "Fast TODO keyword selection with single keys.
+Returns the new TODO keyword, or nil if no state change should occur.
+When CURRENT-STATE is given and selection letters are not unique globally,
+prefer a state in the current sequence over on in another sequence."
+  (let* ((fulltable org-todo-key-alist)
+	 (head (org-get-todo-sequence-head current-state))
+	 (done-keywords org-done-keywords) ;; needed for the faces.
+	 (maxlen (apply 'max (mapcar
+			      (lambda (x)
+				(if (stringp (car x)) (string-width (car x)) 0))
+			      fulltable)))
+	 (expert (equal org-use-fast-todo-selection 'expert))
+	 (prompt "")
+	 (fwidth (+ maxlen 3 1 3))
+	 (ncol (/ (- (window-width) 4) fwidth))
+	 tg cnt e c tbl subtable
+	 groups ingroup in-current-sequence)
+    (save-excursion
+      (save-window-excursion
+	(if expert
+	    (set-buffer (get-buffer-create " *Org todo*"))
+      ;; ----------------------------------------------------------
+      ;; Don't delete other windows. Just be a normal buffer
+      ;; And don't split any buffers up.
+	  ;; (delete-other-windows)
+	  ;; (set-window-buffer (split-window-vertically) (get-buffer-create " *Org todo*"))
+      ;; ----------------------------------------------------------
+	  (org-switch-to-buffer-other-window " *Org todo*"))
+	(erase-buffer)
+	(setq-local org-done-keywords done-keywords)
+	(setq tbl fulltable cnt 0)
+	(while (setq e (pop tbl))
+	  (cond
+	   ((equal e '(:startgroup))
+	    (push '() groups) (setq ingroup t)
+	    (unless (= cnt 0)
+	      (setq cnt 0)
+	      (insert "\n"))
+	    (setq prompt (concat prompt "{"))
+	    (insert "{ "))
+	   ((equal e '(:endgroup))
+	    (setq ingroup nil cnt 0 in-current-sequence nil)
+	    (setq prompt (concat prompt "}"))
+	    (insert "}\n"))
+	   ((equal e '(:newline))
+	    (unless (= cnt 0)
+	      (setq cnt 0)
+	      (insert "\n")
+	      (setq e (car tbl))
+	      (while (equal (car tbl) '(:newline))
+		(insert "\n")
+		(setq tbl (cdr tbl)))))
+	   (t
+	    (setq tg (car e) c (cdr e))
+	    (if (equal tg head) (setq in-current-sequence t))
+	    (when ingroup (push tg (car groups)))
+	    (when in-current-sequence (push e subtable))
+	    (setq tg (org-add-props tg nil 'face
+				    (org-get-todo-face tg)))
+	    (when (and (= cnt 0) (not ingroup)) (insert "  "))
+	    (setq prompt (concat prompt "[" (char-to-string c) "] " tg " "))
+	    (insert "[" c "] " tg (make-string
+				   (- fwidth 4 (length tg)) ?\ ))
+	    (when (and (= (setq cnt (1+ cnt)) ncol)
+		       ;; Avoid lines with just a closing delimiter.
+		       (not (equal (car tbl) '(:endgroup))))
+	      (insert "\n")
+	      (when ingroup (insert "  "))
+	      (setq cnt 0)))))
+	(insert "\n")
+	(goto-char (point-min))
+	(unless expert (org-fit-window-to-buffer))
+	(message (concat "[a-z..]:Set [SPC]:clear"
+			 (if expert (concat "\n" prompt) "")))
+	(setq c (let ((inhibit-quit t)) (read-char-exclusive)))
+	(setq subtable (nreverse subtable))
+	(cond
+	 ((or (= c ?\C-g)
+	      (and (= c ?q) (not (rassoc c fulltable))))
+	  (setq quit-flag t))
+	 ((= c ?\ ) nil)
+	 ((setq e (or (rassoc c subtable) (rassoc c fulltable))
+		tg (car e))
+	  tg)
+	 (t (setq quit-flag t)))))))
+
+(advice-add 'org-fast-todo-selection :override
+            #'circ/org-fast-todo-selection)
+#+end_src
+** Redefine =org-add-log-note= to not delete othe windows
+#+begin_src emacs-lisp
+(defun circ/org-add-log-note (&optional _purpose)
+  "Pop up a window for taking a note, and add this note later."
+  (remove-hook 'post-command-hook 'org-add-log-note)
+  (setq org-log-note-window-configuration (current-window-configuration))
+;; DON'T DELETE OTHER WINDOWS
+;;  (delete-other-windows)
+  (move-marker org-log-note-return-to (point))
+  (pop-to-buffer-same-window (marker-buffer org-log-note-marker))
+  (goto-char org-log-note-marker)
+  (org-switch-to-buffer-other-window "*Org Note*")
+  (erase-buffer)
+  (if (memq org-log-note-how '(time state))
+      (org-store-log-note)
+    (let ((org-inhibit-startup t)) (org-mode))
+;; Message altered to include evil keys
+    (insert (format "# Insert note for %s.
+# Finish with [q] / [C-c C-c], or cancel with [Q] / [C-c C-k].\n\n"
+		    (cl-case org-log-note-purpose
+		     (clock-out "stopped clock")
+		     (done  "closed todo item")
+		     (reschedule "rescheduling")
+		     (delschedule "no longer scheduled")
+		     (redeadline "changing deadline")
+		     (deldeadline "removing deadline")
+		     (refile "refiling")
+		     (note "this entry")
+		     (state
+		      (format "state change from \"%s\" to \"%s\""
+			      (or org-log-note-previous-state "")
+			      (or org-log-note-state "")))
+		     (t (error "This should not happen")))))
+    (when org-log-note-extra (insert org-log-note-extra))
+    (setq-local org-finish-function 'org-store-log-note)
+    (run-hooks 'org-log-buffer-setup-hook)))
+
+(advice-add 'org-add-log-note :override
+            #'circ/org-add-log-note)
+#+end_src
