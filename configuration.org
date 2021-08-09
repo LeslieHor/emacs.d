@@ -2173,8 +2173,10 @@ When in task view, jump to todos. Else perform normal action.
                                                       "/"))
                                 "" f))
                              (directory-files-recursively circ/snippet-directory "")))
-         (file (completing-read "Snippet" candidates)))
-    (find-file (concat (expand-file-name circ/snippet-directory) "/" file))))
+         (file (completing-read "Snippet" candidates))
+         (filepath (concat (expand-file-name circ/snippet-directory) "/" file)))
+    (circ/ensure-file filepath)
+    (find-file filepath)))
 
 (defun circ/snippet-expand ()
   (interactive)
