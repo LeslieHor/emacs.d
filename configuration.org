@@ -2282,8 +2282,7 @@ When in task view, jump to todos. Else perform normal action.
                              "" file))
            (file-list (split-string clean-file-name "/"))
            (mode (intern (car file-list)))
-           (snippet-symbol (replace-regexp-in-string
-                            "\.txt$" "" (cadr file-list)))
+           (snippet-symbol (file-name-sans-extension (cadr file-list)))
            (snippet (with-temp-buffer
                       (insert-file-contents file)
                       (buffer-substring (point-min) (point-max))))
