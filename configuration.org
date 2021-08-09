@@ -2143,8 +2143,7 @@ When in task view, jump to todos. Else perform normal action.
   (or (circ/snippet-find-snippet-mode snippet-symbol major-mode)
       (circ/snippet-find-snippet-mode snippet-symbol 'all)))
 
-(defun circ/snippet-select ()
-  (interactive)
+(defun circ/snippet-completing-read ()
   (let ((candidates nil)
         (selected-option nil)
         (selected-mode nil)
@@ -2154,10 +2153,28 @@ When in task view, jump to todos. Else perform normal action.
         (setq candidates (cons (format "%s/%s" (car mode) (car symbol))
                                candidates))))
     (setq selected-option (split-string (completing-read "Snippet: " candidates) "/"))
-    (setq selected-mode (car selected-option))
+    (setq selected-mode (intern (car selected-option)))
     (setq selected-symbol (cadr selected-option))
+    (cons selected-mode selected-symbol)))
+
+(defun circ/snippet-select ()
+  (interactive)
+  (let* ((option-cons (circ/snippet-completing-read))
+         (selected-mode (car option-cons))
+         (selected-symbol (cdr option-cons)))
     (circ/snippet-insert-and-fill
-     (circ/snippet-find-snippet-mode selected-symbol (intern selected-mode)))))
+     (circ/snippet-find-snippet-mode selected-symbol selected-mode))))
+
+(defun circ/snippet-open-snippet ()
+  (interactive)
+  (let* ((candidates (mapcar (lambda (f)
+                               (replace-regexp-in-string
+                                (regexp-quote (concat (expand-file-name circ/snippet-directory)
+                                                      "/"))
+                                "" f))
+                             (directory-files-recursively circ/snippet-directory "")))
+         (file (completing-read "Snippet" candidates)))
+    (find-file (concat (expand-file-name circ/snippet-directory) "/" file))))
 
 (defun circ/snippet-expand ()
   (interactive)
@@ -4774,6 +4791,7 @@ Simply send M-f instead
 (circ/p1 "a e"  'circ/snippet-expand                  "snippet expand")
 (circ/p1 "a r"  'circ/snippet-load-snippets           "load snippets")
 (circ/p1 "a l"  'circ/snippet-select                  "select snippets")
+(circ/p1 "a o"  'circ/snippet-open-snippet            "open snippets")
 (circ/p1 "b b"  'ivy-switch-buffer                    "switch buffers")
 (circ/p1 "b c"  'nil                                  "cast buffers")
 (circ/p1 "b ch" 'circ/alias-cast-buffer-left          "cast buffer left")
