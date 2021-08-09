@@ -2124,7 +2124,7 @@ When in task view, jump to todos. Else perform normal action.
       (insert snippet)
       (goto-char (point-min))
       ;; There are MULTIPLE places this regexp is!
-      (while (search-forward-regexp "{{[0-9]+\\(:[a-zA-Z0-9\-_ !]+\\)*}}" nil t)
+      (while (search-forward-regexp "{{[0-9]+\\(:[a-zA-Z0-9\-_ !]*\\)*}}" nil t)
         (setq placeholder-options (cons (match-string 0) placeholder-options))))
     ;; Sort the place holder options and remove the {{0}} point option if it
     ;; exists
