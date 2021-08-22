@@ -70,7 +70,7 @@
 (setq epa-pinentry-mode 'loopback)
 
 ;; Scrolling
-(setq scroll-margin 0)
+(setq scroll-margin 5)
 (setq scroll-conservatively 101)
 #+END_SRC
 
@@ -2701,6 +2701,11 @@ Source: https://oremacs.com/2015/01/01/three-ansi-term-tips/
 
 (add-hook 'term-exec-hook 'auto-exit-term-exec-hook)
 #+END_SRC
+
+*** Remove scroll margin
+#+begin_src emacs-lisp
+(add-hook 'term-mode-hook (lambda () (set (make-local-variable 'scroll-margin) 0)))
+#+end_src
 
 ** man
 Open man pages in current window
