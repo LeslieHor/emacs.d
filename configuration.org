@@ -120,6 +120,9 @@
          (display-buffer-same-window))
         ("^\\*vc-diff\\*$"
          (display-buffer-same-window))
+        ("^\\*Ledger Report\\*$"
+         (display-buffer-reuse-window)
+         (display-buffer-same-window))
         ))
 #+end_src
 
@@ -4497,6 +4500,67 @@ dim enabled."
 ;;   "q" 'circ/magit-mode-kill-buffer
 ;; )
 #+end_src
+** Ledger
+*** Set up
+#+begin_src emacs-lisp
+(add-to-list 'load-path "~/.emacs.d/packages/ledger-mode-4.0.0")
+(require 'ledger-mode)
+#+end_src
+*** HL Line for Reports
+#+begin_src emacs-lisp
+(defun circ/enable-hl-line-mode ()
+  (hl-line-mode +1))
+
+(add-hook 'ledger-report-mode-hook 'circ/enable-hl-line-mode)
+#+end_src
+*** Reports
+#+begin_src emacs-lisp
+(setq ledger-reports
+      '(("Balance"                   "%(binary) -f %(ledger-file) balance")
+        ("Register"                  "%(binary) -f %(ledger-file) register")
+        ("Expenses Register"         "%(binary) -f %(ledger-file) register ^Expenses:")
+        ("CurrentAccount Register"   "%(binary) -f %(ledger-file) register ^Assets:CurrentAccount")
+        ("Payee"                     "%(binary) -f %(ledger-file) register @%(payee)")
+        ("Register Account"          "%(binary) -f %(ledger-file) register %(account)")
+        ("Forecast"                  "%(binary) -f %(ledger-file) --forecast 'd<[3000]' register")
+        ("Forecast Account"          "%(binary) -f %(ledger-file) --forecast 'd<[3000]' register %(account)")
+        ("Forecast Monthly"          "%(binary) -f %(ledger-file) --forecast 'd<[3000]' --monthly register")
+        ("Forecast Yearly"           "%(binary) -f %(ledger-file) --forecast 'd<[3000]' --yearly register")
+        ("Forecast Account Monthly"  "%(binary) -f %(ledger-file) --forecast 'd<[3000]' --monthly register %(account)")
+        ("Forecast Account Yearly"   "%(binary) -f %(ledger-file) --forecast 'd<[3000]' --yearly register %(account)")
+  ))
+#+end_src
+*** Inserting new transactions and accounts
+#+begin_src emacs-lisp
+(defun circ/ledger-add-new-transaction ()
+  (interactive)
+  (let* ((date (org-read-date))
+         (parsed-date (ledger-parse-iso-date date)))
+    (ledger-xact-find-slot parsed-date)
+    (save-excursion
+      (insert date "  \n\n"))
+    (move-end-of-line nil)))
+
+(defun circ/ledger-insert-account ()
+  (interactive)
+  (insert (completing-read "Account: " (ledger-accounts-list))))
+#+end_src
+
+*** Evil Keybindings
+#+begin_src emacs-lisp
+(evil-define-key 'normal ledger-mode-map
+  "ga" 'ledger-add-transaction
+  "gr" 'ledger-report
+)
+
+(evil-set-initial-state 'ledger-report-mode 'motion)
+(evil-define-key 'motion ledger-report-mode-map
+  "q" 'ledger-report-quit
+  "r" 'ledger-report-redo
+  "e" 'ledger-report-edit-report
+  "gr" 'ledger-report
+)
+#+end_src
 ** general
 #+BEGIN_SRC emacs-lisp
 (add-to-list
@@ -5145,6 +5209,9 @@ Simply send M-f instead
 (circ/p4 "v t"  'circ/org-template-insert             "template"                            'org-mode-map)
 (circ/p4 "v f"  'mml-attach-file                      "attach file"                         'mu4e-compose-mode-map)
 (circ/p4 "v"    'nil                                  "insert items"                        'org-mode-map)
+(circ/p4 "v"    'nil                                  "insert items"                        'ledger-mode-map)
+(circ/p4 "v t"  'circ/ledger-add-new-transaction      "insert transaction"                  'ledger-mode-map)
+(circ/p4 "v a"  'circ/ledger-insert-account           "insert account"                      'ledger-mode-map)
 (circ/p4 "x"    'nil                                  "none")
 (circ/p4 "x"    'org-toggle-checkbox                  "toggle checkbox"                     'org-mode-map)
 #+END_SRC
