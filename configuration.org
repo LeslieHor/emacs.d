@@ -3006,6 +3006,36 @@ Completing read tag editing
   (goto-char (point-min)))
 #+end_src
 
+*** Goto feed in file
+#+begin_src emacs-lisp
+(defun circ/elfeed-goto-feed-in-file ()
+  (interactive)
+  (let* ((elfeed-search-remain-on-entry t)
+         (entry (car (elfeed-search-selected)))
+         (link (elfeed-feed-url (elfeed-entry-feed entry))))
+    (circ/open-rss-elfeed-file)
+    (goto-char (point-min))
+    (search-forward link)))
+#+end_src
+
+*** Add to dl list
+#+begin_src emacs-lisp
+(defun circ/elfeed-add-to-dl-list ()
+  (interactive)
+  (let ((filepath "~/Downloads/videos/yt-dlp-list.txt")
+        (elfeed-search-remain-on-entry t))
+    (dolist (entry (elfeed-search-selected))
+      (let* ((link (elfeed-entry-link entry))
+             (title (elfeed-entry-title entry)))
+        (with-temp-buffer
+          (insert-file-contents filepath)
+          (goto-char (point-max))
+          (insert link "\t" title "\n")
+          (write-region nil nil filepath))
+        (elfeed-search-untag-all 'saved)
+        (elfeed-search-untag-all 'unread)))))
+#+end_src
+
 *** Evil Keybindings
 #+BEGIN_SRC emacs-lisp
 (evil-set-initial-state 'elfeed-search-mode 'motion)
@@ -3030,6 +3060,8 @@ Completing read tag editing
   "ob" 'elfeed-search-browse-url
   "gf" 'circ/open-rss-elfeed-file
   "gs" 'circ/elfeed-search-saved
+  "ge" 'circ/elfeed-goto-feed-in-file
+  "gd" 'circ/elfeed-add-to-dl-list
   "C-d" 'evil-scroll-down
   "C-u" 'evil-scroll-up
   "t" 'circ/elfeed-toggle-sort-order
