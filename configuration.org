@@ -35,7 +35,7 @@
 ;; Disable these in termux mode
 (defvar circ/termux-p 'nil)
 (unless circ/termux-p
-  (mouse-avoidance-mode 'animate)
+  (mouse-avoidance-mode 'none)
   (tool-bar-mode -1)
   (scroll-bar-mode -1))
 (when circ/termux-p
