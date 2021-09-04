@@ -3310,6 +3310,8 @@ Completing read tag editing
 (setq dired-listing-switches "-Gghal")
 (setq dired-guess-shell-alist-user '(("\\.flac\\'" "mpv")
                                      ("\\.mp3\\'" "mpv")))
+(setq dired-recursive-copies 'always)
+(setq dired-recursive-deletes 'always)
 #+end_src
 
 *** reuse directory when going up directory
@@ -3343,7 +3345,8 @@ Completing read tag editing
       '("mp3" "flac"
         "mkv" "mp4" "flv" "avi" "wmv" "webm"
         "odt" "ods"
-        "cbz" "cbr"))
+        "cbz" "cbr"
+        "html"))
 (defun circ/dired-maybe-open-with-external-app ()
   "If file extension matches with any in
 `circ/dired-external-app-extensions' then open with
@@ -3375,6 +3378,10 @@ Completing read tag editing
   "/" 'dired-isearch-filenames
   "gg" 'evil-goto-first-line
   "G" 'evil-goto-line
+
+  "gf" 'find-name-dired
+  "gr" 'dired-mark-files-regexp
+  "gk" 'dired-do-kill-lines
 
   "h" 'dired-up-directory
   "j" 'dired-next-line
