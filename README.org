@@ -84,6 +84,9 @@ In the =personalsettings.org= file, define some variables. E.g.:
 | persist                | v0.4                                            |
 | mu4e                   | v0.0                                            |
 
+** Magit
+Requires atleast git version 2.0.0
+
 ** Notes
 Eyebrowse has been modified by commenting out 3 lines. This is to disable the
 mode line view, but keep eyebrowse creating the string. This is done because I

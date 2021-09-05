@@ -3916,6 +3916,43 @@ composing a message."
 (setq mu4e-compose-signature-auto-include t)
 (remove-hook 'mu4e-compose-mode-hook 'circ/mu4e-insert-signature-before-reply)
 #+end_src
+*** Download all attachments
+#+begin_src emacs-lisp
+(defvar circ/mu4e-bulk-saved-attachments-dir (expand-file-name "~/Downloads/mu4e"))
+
+(defun circ/mu4e-cleanse-subject (sub)
+  (replace-regexp-in-string
+   "[^A-Z0-9]+"
+   "-"
+   (downcase sub)))
+
+(defun circ/mu4e-download-and-view-attachments-dired (&optional msg)
+  "Saves all of the attachments in `msg' to a directory under
+`circ/mu4e-bulk-saved-attachments-dir' which is derived from the subject
+beloning to `msg'. Existing filenames will be overwritten without
+prompt. The directories are not cleaned up in any way."
+  (interactive)
+  (let* ((msg (or msg (mu4e-message-at-point)))
+         (id (circ/mu4e-cleanse-subject (mu4e-message-field msg :subject)))
+         (attachdir (concat circ/mu4e-bulk-saved-attachments-dir "/" id))
+         (count (hash-table-count mu4e~view-attach-map)))
+    (if (> count 0)
+        (progn
+          (mkdir attachdir t)
+          (dolist (num (number-sequence 1 count))
+            (let* ((att (mu4e~view-get-attach msg num))
+                   (fname (plist-get att :name))
+                   (index (plist-get att :index))
+                   fpath)
+              (setq fpath (concat attachdir "/" fname))
+              (mu4e~proc-extract
+               'save (mu4e-message-field msg :docid)
+               index mu4e-decryption-policy fpath)))
+          (dired attachdir)
+          (revert-buffer))
+      (message "Nothing to extract."))))
+#+end_src
+
 *** Evil Keybindings
 #+begin_src emacs-lisp
 (evil-set-initial-state 'mu4e-main-mode 'normal)
@@ -4052,7 +4089,7 @@ composing a message."
   "cf" 'mu4e-compose-forward
   "cr" 'mu4e-compose-reply
   "p"  'mu4e-view-save-attachment
-  "P"  'mu4e-view-save-attachment-multi ; Since mu4e 1.0, -multi is same as normal.
+  "P"  'circ/mu4e-download-and-view-attachments-dired
   "O"  'mu4e-headers-change-sorting
   "o"  'mu4e-view-open-attachment
   "A"  'mu4e-view-attachment-action
