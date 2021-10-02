@@ -3960,6 +3960,9 @@ composing a message."
 (remove-hook 'mu4e-compose-mode-hook 'circ/mu4e-insert-signature-before-reply)
 #+end_src
 *** Download all attachments
+Deprecated in mu4e v1.6.0.
+
+From that version, use: https://github.com/sje30/emacs/blob/master/mu4e-view-save-all-attachments.el
 #+begin_src emacs-lisp
 (defvar circ/mu4e-bulk-saved-attachments-dir (expand-file-name "~/Downloads/mu4e"))
 
