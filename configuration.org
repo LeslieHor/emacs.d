@@ -3771,6 +3771,18 @@ at the time of running the hook."
 
 (add-hook 'help-mode-hook 'circ/disable-linum-mode)
 #+end_src
+*** Evil Keys
+#+begin_src emacs-lisp
+(evil-define-key 'motion help-mode-map
+  "H" 'help-go-back
+  "L" 'help-go-forward
+  "]]" 'forward-button
+  "[[" 'backward-button
+  (kbd "<tab>") 'forward-button
+  (kbd "<backtab>") 'backward-button
+)
+#+end_src
+
 ** Undo tree
 #+begin_src emacs-lisp
 (setq undo-tree-visualizer-diff t)
