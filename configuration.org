@@ -2300,6 +2300,37 @@ When in task view, jump to todos. Else perform normal action.
 
 (circ/snippet-load-snippets)
 #+end_src
+** Resize Window
+#+begin_src emacs-lisp
+(defun circ/set-window-width ()
+  (interactive)
+  (let* ((full-width (frame-width))
+         (desired-width (round
+                         (*
+                          (/
+                           (string-to-number
+                            (read-string "Width %: "))
+                           100.0)
+                          full-width)))
+         (width-delta (- desired-width (window-text-width))))
+    (message "Resizing width to %s" desired-width)
+    (enlarge-window width-delta t)))
+
+(defun circ/set-window-height ()
+  (interactive)
+  (let* ((full-height (frame-height))
+         (desired-height (round
+                          (*
+                           (/
+                            (string-to-number
+                             (read-string "Height %: "))
+                            100.0)
+                           full-height)))
+         (height-delta (- desired-height (window-text-height))))
+    (message "Resizing height to %s" desired-height)
+    (enlarge-window height-delta nil)))
+#+end_src
+
 * Local variables
 ** Safe Local Eval Aliases
 #+BEGIN_SRC emacs-lisp
@@ -5167,10 +5198,14 @@ Simply send M-f instead
 (circ/p2 "z z"  'maximize-window                      "maximise window")
 (circ/p2 "z h"  'circ/maximise-window-horizontal      "maximise window horizontal")
 (circ/p2 "z v"  'circ/maximise-window-vertical        "maximise window vertical")
+(circ/p2 "z H"  'circ/set-window-width                "set window width")
+(circ/p2 "z V"  'circ/set-window-height               "set window height")
 (circ/p2 "c"    'nil                                  "minimise window")
 (circ/p2 "c c"  'minimize-window                      "minimise window")
 (circ/p2 "c h"  'circ/minimise-window-horizontal      "minimise window horizontal")
 (circ/p2 "c v"  'circ/minimise-window-vertical        "minimise window vertical")
+(circ/p2 "c H"  'circ/set-window-width                "set window width")
+(circ/p2 "c V"  'circ/set-window-height               "set window height")
 #+END_SRC
 
 ** P3
