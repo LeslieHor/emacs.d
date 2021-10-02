@@ -4638,18 +4638,36 @@ dim enabled."
 *** Reports
 #+begin_src emacs-lisp
 (setq ledger-reports
-      '(("Balance"                   "%(binary) -f %(ledger-file) balance")
-        ("Register"                  "%(binary) -f %(ledger-file) register")
-        ("Expenses Register"         "%(binary) -f %(ledger-file) register ^Expenses:")
-        ("CurrentAccount Register"   "%(binary) -f %(ledger-file) register ^Assets:CurrentAccount")
-        ("Payee"                     "%(binary) -f %(ledger-file) register @%(payee)")
-        ("Register Account"          "%(binary) -f %(ledger-file) register %(account)")
-        ("Forecast"                  "%(binary) -f %(ledger-file) --forecast 'd<[3000]' register")
-        ("Forecast Account"          "%(binary) -f %(ledger-file) --forecast 'd<[3000]' register %(account)")
-        ("Forecast Monthly"          "%(binary) -f %(ledger-file) --forecast 'd<[3000]' --monthly register")
-        ("Forecast Yearly"           "%(binary) -f %(ledger-file) --forecast 'd<[3000]' --yearly register")
-        ("Forecast Account Monthly"  "%(binary) -f %(ledger-file) --forecast 'd<[3000]' --monthly register %(account)")
-        ("Forecast Account Yearly"   "%(binary) -f %(ledger-file) --forecast 'd<[3000]' --yearly register %(account)")
+      '(("Balance"
+         "%(binary) -f %(ledger-file) balance")
+        ("Balance This Month"
+         "%(binary) -f %(ledger-file) balance --begin \"this month\" --end \"next month\"")
+        ("Register"
+         "%(binary) -f %(ledger-file) register")
+        ("Expenses Register"
+         "%(binary) -f %(ledger-file) register ^Expenses:")
+        ("Expenses Register Reducable"
+         "%(binary) -f %(ledger-file) register ^Expenses: and not \\(^Expenses:Taxes: or ^Expenses:Deductions:Pension or ^Expenses:Rent\\)")
+        ("Expenses Register Reducable Monthly Total Values"
+         "%(binary) -f %(ledger-file) register ^Expenses: and not \\(^Expenses:Taxes: or ^Expenses:Deductions:Pension or ^Expenses:Rent\\) --monthly --collapse")
+        ("CurrentAccount Register"
+         "%(binary) -f %(ledger-file) register ^Assets:CurrentAccount")
+        ("Payee"
+         "%(binary) -f %(ledger-file) register @%(payee)")
+        ("Register Account"
+         "%(binary) -f %(ledger-file) register %(account)")
+        ("Forecast"
+         "%(binary) -f %(ledger-file) --forecast 'd<[3000]' register")
+        ("Forecast Account"
+         "%(binary) -f %(ledger-file) --forecast 'd<[3000]' register %(account)")
+        ("Forecast Monthly"
+         "%(binary) -f %(ledger-file) --forecast 'd<[3000]' --monthly register")
+        ("Forecast Yearly"
+         "%(binary) -f %(ledger-file) --forecast 'd<[3000]' --yearly register")
+        ("Forecast Account Monthly"
+         "%(binary) -f %(ledger-file) --forecast 'd<[3000]' --monthly register %(account)")
+        ("Forecast Account Yearly"
+         "%(binary) -f %(ledger-file) --forecast 'd<[3000]' --yearly register %(account)")
   ))
 #+end_src
 *** Inserting new transactions and accounts
