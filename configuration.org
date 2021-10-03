@@ -2330,7 +2330,41 @@ When in task view, jump to todos. Else perform normal action.
     (message "Resizing height to %s" desired-height)
     (enlarge-window height-delta nil)))
 #+end_src
+** Repeat Replace Index
+Highlight region. Run funcion. Replaces instances of {} with index.
 
+#+begin_src emacs-lisp
+(defun circ/repeat-replace-index ()
+  "Asks for a starting index and a step function, then replaces
+all instances of `{}' in the hightlighted region."
+  (interactive)
+  (let ((index (string-to-number (read-string "Starting index: " "1")))
+        (step-function (car (read-from-string
+                             (read-string "Step function (n is current index): "
+                                          "(+ n 1)"))))
+        (transform-function (car (read-from-string
+                                  (read-string "Transform function (n is current index): "
+                                               "(+ n 0)"))))
+        (index-format (read-string "Index Format: " "%d"))
+        (region (buffer-substring (region-beginning) (region-end)))
+        (replacement-string nil))
+    (save-excursion
+      (with-temp-buffer
+        (insert region)
+        (goto-char (point-min))
+        (while (search-forward "{}" nil t)
+          (delete-region (match-beginning 0) (match-end 0))
+          (goto-char (match-beginning 0))
+          (setq n index)
+          (setq n (eval transform-function))
+          (insert (format index-format n))
+          (setq n index)
+          (setq index (eval step-function)))
+        (setq replacement-string (buffer-substring (point-min) (point-max))))
+      (delete-region (region-beginning) (region-end))
+      (goto-char (region-beginning))
+      (insert replacement-string))))
+#+end_src
 * Local variables
 ** Safe Local Eval Aliases
 #+BEGIN_SRC emacs-lisp
@@ -5055,6 +5089,8 @@ Simply send M-f instead
 (circ/p1 "e fr" 'fill-region                          "fill region")
 (circ/p1 "e i"  'erlang-indent-region                 "indent region"                       'erlang-mode-map)
 (circ/p1 "e j"  'erlang-generate-new-clause           "new clause"                          'erlang-mode-map)
+(circ/p1 "e r"  'nil                                  "repetition edits")
+(circ/p1 "e ri" 'circ/repeat-replace-index            "repeat replace index")
 (circ/p1 "e s"  'nil                                  "surround")
 (circ/p1 "e s'" 'circ/surround-s-quote                "single quote '")
 (circ/p1 "e s(" 'circ/surround-parentheses            "parentheses ( )")
