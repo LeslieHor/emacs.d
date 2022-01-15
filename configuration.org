@@ -26,8 +26,9 @@
 (setq-default frame-title-format '("%b - Emacs")) ; set the emacs title.
                                         ; overrides the old "emacs@HOST" title
 (set-frame-font "Liberation Mono 7" t t)
-;(set-frame-font "IBM Plex Mono 7" t t)
+(set-frame-font "IBM Plex Mono 7" t t)
 ;(set-frame-font "Lemon 6" t t)
+(set-frame-font "Noto Sans Mono CJK JP 9" t t)
 ;(set-frame-font "Unifont 12" t t)
 (menu-bar-mode -1)
 
@@ -2365,6 +2366,15 @@ all instances of `{}' in the hightlighted region."
       (goto-char (region-beginning))
       (insert replacement-string))))
 #+end_src
+** Org refile in current file
+#+begin_src emacs-lisp
+(defun circ/org-refile-in-current ()
+  "refile current item in current buffer"
+  (interactive)
+  (let ((org-refile-use-outline-path t)
+        (org-refile-targets '((nil . (:maxlevel . 5)))))
+    (org-refile)))
+#+end_src
 * Local variables
 ** Safe Local Eval Aliases
 #+BEGIN_SRC emacs-lisp
@@ -2863,16 +2873,58 @@ multiple eww buffers to be open"
 
 *** elfeed-org
 To read rss feed links from an org file:
- #+BEGIN_SRC emacs-lisp
- ;; Dependencies
- (add-to-list 'load-path "~/.emacs.d/packages/dash.el-2.16.0")
- (add-to-list 'load-path "~/.emacs.d/packages/s.el-43ba8b563bee3426cead0e6d4ddc09398e1a349d")
+#+BEGIN_SRC emacs-lisp
+;; Dependencies
+;; (add-to-list 'load-path "~/.emacs.d/packages/dash.el-2.16.0")
+;; (add-to-list 'load-path "~/.emacs.d/packages/s.el-43ba8b563bee3426cead0e6d4ddc09398e1a349d")
 
- (add-to-list 'load-path "~/.emacs.d/packages/elfeed-org-77b6bbf222487809813de260447d31c4c59902c9")
- (require 'elfeed-org)
- (elfeed-org)
- (setq rmh-elfeed-org-files (list "~/pims/rss_feeds.org"))
- #+END_SRC
+;; (add-to-list 'load-path "~/.emacs.d/packages/elfeed-org-77b6bbf222487809813de260447d31c4c59902c9")
+;; (require 'elfeed-org)
+;; (elfeed-org)
+;; (setq rmh-elfeed-org-files (list "~/pims/rss_feeds.org"))
+#+END_SRC
+
+*** elfeed-protocol
+To pull entries from rss servers:
+#+begin_src emacs-lisp
+(add-to-list 'load-path "~/.emacs.d/packages/elfeed-protocol-c88bb246a40c2f8ec2cb36bc16690d1ed43f8b14")
+(require 'elfeed-protocol)
+(setq elfeed-use-curl t)
+(elfeed-set-timeout 36000)
+(setq elfeed-curl-extra-arguments '("--insecure")) ; necessary for https without a trust certificate
+
+(setq elfeed-feeds (list
+                    (list circ/elfeed-protocol-connection-url
+                          :password circ/elfeed-protocol-connection-password)))
+
+(setq elfeed-protocol-ttrss-maxsize 200) ; bigger than 200 is invalid
+(setq elfeed-protocol-ttrss-star-tag 'saved)
+(setq elfeed-protocol-ttrss-publish-tag 'publish)
+(elfeed-protocol-enable)
+
+; Update older feeds shortcut
+(defun circ/elfeed-protocol-update-older-feeds ()
+  (interactive)
+  (message "Updating older feeds")
+  (elfeed-protocol-ttrss-update-older
+   (elfeed-protocol-url circ/elfeed-protocol-connection-url)))
+
+(defun circ/elfeed-protocol-update-star ()
+  (interactive)
+  (message "Updating starred articles")
+  (elfeed-protocol-ttrss-update-star
+   (elfeed-protocol-url circ/elfeed-protocol-connection-url)))
+
+(defun circ/elfeed-protocol-update-publish ()
+  (interactive)
+  (elfeed-protocol-ttrss-update-star
+   (elfeed-protocol-url circ/elfeed-protocol-connection-url)))
+
+(defun circ/elfeed-full-fetch ()
+  (interactive)
+  (elfeed-update)
+  (circ/elfeed-protocol-update-star))
+#+end_src
 
 *** Load and Save DB on open and close
 #+BEGIN_SRC emacs-lisp
@@ -3114,8 +3166,8 @@ Completing read tag editing
   (kbd "TAB") 'elfeed-show-next-link
   "/" 'elfeed-search-live-filter
   "r" 'elfeed-search-update--force
-  "R" 'elfeed-search-fetch
-  "gR" 'circ/elfeed-db-reload
+  "R" 'circ/elfeed-full-fetch
+  "gR" 'circ/elfeed-protocol-update-older-feeds
   "f" 'circ/elfeed-search-filter-tag
   "F" 'elfeed/search-clear-filter
   "o" 'nil
@@ -4684,6 +4736,8 @@ dim enabled."
          "%(binary) -f %(ledger-file) register ^Expenses: and not \\(^Expenses:Taxes: or ^Expenses:Deductions:Pension or ^Expenses:Rent\\)")
         ("Expenses Register Reducable Monthly Total Values"
          "%(binary) -f %(ledger-file) register ^Expenses: and not \\(^Expenses:Taxes: or ^Expenses:Deductions:Pension or ^Expenses:Rent\\) --monthly --collapse")
+        ("Expenses Register Reducable Monthly Categories Values"
+         "%(binary) -f %(ledger-file) register ^Expenses: and not \\(^Expenses:Taxes: or ^Expenses:Deductions:Pension or ^Expenses:Rent\\) --monthly")
         ("CurrentAccount Register"
          "%(binary) -f %(ledger-file) register ^Assets:CurrentAccount")
         ("Payee"
