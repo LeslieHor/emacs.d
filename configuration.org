@@ -2869,9 +2869,10 @@ multiple eww buffers to be open"
 (add-hook 'elfeed-search-mode-hook 'circ/disable-evil-quickscope-mode)
 
 (setq elfeed-show-unique-buffers t)
+(setq elfeed-search-filter "+unread") ; Default elfeed search filter
 #+END_SRC
 
-*** elfeed-org
+*** elfeed-org (disabled)
 To read rss feed links from an org file:
 #+BEGIN_SRC emacs-lisp
 ;; Dependencies
@@ -2941,7 +2942,7 @@ To pull entries from rss servers:
 ;  (elfeed-db-load)
   (elfeed-search-update--force))
 #+END_SRC
-*** Open elfeed file
+*** Open elfeed file (deprecated)
 #+BEGIN_SRC emacs-lisp
 (defun circ/open-rss-elfeed-file ()
   (interactive)
@@ -3019,6 +3020,12 @@ To pull entries from rss servers:
   (interactive)
   (elfeed-show-untag 'saved)
   (elfeed-show-untag 'unread))
+
+(defun circ/elfeed-search-tag-unread ()
+  (interactive)
+  (let ((elfeed-search-remain-on-entry t))
+    (elfeed-search-tag-all 'unread))
+  (forward-line))
 #+END_SRC
 *** Tag filtering
 Completing read tag editing
@@ -3188,6 +3195,7 @@ Completing read tag editing
   "+" 'elfeed-search-tag-all
   "-" 'elfeed-search-untag-all
   "u" 'circ/elfeed-search-untag-saved-unread
+  "U" 'circ/elfeed-search-tag-unread
   "m" 'circ/elfeed-search-tag-saved)
 
 (evil-set-initial-state 'elfeed-show-mode 'motion)
