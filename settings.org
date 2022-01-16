@@ -162,7 +162,7 @@ Settings that only work on my home computer. They will probably break other setu
     (move-beginning-of-line nil)
     (insert "\n")
     (previous-line)
-    (insert (format "* %s" project-heading))
+    (insert (format "* [/] %s" project-heading))
     (org-set-property "CATEGORY" project-category)
     (org-todo "TODO")
     (org-set-tags-to '("PROJ"))
