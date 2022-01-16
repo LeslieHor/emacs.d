@@ -3114,7 +3114,23 @@ Completing read tag editing
 
 ;; Define faces for tagged entries. Earlier faces take priority.
 (setq elfeed-search-face-alist '((unread circ/elfeed-search-unread-title-face)
-                                 (video circ/elfeed-search-video-face)
+                                 (redditvideoshot circ/elfeed-search-video-face)
+                                 (redditvideosweekly circ/elfeed-search-video-face)
+                                 (redditvideosmonthly circ/elfeed-search-video-face)
+                                 (youtubecomputing circ/elfeed-search-video-face)
+                                 (youtubediy circ/elfeed-search-video-face)
+                                 (youtubeeducationalother circ/elfeed-search-video-face)
+                                 (youtubegaming circ/elfeed-search-video-face)
+                                 (youtubegamingeducational circ/elfeed-search-video-face)
+                                 (youtubehistorical circ/elfeed-search-video-face)
+                                 (youtubeinfrastructure circ/elfeed-search-video-face)
+                                 (youtubelinguistics circ/elfeed-search-video-face)
+                                 (youtubemethematics circ/elfeed-search-video-face)
+                                 (youtubemediastudies circ/elfeed-search-video-face)
+                                 (youtubeother circ/elfeed-search-video-face)
+                                 (youtubescience circ/elfeed-search-video-face)
+                                 (youtubesocialstudies circ/elfeed-search-video-face)
+                                 (youtubetechnology circ/elfeed-search-video-face)
                                  (saved circ/elfeed-search-saved-face)))
 #+end_src
 
