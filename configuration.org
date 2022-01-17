@@ -14,6 +14,8 @@
 ** Start Up
 #+BEGIN_SRC emacs-lisp
 (circ/log-message "Starting server")
+(when circ/termux-p
+  (setq server-socket-dir "~/.emacs.d"))
 (server-start) ; Start emacs server
 ;(desktop-save-mode 1) ; Save session and restore on next launch
 #+END_SRC
