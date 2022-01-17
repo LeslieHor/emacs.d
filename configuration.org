@@ -25,11 +25,12 @@
 (setq ring-bell-function 'ignore) ; silent bell when you make a mistake
 (setq-default frame-title-format '("%b - Emacs")) ; set the emacs title.
                                         ; overrides the old "emacs@HOST" title
-(set-frame-font "Liberation Mono 7" t t)
-(set-frame-font "IBM Plex Mono 7" t t)
-;(set-frame-font "Lemon 6" t t)
+;; (set-frame-font "Liberation Mono 7" t t)
+;; (set-frame-font "IBM Plex Mono 7" t t)
+;; (set-frame-font "Lemon 6" t t)
+;; (set-frame-font "Unifont 12" t t)
 (set-frame-font "Noto Sans Mono CJK JP 9" t t)
-;(set-frame-font "Unifont 12" t t)
+
 (menu-bar-mode -1)
 
 (circ/log-message "Setting up optional termux settings")
@@ -2826,6 +2827,7 @@ Open man pages in current window
 (add-to-list 'dashboard-persistent-links "file:~/.emacs.d/personalsettings.org")
 (add-to-list 'dashboard-persistent-links "file:~/pims/reference/books/read_books_list.org")
 (add-to-list 'dashboard-persistent-links "url:http://duckduckgo.com")
+(add-to-list 'dashboard-persistent-links "eww:http://duckduckgo.com/lite")
 (setq initial-buffer-choice 'dashboard)
 (add-hook 'dashboard-mode-hook 'circ/disable-evil-quickscope-mode)
 #+END_SRC

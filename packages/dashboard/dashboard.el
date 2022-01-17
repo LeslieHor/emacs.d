@@ -86,6 +86,7 @@
 
 (defvar dashboard-link-abbrev-alist
   '(("file" . find-file)
+    ("eww" . eww)
     ("url" . browse-url)
     ("buf" . switch-to-buffer)
     ("dir" . find-file))
