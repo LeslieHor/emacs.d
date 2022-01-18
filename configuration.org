@@ -2864,6 +2864,11 @@ multiple eww buffers to be open"
 (add-hook 'eww-mode-hook #'circ/rename-eww-hook)
 (add-hook 'eww-after-render-hook #'circ/rename-eww-hook)
 #+END_SRC
+
+Disable linum mode:
+#+begin_src emacs-lisp
+(add-hook 'eww-mode-hook 'circ/disable-linum-mode)
+#+end_src
 ** elfeed
 *** Setup
 #+BEGIN_SRC emacs-lisp
@@ -3244,8 +3249,10 @@ Completing read tag editing
   "y" 'elfeed-show-yank
   "C-d" 'evil-scroll-down
   "C-u" 'evil-scroll-up
-  "m" 'circ/elfeed-show-tag-saved
-  "u" 'circ/elfeed-show-untag-saved)
+  "d" 'evil-scroll-down
+  "u" 'evil-scroll-up
+  "m" 'circ/elfeed-show-tag-saved)
+;  "u" 'circ/elfeed-show-untag-saved)
 #+END_SRC
 ** emux
 #+BEGIN_SRC emacs-lisp
@@ -5500,6 +5507,7 @@ Simply send M-f instead
   "q" 'copy-buffer-copy-quit)
 
 (evil-define-key 'motion org-agenda-mode-map
+  "o" 'org-agenda-switch-to
   "f" 'nil
   "ft" 'circ/org-agenda-filter-tag
   "fT" 'circ/org-agenda-show-all-tags
