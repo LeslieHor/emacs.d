@@ -1,0 +1,4 @@
+import urllib.request
+
+request = urllib.request.Request(url)
+response = json.load(urllib.request.urlopen(request))

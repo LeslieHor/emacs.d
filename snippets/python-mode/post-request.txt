@@ -1,0 +1,5 @@
+import urllib.request
+
+request = "data"
+request = urllib.request.Request(url, request)
+response = urllib.request.urlopen(request)

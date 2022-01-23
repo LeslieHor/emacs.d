@@ -14,6 +14,8 @@
 ** Start Up
 #+BEGIN_SRC emacs-lisp
 (circ/log-message "Starting server")
+
+(defvar circ/termux-p 'nil)
 (when circ/termux-p
   (setq server-socket-dir "~/.emacs.d"))
 (server-start) ; Start emacs server
@@ -37,7 +39,6 @@
 
 (circ/log-message "Setting up optional termux settings")
 ;; Disable these in termux mode
-(defvar circ/termux-p 'nil)
 (unless circ/termux-p
   (mouse-avoidance-mode 'none)
   (tool-bar-mode -1)
@@ -3133,8 +3134,9 @@ Completing read tag editing
                                  (youtubegamingeducational circ/elfeed-search-video-face)
                                  (youtubehistorical circ/elfeed-search-video-face)
                                  (youtubeinfrastructure circ/elfeed-search-video-face)
+                                 (youtubejapan circ/elfeed-search-video-face)
                                  (youtubelinguistics circ/elfeed-search-video-face)
-                                 (youtubemethematics circ/elfeed-search-video-face)
+                                 (youtubemathematics circ/elfeed-search-video-face)
                                  (youtubemediastudies circ/elfeed-search-video-face)
                                  (youtubeother circ/elfeed-search-video-face)
                                  (youtubescience circ/elfeed-search-video-face)
@@ -3499,16 +3501,36 @@ Completing read tag editing
         "odt" "ods"
         "cbz" "cbr"
         "html"))
+
+(setq circ/dired-find-file-options
+      '(("html" browse-url-of-dired-file dired-find-file eww "firefox" "google-chrome")))
+
 (defun circ/dired-maybe-open-with-external-app ()
   "If file extension matches with any in
 `circ/dired-external-app-extensions' then open with
 `browse-url-of-dired-file' else open with `dired-find-file'"
   (interactive)
-  (cond ((member (file-name-extension (dired-get-file-for-visit))
-                 circ/dired-external-app-extensions)
-          (browse-url-of-dired-file))
+  (let* ((ext (file-name-extension (dired-get-file-for-visit)))
+         (open-methods (cdr (assoc-string ext circ/dired-find-file-options))))
+  (cond ((member ext circ/dired-external-app-extensions)
+         (message "methods %s" open-methods)
+         (cond ((< 0 (list-length open-methods))
+                (let ((method (completing-read "Open with: " open-methods)))
+                  (cond ((string-equal method "dired-find-file")
+                         (dired-find-file))
+                        ((string-equal method "browse-url-of-dired-file")
+                         (browse-url-of-dired-file))
+                        ((string-equal method "eww")
+                         (eww (concat "file://" (dired-get-file-for-visit))))
+                        ((char-or-string-p method)
+                         (shell-command (concat method
+                                                " '"
+                                                (dired-get-file-for-visit)
+                                                "'"))))))
+               (t
+                (browse-url-of-dired-file))))
          (t
-          (dired-find-file))))
+          (dired-find-file)))))
 (defun circ/dired-maybe-open-with-external-app-other-window ()
   "If file extension matches with any in
 `circ/dired-external-app-extensions' then open with
