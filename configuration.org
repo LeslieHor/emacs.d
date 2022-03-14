@@ -1785,7 +1785,7 @@ buffer, display it in another window."
 (defun circ/org-agenda-toggle-clock-closed ()
   (interactive)
   (cond ((equal org-agenda-log-mode-items '(clock))
-         (setq org-agenda-log-mode-items '(closed)))
+         (setq org-agenda-log-mode-items '(closed state)))
         (t
          (setq org-agenda-log-mode-items '(clock))))
   (org-agenda-redo))

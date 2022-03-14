@@ -12,6 +12,7 @@ Settings that only work on my home computer. They will probably break other setu
 (setq org-agenda-tags-todo-honor-ignore-options t)
 (setq org-agenda-dim-blocked-tasks 'invisible)
 (setq org-agenda-log-mode-items '(clock))
+(setq org-agenda-start-with-log-mode t)
 
 ;; Set todo states
 (setq org-todo-keywords
