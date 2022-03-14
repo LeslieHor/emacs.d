@@ -16,8 +16,8 @@ Settings that only work on my home computer. They will probably break other setu
 
 ;; Set todo states
 (setq org-todo-keywords
-      '((sequence "TODO(t)" "WAIT(w)" "INPROGRESS(i)"
-                  "|" "DONE(d)" "CANCELLED(c)")))
+      '((sequence "TODO(t!)" "WAIT(w!)" "INPROGRESS(i!)"
+                  "|" "DONE(d!)" "CANCELLED(c!)")))
 
 ;; Set tags
 (setq org-tag-persistent-alist nil)
@@ -66,13 +66,13 @@ Settings that only work on my home computer. They will probably break other setu
       '(("A" "Agenda" ((agenda "")
                        (tags-todo "STYLE=\"habit\"" ((org-agenda-overriding-header
                                                       "Habits\nBlue:   Not to be done          !: Today\nGreen:  Could have been done    *: Done that day\nYellow: Overdue the next day\nRed:    Overdue that day                                                   Today V")))
-                       (tags "STYLE=\"timebucket\"" ((org-agenda-overriding-header "Time Buckets")))
-                       (tags "+CATEGORY=\"inbox\"" ((org-agenda-overriding-header "Inbox")))
-                       (tags "+PROJ&+CATEGORY=\"\"" ((org-agenda-overriding-header "Projects Without Category")))))
+                       (tags "STYLE=\"timebucket\"" ((org-agenda-overriding-header "Time Buckets")))))
         ("T" "Tasks" ((tags "+PINNED=\"t\"-TODO=\"DONE\"-TODO=\"CANCELLED\"" ((org-agenda-overriding-header "Pinned")))
                       (tags "+TODO=\"INPROGRESS\"" ((org-agenda-overriding-header "In Progress")))
                       (tags "+TODO=\"TODO\"-DEADLINE={.+}-SCHEDULED={.+}" ((org-agenda-overriding-header "Todo")))
-                      (tags "+TODO=\"WAIT\"" ((org-agenda-overriding-header "Wait")))
+                      (tags "+TODO=\"WAIT\"" ((org-agenda-overriding-header "Wait")))))
+        ("R" "Weekly Review" ((tags "+CATEGORY=\"inbox\"" ((org-agenda-overriding-header "Inbox")))
+                              (tags "+PROJ&+CATEGORY=\"\"" ((org-agenda-overriding-header "Projects Without Category")))
                       (stuck "" ((org-agenda-overriding-header "Stuck")))))
         ("x" "x" ((tags-todo "+TODO=\"PROJECT\"")))))
 

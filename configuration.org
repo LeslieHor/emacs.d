@@ -16,6 +16,8 @@
 (circ/log-message "Starting server")
 
 (defvar circ/termux-p 'nil)
+;; Due to a bug in the termux emacs package, must set socket to a termux
+;; understandable directory
 (when circ/termux-p
   (setq server-socket-dir "~/.emacs.d"))
 (server-start) ; Start emacs server
@@ -210,6 +212,8 @@ Highlights:
 (setq org-agenda-window-setup 'current-window)
 (setq org-agenda-sticky t)
 (setq org-log-done 'time)
+(setq org-log-reschedule 'time)
+(setq org-log-redeadline 'time)
 (setq org-agenda-skip-scheduled-if-done t)
 (setq org-agenda-skip-deadline-if-done t)
 (setq org-src-window-setup 'plain) ; Use display-buffer-alist settings
@@ -277,17 +281,18 @@ Highlights:
 
 ** Fix the =\emsp= bug in clock tables.
  #+BEGIN_SRC emacs-lisp
- (defun circ/org-clocktable-indent-string (level)
-   (if (= level 1)
-       ""
-     (let ((str "^"))
-       (while (> level 2)
-         (setq level (1- level)
-               str (concat str "--")))
-       (concat str "-> "))))
-
- (advice-add 'org-clocktable-indent-string :override
-             #'circ/org-clocktable-indent-string)
+;(defun circ/org-clocktable-indent-string (level)
+;  (if (= level 1)
+;      ""
+;    (let ((str "^"))
+;      (while (> level 2)
+;        (setq level (1- level)
+;              str (concat str "--")))
+;      (concat str "-> "))))
+;
+;(advice-add 'org-clocktable-indent-string :override
+;            #'circ/org-clocktable-indent-string)
+(setq org-pretty-entries t)
  #+END_SRC
 
 ** Beautifying org-mode
@@ -339,10 +344,10 @@ Send agenda appointment desktop notifications.
   (format "%s: %s in %s mins" curr-time msg mins-to-appt))
 
 ;; Pre-defined functions for different notification systems
-(defun circ/format-appt-notify-cmd-desktop (message)
+(defun circ/format-appt-notify-cmd-desktop (id message)
   (format "timeout 0.2 notify-send -t 0 \"%s\"" message))
-(defun circ/format-appt-notify-cmd-termux (message)
-  (format "timeout 5 termux-notification -t \"%s\"" message))
+(defun circ/format-appt-notify-cmd-termux (id message)
+  (format "timeout 5 termux-notification -id \"%s\" -t \"%s\"" id message))
 
 (defvar circ/format-appt-notify-msg nil)
 (defvar circ/format-appt-notify-cmd nil)
@@ -368,7 +373,7 @@ hardcoded 200ms timeout in case no notification service is alive"
            (head-mins (cond ((listp mins-to-appt) (car mins-to-appt))
                             (t mins-to-appt)))
            (message (funcall circ/format-appt-notify-msg head-mins curr-time head-msg))
-           (command (funcall circ/format-appt-notify-cmd message)))
+           (command (funcall circ/format-appt-notify-cmd msg message)))
       (when (< 0 (shell-command command))
         (user-error "Appointment notification failed"))
       (message "Notification: %s" message))
@@ -2385,6 +2390,19 @@ all instances of `{}' in the hightlighted region."
         (org-refile-targets '((nil . (:maxlevel . 5)))))
     (org-refile)))
 #+end_src
+** Searching
+Search through PIMS references
+#+begin_src emacs-lisp
+(defun circ/pims/search-references (&optional initial-input)
+  (interactive)
+  (let ((default-directory circ/pims/reference-directory)
+        (search-term (read-string "Search PIMS References: "
+                                  (cond (initial-input initial-input)
+                                        (t ivy-thing-at-point)))))
+    (grep (format "grep --colour --line-number --with-filename --recursive %s * "
+                  search-term))))
+#+end_src
+
 * Local variables
 ** Safe Local Eval Aliases
 #+BEGIN_SRC emacs-lisp
@@ -4894,8 +4912,9 @@ To keep the code nice and clean.
 
 (defun circ/alias-org-force-publish () (interactive) (org-publish-current-project t))
 
-(defun circ/alias-org-agenda-agenda () (interactive) (org-agenda nil "A"))
-(defun circ/alias-org-agenda-tasks  () (interactive) (org-agenda nil "T"))
+(defun circ/alias-org-agenda-agenda         () (interactive) (org-agenda nil "A"))
+(defun circ/alias-org-agenda-tasks          () (interactive) (org-agenda nil "T"))
+(defun circ/alias-org-agenda-weekly-review  () (interactive) (org-agenda nil "R"))
 
 (defun circ/alias-sh-cmd-whole-buffer () (interactive) (circ/sh-cmd nil t nil))
 (defun circ/alias-sh-cmd-split-lines () (interactive) (circ/sh-cmd nil nil t))
@@ -5435,6 +5454,7 @@ Simply send M-f instead
 (circ/p4 "a"    'nil                                  "org-agenda")
 (circ/p4 "a a"  'circ/alias-org-agenda-agenda         "agenda")
 (circ/p4 "a t"  'circ/alias-org-agenda-tasks          "tasks")
+(circ/p4 "a r"  'circ/alias-org-agenda-weekly-review  "weekly review")
 (circ/p4 "a s"  'circ/setup-agenda-view               "setup agenda view")
 (circ/p4 "b c"  'circ/open-calendar                   "calendar")
 (circ/p4 "b l"  'circ/open-checklists                 "checklists")
