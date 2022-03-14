@@ -347,7 +347,7 @@ Send agenda appointment desktop notifications.
 (defun circ/format-appt-notify-cmd-desktop (id message)
   (format "timeout 0.2 notify-send -t 0 \"%s\"" message))
 (defun circ/format-appt-notify-cmd-termux (id message)
-  (format "timeout 5 termux-notification -id \"%s\" -t \"%s\"" id message))
+  (format "timeout 5 termux-notification --id \"%s\" -t \"%s\"" id message))
 
 (defvar circ/format-appt-notify-msg nil)
 (defvar circ/format-appt-notify-cmd nil)
