@@ -86,6 +86,9 @@ Settings that only work on my home computer. They will probably break other setu
       '(("n" "New Inbox Item"
          entry (file "~/pims/inbox.org")
          "* %^{Item}\n%?")
+        ("b" "Micro Blog"
+         entry (file "~/pims/microblog.org")
+        "* %U - %^{Item}\n%?")
         ("c" "Clipboard"
          entry (file "~/pims/inbox.org")
          "* %^{Item}\n%x%?")
