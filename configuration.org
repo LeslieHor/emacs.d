@@ -3919,6 +3919,7 @@ at the time of running the hook."
             :append :local))
 
 (add-hook 'help-mode-hook 'circ/disable-linum-mode)
+(add-hook 'org-agenda-mode-hook 'circ/disable-linum-mode)
 #+end_src
 *** Evil Keys
 #+begin_src emacs-lisp
