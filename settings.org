@@ -16,8 +16,8 @@ Settings that only work on my home computer. They will probably break other setu
 
 ;; Set todo states
 (setq org-todo-keywords
-      '((sequence "TODO(t!)" "WAIT(w!)" "INPROGRESS(i!)"
-                  "|" "DONE(d!)" "CANCELLED(c!)")))
+      '((sequence "TODO(t!/!)" "WAIT(w!/!)" "INPROGRESS(i!/!)"
+                  "|" "DONE(d!/!)" "CANCELLED(c!/!)")))
 
 ;; Set tags
 (setq org-tag-persistent-alist nil)
@@ -109,6 +109,10 @@ Settings that only work on my home computer. They will probably break other setu
          "* Follow up with %:from on %a\n%i%?")
         ("mr" "Read email" entry (file "~/pims/inbox.org")
          "* Read email %:from - %a\n%i%?")
+        ;; for org-protocol
+        ("L" "Link" entry (file "~/pims/inbox.org")
+         "* %a\n:PROPERTIES:\n:created: %U\n:END:\n%i"
+         :immediate-finish t)
         ))
 
 (setq org-agenda-prefix-format '((agenda   . " %i %-12:c %-6:e%?-12t% s")
