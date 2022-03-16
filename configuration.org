@@ -428,7 +428,7 @@ hardcoded 200ms timeout in case no notification service is alive"
     (dolist (tag (sort tag-alist (lambda (a b) (> (cdr a) (cdr b)))))
       (let ((tag-name (propertize (car tag) 'face 'org-tag))
             (tag-count (cdr tag)))
-        (unless (member tag-name '("proj" "ordered"))
+        (unless (member tag-name '("proj" "ordered" "pinned"))
           (let ((tag-string (format "%s (%s)  " tag-name tag-count)))
             ;; Magic number 3 to help avoid the overflow icon. Sometimes, if the
             ;; tags are just right, the tag cloud will show an icon that
