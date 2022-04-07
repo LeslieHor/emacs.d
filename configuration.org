@@ -79,6 +79,9 @@
 ;; Scrolling
 (setq scroll-margin 5)
 (setq scroll-conservatively 101)
+
+;; Disable GUI based dialog box
+(setq use-dialog-box nil)
 #+END_SRC
 
 ** Display buffer behaviour
@@ -232,6 +235,7 @@ Highlights:
 (require 'org-drill)
 (add-to-list 'org-modules 'org-drill)
 (setq org-drill-add-random-noise-to-intervals-p t)
+(require 'org-protocol)
 
 ;; Don't show any habits in the agenda, there is a dedicated section for that.
 (setq org-habit-show-habits nil)
@@ -2115,7 +2119,7 @@ When in task view, jump to todos. Else perform normal action.
 #+begin_src emacs-lisp
 (defun circ/org-agenda-goto-todo ()
   (goto-char (point-min))
-  (search-forward-regexp "==*\nTodo")
+  (search-forward-regexp "==*\nDuty")
   (move-beginning-of-line 1))
 
 (defun circ/org-agenda-goto-today-custom ()
@@ -4870,6 +4874,11 @@ dim enabled."
   "e" 'ledger-report-edit-report
   "gr" 'ledger-report
 )
+#+end_src
+** sh-mode
+Get rid of the thing that converts =<<= into a here document skeleton.
+#+begin_src emacs-lisp
+(remove-hook 'sh-mode-hook 'sh-electric-here-document-mode)
 #+end_src
 ** general
 #+BEGIN_SRC emacs-lisp
