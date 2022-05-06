@@ -5476,6 +5476,7 @@ Simply send M-f instead
 (circ/p4 "e"    'nil                                  "org edit"                            'org-mode-map)
 (circ/p4 "e s"  'circ/org-sort-headlines              "sort headlines"                      'org-mode-map)
 (circ/p4 "e c"  'org-clone-subtree-with-time-shift    "clone subtree with time shirt"       'org-mode-map)
+(circ/p4 "f c"  'circ/org-refile-in-current           "refile in current"                   'org-mode-map)
 (circ/p4 "f m"  'circ/org-file-reference              "file reference"                      'org-mode-map)
 (circ/p4 "f p"  'circ/pims/set-project                "set as project"                      'org-mode-map)
 (circ/p4 "f r"  'org-refile                           "org refile"                          'org-mode-map)
