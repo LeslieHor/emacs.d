@@ -87,6 +87,28 @@ In the =personalsettings.org= file, define some variables. E.g.:
 ** Magit
 Requires atleast git version 2.0.0
 
+** eglot
+=eglot= requires updated versions of built in packages. These are set in the
+=init.el=.
+*** erlang-ls
+To get proper finds of definitions and references, you'll need an
+=erlang_ls.config= file in the root of the project.
+
+Example
+
+#+begin_src conf
+apps_dirs:
+  - "apps/*"
+deps_dirs:
+  - "_build/default/lib/*"
+  - "_build/test/lib/*"
+include_dirs:
+  - "apps"
+  - "apps/*/include"
+  - "_build/*/lib/"
+  - "_build/*/lib/*/include"
+#+end_src
+
 ** Notes
 Eyebrowse has been modified by commenting out 3 lines. This is to disable the
 mode line view, but keep eyebrowse creating the string. This is done because I

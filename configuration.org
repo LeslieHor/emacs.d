@@ -4880,6 +4880,13 @@ Get rid of the thing that converts =<<= into a here document skeleton.
 #+begin_src emacs-lisp
 (remove-hook 'sh-mode-hook 'sh-electric-here-document-mode)
 #+end_src
+** eglot
+*** Set up
+#+begin_src emacs-lisp
+(add-to-list 'load-path "~/.emacs.d/packages/eglot-1.8")
+(require 'eglot)
+#+end_src
+
 ** general
 #+BEGIN_SRC emacs-lisp
 (add-to-list
