@@ -133,6 +133,14 @@
         ("^\\*Ledger Report\\*$"
          (display-buffer-reuse-window)
          (display-buffer-same-window))
+        ("^\\*xref\\*$"
+         (display-buffer-reuse-window display-buffer-in-side-window)
+         (side . right)
+         (window-width . 86))
+        ("^\\*eldoc\\*$"
+         (display-buffer-reuse-window display-buffer-in-side-window)
+         (side . right)
+         (window-width . 86))
         ))
 #+end_src
 
@@ -2708,8 +2716,10 @@ I want relative numbers to display when in evil operator mode.
 (defvar circ/enable-erlang t)
 (when circ/enable-erlang
   (setq load-path (cons  "~/.emacs.d/packages/erlang-2.8.4" load-path))
-  (setq erlang-root-dir "~/erl_rel/18.3")
-  (setq exec-path (cons "~/erl_rel/18.3/bin" exec-path))
+;  (setq erlang-root-dir "~/erl_rel/18.3")
+  (setq erlang-root-dir "/usr/lib/erlang/")
+;  (setq exec-path (cons "~/erl_rel/18.3/bin" exec-path))
+  (setq exec-path (cons "/usr/lib/erlang/bin" exec-path))
   (require 'erlang-start)
   (require 'erlang-flymake))
 #+END_SRC
@@ -4886,7 +4896,47 @@ Get rid of the thing that converts =<<= into a here document skeleton.
 (add-to-list 'load-path "~/.emacs.d/packages/eglot-1.8")
 (require 'eglot)
 #+end_src
+*** Highlight face
+The face used to highlight other usages of a symbol.
 
+Draw a box around it to make it clearer than just a bold face.
+#+begin_src emacs-lisp
+(set-face-attribute 'eglot-highlight-symbol-face nil :box '(:line-width -1))
+(set-face-attribute 'eglot-highlight-symbol-face nil :underline t)
+#+end_src
+*** Mode hooks
+#+begin_src emacs-lisp
+(add-hook 'erlang-mode-hook 'eglot-ensure)
+(add-hook 'python-mode-hook 'eglot-ensure)
+#+end_src
+
+** xref
+#+begin_src emacs-lisp
+(evil-define-key 'normal xref--xref-buffer-mode-map
+  "q" 'circ/kill-this-buffer
+  "o" 'xref-goto-xref
+  "O" 'xref-quit-and-goto-xref
+  "v" 'xref-show-location-at-point
+  "n" 'xref-next-line
+  "p" 'xref-prev-line
+  "]" 'xref-next-line
+  "[" 'xref-prev-line
+)
+#+end_src
+
+** eldoc
+#+begin_src emacs-lisp
+(setq eldoc-echo-area-use-multiline-p nil)
+
+(defun circ/eldoc-set-evil-quit-keys ()
+  (interactive)
+  (message "Setting eldoc evil keys")
+  (with-current-buffer eldoc--doc-buffer
+    (evil-local-set-key 'normal "q" 'quit-window)))
+
+;; No hook exists when launching the eldoc buffer. So, advice is used instead.
+(advice-add 'eldoc-doc-buffer :after 'circ/eldoc-set-evil-quit-keys)
+#+end_src
 ** general
 #+BEGIN_SRC emacs-lisp
 (add-to-list
@@ -5218,8 +5268,6 @@ Simply send M-f instead
 (circ/p1 "b y"  'circ/buffer-yank                     "yank buffer")
 (circ/p1 "b"    'nil                                  "buffers")
 (circ/p1 "c"    'delete-window                        "close window")
-(circ/p1 "d"    'circ/alias-erlang-find-tag           "goto definition"                     'erlang-mode-map)
-(circ/p1 "d"    'evil-goto-definition                 "goto definition")
 (circ/p1 "d"    'org-open-at-point                    "open link"                           'org-agenda-mode-map)
 (circ/p1 "d"    'org-open-at-point                    "open link"                           'org-mode-map)
 (circ/p1 "d"    'circ/rcirc-open-url                  "open link"                           'rcirc-mode-map)
@@ -5232,6 +5280,8 @@ Simply send M-f instead
 (circ/p1 "e aa" 'erlang-align-arrows                  "align arrows"                        'erlang-mode-map)
 (circ/p1 "e ah" 'circ/align-once-head                 "regex ahead of match")
 (circ/p1 "e at" 'circ/align-once-tail                 "regex to tail of match")
+(circ/p1 "e c"  'completion-at-point                  "completion-at-point"                 'erlang-mode-map)
+(circ/p1 "e c"  'completion-at-point                  "completion-at-point"                 'python-mode-map)
 (circ/p1 "e c"  'dabbrev-completion                   "dabbrev completion")
 (circ/p1 "e C"  'capitalize-dwim                      "capitalise")
 (circ/p1 "e d"  'erlang-clone-arguments               "duplicate arguments"                 'erlang-mode-map)
@@ -5260,6 +5310,9 @@ Simply send M-f instead
 (circ/p1 "e s{" 'circ/surround-braces                 "braces { }")
 (circ/p1 "e s}" 'circ/surround-braces                 "braces { }")
 (circ/p1 "e"    'nil                                  "edits")
+(circ/p1 "f d"    'xref-find-definitions              "goto definition")
+(circ/p1 "f r"    'xref-find-references               "find references")
+(circ/p1 "f e"    'eldoc-doc-buffer                   "find documentation")
 (circ/p1 "f b"  'ivy-switch-buffer                    "buffers")
 (circ/p1 "f f"  'counsel-find-file                    "find file")
 (circ/p1 "f h"  'org-html-export-to-html              "export to html"                      'org-mode-map)

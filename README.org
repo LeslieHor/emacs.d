@@ -90,6 +90,12 @@ Requires atleast git version 2.0.0
 ** eglot
 =eglot= requires updated versions of built in packages. These are set in the
 =init.el=.
+
+- Find definition :: =P1-f d=
+- Find references :: =P1-f r=
+- Show documentation :: =P1-f e=
+- Completion at point :: =P1-e c=
+
 *** erlang-ls
 To get proper finds of definitions and references, you'll need an
 =erlang_ls.config= file in the root of the project.
