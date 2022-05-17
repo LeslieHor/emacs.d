@@ -700,6 +700,144 @@ Disabled cause it doesn't work very well.
 
 ;; (org-clock-load)
 #+end_src
+* Tab Bar Mode
+#+begin_src emacs-lisp
+(tab-bar-mode 1)
+#+end_src
+
+#+begin_src emacs-lisp
+(setq tab-bar-close-button-show nil)
+(setq tab-bar-new-button-show nil)
+(setq tab-bar-tab-hints t)
+(setq tab-bar-separator " ")
+#+end_src
+
+Tab name function
+#+begin_src emacs-lisp
+(setq tab-bar-tab-name-function 'tab-bar-tab-name-current-with-count)
+#+end_src
+
+Set faces
+#+begin_src emacs-lisp
+(set-face-attribute 'tab-bar nil
+                    :foreground "white"
+                    :background "#222222"
+                    :inherit nil)
+
+(set-face-attribute 'tab-bar-tab nil
+                    :background "darkgreen"
+                    :width 'unspecified
+                    :box nil)
+
+(set-face-attribute 'tab-bar-tab-inactive nil
+                    :background "#444444"
+                    :box nil)
+#+end_src
+* Tab line mode
+#+begin_src emacs-lisp
+(global-tab-line-mode 1)
+#+end_src
+
+#+begin_src emacs-lisp
+(setq tab-line-close-button-show nil)
+(setq tab-line-new-button-show nil)
+(setq tab-line-tab-hints t)
+(setq tab-line-separator " ")
+#+end_src
+
+Set faces
+#+begin_src emacs-lisp
+(set-face-attribute 'tab-line nil
+                    :foreground "white"
+                    :background "#222222"
+                    :height 1.0
+                    :inherit nil)
+
+(set-face-attribute 'tab-line-tab-current nil
+                    :background "darkgreen"
+                    :width 'unspecified
+                    :box nil)
+
+(set-face-attribute 'tab-line-tab nil
+                    :background "#335533"
+                    :width 'unspecified
+                    :box nil)
+
+(set-face-attribute 'tab-line-tab-inactive nil
+                    :background "#444444"
+                    :box nil)
+#+end_src
+
+Keyboard close tab function
+#+begin_src emacs-lisp
+(defun circ/tab-line-close-tab ()
+  "Close the tab.
+Original function `tab-line-close-tab' does not work when invoked
+via keyboard, as it relies on a mouse event to find the tab to
+close. When invoked via keyboard, the current tab will be the tab
+to close."
+  (interactive)
+  (let* ((window (selected-window))
+         (tab (tab-bar--current-tab))
+         (buffer (current-buffer))
+         (close-function (unless (bufferp tab) (cdr (assq 'close tab)))))
+    (with-selected-window (or window (selected-window))
+      (cond
+       ((functionp close-function)
+        (funcall close-function))
+       ((eq tab-line-close-tab-function 'kill-buffer)
+        (kill-buffer buffer))
+       ((eq tab-line-close-tab-function 'bury-buffer)
+        (if (eq buffer (current-buffer))
+            (bury-buffer)
+          (set-window-prev-buffers nil (assq-delete-all buffer (window-prev-buffers)))
+          (set-window-next-buffers nil (delq buffer (window-next-buffers)))))
+       ((functionp tab-line-close-tab-function)
+        (funcall tab-line-close-tab-function tab)))
+      (force-mode-line-update))))
+#+end_src
+
+Override switching functions to switch by visible tab instead of hidden history.
+#+begin_src emacs-lisp
+(defun circ/tab-line-switch-to-next-tab (&optional mouse-event)
+  "Switch to the next tab.
+Its effect is the same as using the `next-buffer' command
+(\\[next-buffer])."
+  (interactive (list last-nonmenu-event))
+  (let ((window (and (listp mouse-event) (posn-window (event-start mouse-event)))))
+    (with-selected-window (or window (selected-window))
+      (let* ((tabs (funcall tab-line-tabs-function))
+             (tab (nth (1+ (seq-position
+                            tabs (current-buffer)
+                            (lambda (tab buffer)
+                              (if (bufferp tab)
+                                  (eq buffer tab)
+                                (eq buffer (cdr (assq 'buffer tab)))))))
+                       tabs))
+             (buffer (if (bufferp tab) tab (cdr (assq 'buffer tab)))))
+        (when (bufferp buffer)
+          (switch-to-buffer buffer))))))
+
+
+(defun circ/tab-line-switch-to-prev-tab (&optional mouse-event)
+  "Switch to the previous tab.
+Its effect is the same as using the `previous-buffer' command
+(\\[previous-buffer])."
+  (interactive (list last-nonmenu-event))
+  (let ((window (and (listp mouse-event) (posn-window (event-start mouse-event)))))
+    (with-selected-window (or window (selected-window))
+      (let* ((tabs (funcall tab-line-tabs-function))
+             (tab (nth (1- (seq-position
+                            tabs (current-buffer)
+                            (lambda (tab buffer)
+                              (if (bufferp tab)
+                                  (eq buffer tab)
+                                (eq buffer (cdr (assq 'buffer tab)))))))
+                       tabs))
+             (buffer (if (bufferp tab) tab (cdr (assq 'buffer tab)))))
+        (when (bufferp buffer)
+          (switch-to-buffer buffer))))))
+#+end_src
 * Mode Line
 #+BEGIN_SRC emacs-lisp
 (circ/log-message "Setting up mode line")
@@ -711,7 +849,6 @@ Disabled cause it doesn't work very well.
                     :foreground "white"
                     :background "black")
 #+END_SRC
-
 * Custom Functions
 ** Helper Functions
 #+BEGIN_SRC emacs-lisp
@@ -5231,9 +5368,9 @@ Simply send M-f instead
 ** P1
 #+BEGIN_SRC emacs-lisp
 ;;FUN    KEY    FUNCTION                              DESCRIPTION                           MODE
-(circ/p1 ","    'previous-buffer                      "prev buffer")
+(circ/p1 ","    'circ/tab-line-switch-to-prev-tab     "prev tab")
+(circ/p1 "."    'circ/tab-line-switch-to-next-tab     "next tab")
 (circ/p1 "-"    'circ/alias-text-scale-down           "text scale down")
-(circ/p1 "."    'next-buffer                          "next buffer")
 (circ/p1 "/"    'circ/alias-search-buffer             "search buffer")
 (circ/p1 ";"    'counsel-M-x                          "M-x")
 (circ/p1 "="    'circ/alias-text-scale-up             "text scale up")
@@ -5495,8 +5632,17 @@ Simply send M-f instead
 (circ/p3 "j"    'circ/alias-cast-buffer-down          "cast buffer down")
 (circ/p3 "k"    'circ/alias-cast-buffer-up            "cast buffer up")
 (circ/p3 "l"    'circ/alias-cast-buffer-right         "cast buffer right")
-(circ/p3 "p"    'evil-jump-backward                   "jump back")
-(circ/p3 "n"    'evil-jump-forward                    "jump forward")
+(circ/p3 "t"    'nil                                  "tabs")
+(circ/p3 "t bl" 'nil                                  "tab bar")
+(circ/p3 "t br" 'tab-bar-rename-tab                   "rename tab")
+(circ/p3 "t l"  'nil                                  "tab line")
+(circ/p3 "t lq" 'circ/tab-line-close-tab              "close tab")
+(circ/p3 "q"    'tab-bar-close-tab                    "close tab")
+(circ/p3 "c"    'tab-bar-new-tab                      "new tab")
+(circ/p3 "p"    'tab-bar-switch-to-prev-tab           "prev tab")
+(circ/p3 "n"    'tab-bar-switch-to-next-tab           "next tab")
+(circ/p3 ","    'evil-jump-backward                   "jump back")
+(circ/p3 "."    'evil-jump-forward                    "jump forward")
 (circ/p3 "x"    'nil                                  "clearing notifications")
 (circ/p3 "x e"  'circ/rcirc-clear-all-buffer-tracking "clear all rcirc tracking")
 #+END_SRC
