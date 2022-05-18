@@ -816,8 +816,7 @@ Its effect is the same as using the `next-buffer' command
                        tabs))
              (buffer (if (bufferp tab) tab (cdr (assq 'buffer tab)))))
         (when (bufferp buffer)
-          (switch-to-buffer buffer))))))
-
+          (tab-line-select-tab-buffer buffer))))))
 
 (defun circ/tab-line-switch-to-prev-tab (&optional mouse-event)
   "Switch to the previous tab.
@@ -836,7 +835,7 @@ Its effect is the same as using the `previous-buffer' command
                        tabs))
              (buffer (if (bufferp tab) tab (cdr (assq 'buffer tab)))))
         (when (bufferp buffer)
-          (switch-to-buffer buffer))))))
+          (tab-line-select-tab-buffer buffer))))))
 #+end_src
 * Mode Line
 #+BEGIN_SRC emacs-lisp
@@ -5404,7 +5403,7 @@ Simply send M-f instead
 (circ/p1 "b x"  'circ/smart-clear-buffer              "clear buffer")
 (circ/p1 "b y"  'circ/buffer-yank                     "yank buffer")
 (circ/p1 "b"    'nil                                  "buffers")
-(circ/p1 "c"    'delete-window                        "close window")
+(circ/p1 "c"    'circ/tab-line-close-tab              "close tab")
 (circ/p1 "d"    'org-open-at-point                    "open link"                           'org-agenda-mode-map)
 (circ/p1 "d"    'org-open-at-point                    "open link"                           'org-mode-map)
 (circ/p1 "d"    'circ/rcirc-open-url                  "open link"                           'rcirc-mode-map)
@@ -5564,6 +5563,7 @@ Simply send M-f instead
 (circ/p1 "v mp" 'smerge-prev                          "prev merge conflict"                 'smerge-mode-map)
 (circ/p1 "v s"  'magit-status                         "magit status")
 (circ/p1 "v"    'nil                                  "version control")
+(circ/p1 "w c"  'delete-windows                       "close window")
 (circ/p1 "w e"  'balance-windows                      "balance windows")
 (circ/p1 "w h"  'circ/split-window-right              "split horizontal")
 (circ/p1 "w o"  'delete-other-windows                 "delete other windows")
@@ -5628,6 +5628,8 @@ Simply send M-f instead
 (circ/p3 "f q"  'delete-frame                         "close frame")
 (circ/p3 "f o"  'pop-out-config-to-new-frame          "pop out to frame")
 (circ/p3 "f"    'nil                                  "frames")
+(circ/p3 "c"    'tab-bar-new-tab                      "new tab")
+(circ/p3 "q"    'tab-bar-close-tab                    "close tab")
 (circ/p3 "h"    'circ/alias-cast-buffer-left          "cast buffer left")
 (circ/p3 "j"    'circ/alias-cast-buffer-down          "cast buffer down")
 (circ/p3 "k"    'circ/alias-cast-buffer-up            "cast buffer up")
@@ -5641,8 +5643,8 @@ Simply send M-f instead
 (circ/p3 "c"    'tab-bar-new-tab                      "new tab")
 (circ/p3 "p"    'tab-bar-switch-to-prev-tab           "prev tab")
 (circ/p3 "n"    'tab-bar-switch-to-next-tab           "next tab")
-(circ/p3 ","    'evil-jump-backward                   "jump back")
-(circ/p3 "."    'evil-jump-forward                    "jump forward")
+(circ/p3 "<"    'evil-jump-backward                   "jump back")
+(circ/p3 ">"    'evil-jump-forward                    "jump forward")
 (circ/p3 "x"    'nil                                  "clearing notifications")
 (circ/p3 "x e"  'circ/rcirc-clear-all-buffer-tracking "clear all rcirc tracking")
 #+END_SRC
