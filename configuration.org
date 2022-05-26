@@ -735,7 +735,7 @@ Set faces
 #+end_src
 * Tab line mode
 #+begin_src emacs-lisp
-(global-tab-line-mode 1)
+(global-tab-line-mode 0)
 #+end_src
 
 #+begin_src emacs-lisp
@@ -770,35 +770,44 @@ Set faces
 
 Keyboard close tab function
 #+begin_src emacs-lisp
-(defun circ/tab-line-close-tab ()
+(defun circ/tab-line-close-tab (&optional given-buffer given-window)
   "Close the tab.
 Original function `tab-line-close-tab' does not work when invoked
 via keyboard, as it relies on a mouse event to find the tab to
 close. When invoked via keyboard, the current tab will be the tab
 to close."
   (interactive)
-  (let* ((window (selected-window))
-         (tab (tab-bar--current-tab))
-         (buffer (current-buffer))
-         (close-function (unless (bufferp tab) (cdr (assq 'close tab)))))
-    (with-selected-window (or window (selected-window))
-      (cond
-       ((functionp close-function)
-        (funcall close-function))
-       ((eq tab-line-close-tab-function 'kill-buffer)
-        (kill-buffer buffer))
-       ((eq tab-line-close-tab-function 'bury-buffer)
-        (if (eq buffer (current-buffer))
-            (bury-buffer)
-          (set-window-prev-buffers nil (assq-delete-all buffer (window-prev-buffers)))
-          (set-window-next-buffers nil (delq buffer (window-next-buffers)))))
-       ((functionp tab-line-close-tab-function)
-        (funcall tab-line-close-tab-function tab)))
-      (force-mode-line-update))))
+  (let* ((window (or given-window (selected-window)))
+         (buffer (or given-buffer (current-buffer)))
+         (close-function nil))
+    (if (eq 1 (length (funcall tab-line-tabs-function)))
+        (user-error "Attempted to close sole tab")
+      (with-selected-window (or window (selected-window))
+        (cond
+         ((functionp close-function)
+          (funcall close-function))
+         ((eq tab-line-close-tab-function 'kill-buffer)
+          (kill-buffer buffer))
+         ((eq tab-line-close-tab-function 'bury-buffer)
+          (if (eq buffer (current-buffer))
+              (bury-buffer)
+            (set-window-prev-buffers nil (assq-delete-all buffer (window-prev-buffers)))
+            (set-window-next-buffers nil (delq buffer (window-next-buffers)))))
+         ((functionp tab-line-close-tab-function)
+          (funcall tab-line-close-tab-function tab)))
+        (force-mode-line-update)))))
 #+end_src
 
 Override switching functions to switch by visible tab instead of hidden history.
 #+begin_src emacs-lisp
+(defun circ/tab-line-current-tab-index ()
+    (seq-position
+     tabs (current-buffer)
+     (lambda (tab buffer)
+       (if (bufferp tab)
+           (eq buffer tab)
+         (eq buffer (cdr (assq 'buffer tab)))))))
+
 (defun circ/tab-line-switch-to-next-tab (&optional mouse-event)
   "Switch to the next tab.
 Its effect is the same as using the `next-buffer' command
@@ -807,16 +816,13 @@ Its effect is the same as using the `next-buffer' command
   (let ((window (and (listp mouse-event) (posn-window (event-start mouse-event)))))
     (with-selected-window (or window (selected-window))
       (let* ((tabs (funcall tab-line-tabs-function))
-             (tab (nth (1+ (seq-position
-                            tabs (current-buffer)
-                            (lambda (tab buffer)
-                              (if (bufferp tab)
-                                  (eq buffer tab)
-                                (eq buffer (cdr (assq 'buffer tab)))))))
-                       tabs))
+             (index (1+ (circ/tab-line-current-tab-index)))
+             (tab (nth index tabs))
              (buffer (if (bufferp tab) tab (cdr (assq 'buffer tab)))))
-        (when (bufferp buffer)
-          (tab-line-select-tab-buffer buffer))))))
+        (cond ((bufferp buffer)
+               (tab-line-select-tab-buffer buffer))
+              ((not buffer)
+               (tab-line-select-tab-buffer (car tabs))))))))
 
 (defun circ/tab-line-switch-to-prev-tab (&optional mouse-event)
   "Switch to the previous tab.
@@ -826,17 +832,26 @@ Its effect is the same as using the `previous-buffer' command
   (let ((window (and (listp mouse-event) (posn-window (event-start mouse-event)))))
     (with-selected-window (or window (selected-window))
       (let* ((tabs (funcall tab-line-tabs-function))
-             (tab (nth (1- (seq-position
-                            tabs (current-buffer)
-                            (lambda (tab buffer)
-                              (if (bufferp tab)
-                                  (eq buffer tab)
-                                (eq buffer (cdr (assq 'buffer tab)))))))
-                       tabs))
+             (index (1- (circ/tab-line-current-tab-index)))
+             (tab (nth index tabs))
              (buffer (if (bufferp tab) tab (cdr (assq 'buffer tab)))))
-        (when (bufferp buffer)
-          (tab-line-select-tab-buffer buffer))))))
+        (cond ((< index 0)
+               (tab-line-select-tab-buffer (car (last tabs))))
+              ((bufferp buffer)
+               (tab-line-select-tab-buffer buffer)))))))
 #+end_src
+
+Close other tabs
+#+begin_src emacs-lisp
+(defun circ/tab-line-close-other-tabs ()
+  (interactive)
+  (let ((selected-buffer (window-buffer))
+        (tabs (funcall tab-line-tabs-function)))
+    (dolist (tab tabs)
+      (unless (eq selected-buffer tab)
+        (circ/tab-line-close-tab tab)))))
+#+end_src
+
 * Mode Line
 #+BEGIN_SRC emacs-lisp
 (circ/log-message "Setting up mode line")
@@ -890,8 +905,12 @@ selected."
           (t
            (let ((target-buffer (window-buffer target-window))
                  (source-buffer (window-buffer)))
-             (set-window-buffer target-window source-buffer)
-             (set-window-buffer source-window target-buffer))
+             (if (eq source-buffer target-buffer)
+                  (user-error "Both buffers are the same. Skipping transpose.")
+                 (set-window-buffer target-window source-buffer)
+               (set-window-buffer source-window target-buffer)
+               (circ/tab-line-close-tab source-buffer source-window)
+               (circ/tab-line-close-tab target-buffer target-window)))
            (if arg
                (select-window target-window))))))
 
@@ -933,7 +952,7 @@ If arg is non-nil, the targetted window is selected."
            (user-error "Minibuffer is inactive"))
           (t
            (set-window-buffer target-window source-buffer)
-           (previous-buffer)
+           (circ/tab-line-close-tab source-buffer)
            (if arg
                (select-window target-window))))))
 
@@ -1515,16 +1534,25 @@ has no effect."
 (defun circ/setup-agenda-view()
   (interactive)
   (circ/open-inbox)
+;  (circ/tab-line-close-other-tabs)
+
   (split-window-right)
   (circ/alias-org-agenda-tasks)
+;  (circ/tab-line-close-other-tabs)
+
   (split-window-right)
   (circ/alias-org-agenda-agenda)
+;  (circ/tab-line-close-other-tabs)
+
   (balance-windows)
+
   (windmove-right)
   (circ/org-agenda-redo)
+
   (windmove-left)
   (circ/org-agenda-redo)
-  (circ/set-frame-name "PIMS"))
+
+  (tab-bar-rename-tab "PIMS"))
 #+END_SRC
 ** Org mode templates
 #+BEGIN_SRC emacs-lisp
@@ -4945,6 +4973,8 @@ dim enabled."
 #+begin_src emacs-lisp
 (add-to-list 'load-path "~/.emacs.d/packages/ledger-mode-4.0.0")
 (require 'ledger-mode)
+
+(setq ledger-accounts-file "~/finances/ledger.ledger")
 #+end_src
 *** HL Line for Reports
 #+begin_src emacs-lisp
@@ -5011,6 +5041,7 @@ dim enabled."
 (evil-define-key 'normal ledger-mode-map
   "ga" 'ledger-add-transaction
   "gr" 'ledger-report
+  "gp" 'ledger-plots
 )
 
 (evil-set-initial-state 'ledger-report-mode 'motion)
@@ -5131,6 +5162,17 @@ To keep the code nice and clean.
 (defun circ/alias-enlarge-win-horz () (interactive) (enlarge-window-horizontally circ/horz-resize-delta))
 (defun circ/alias-shrink-win-vert  () (interactive) (shrink-window circ/vert-resize-delta))
 (defun circ/alias-enlarge-win-vert () (interactive) (enlarge-window circ/vert-resize-delta))
+
+(defun circ/alias-tab-bar-select-tab-1  () (interactive) (tab-bar-select-tab 1))
+(defun circ/alias-tab-bar-select-tab-2  () (interactive) (tab-bar-select-tab 2))
+(defun circ/alias-tab-bar-select-tab-3  () (interactive) (tab-bar-select-tab 3))
+(defun circ/alias-tab-bar-select-tab-4  () (interactive) (tab-bar-select-tab 4))
+(defun circ/alias-tab-bar-select-tab-5  () (interactive) (tab-bar-select-tab 5))
+(defun circ/alias-tab-bar-select-tab-6  () (interactive) (tab-bar-select-tab 6))
+(defun circ/alias-tab-bar-select-tab-7  () (interactive) (tab-bar-select-tab 7))
+(defun circ/alias-tab-bar-select-tab-8  () (interactive) (tab-bar-select-tab 8))
+(defun circ/alias-tab-bar-select-tab-9  () (interactive) (tab-bar-select-tab 9))
+(defun circ/alias-tab-bar-select-tab-10 () (interactive) (tab-bar-select-tab 10))
 #+END_SRC
 
 ** Helper Functions
@@ -5161,6 +5203,16 @@ To keep the code nice and clean.
                            ((string= key ",") (concat prefix-special "<"))
                            ((string= key ".") (concat prefix-special ">"))
                            ((string= key "/") (concat prefix-special "?"))
+                           ((string= key "1") (concat prefix-special "!"))
+                           ((string= key "2") (concat prefix-special "\""))
+                           ((string= key "3") (concat prefix-special "£"))
+                           ((string= key "4") (concat prefix-special "$"))
+                           ((string= key "5") (concat prefix-special "%"))
+                           ((string= key "6") (concat prefix-special "^"))
+                           ((string= key "7") (concat prefix-special "&"))
+                           ((string= key "8") (concat prefix-special "*"))
+                           ((string= key "9") (concat prefix-special "("))
+                           ((string= key "0") (concat prefix-special ")"))
                            (t (concat prefix-normal key))))
          (standard-prefix-key (concat standard-prefix " " key)))
     (circ/set-keys prefix-key standard-prefix-key command description keymap)))
@@ -5367,12 +5419,22 @@ Simply send M-f instead
 ** P1
 #+BEGIN_SRC emacs-lisp
 ;;FUN    KEY    FUNCTION                              DESCRIPTION                           MODE
-(circ/p1 ","    'circ/tab-line-switch-to-prev-tab     "prev tab")
-(circ/p1 "."    'circ/tab-line-switch-to-next-tab     "next tab")
+(circ/p1 ","    'previous-buffer                      "prev buffer")
+(circ/p1 "."    'next-buffer                          "next buffer")
 (circ/p1 "-"    'circ/alias-text-scale-down           "text scale down")
 (circ/p1 "/"    'circ/alias-search-buffer             "search buffer")
 (circ/p1 ";"    'counsel-M-x                          "M-x")
 (circ/p1 "="    'circ/alias-text-scale-up             "text scale up")
+(circ/p1 "1"    'circ/alias-tab-bar-select-tab-1      "switch to tab 1")
+(circ/p1 "2"    'circ/alias-tab-bar-select-tab-2      "switch to tab 2")
+(circ/p1 "3"    'circ/alias-tab-bar-select-tab-3      "switch to tab 3")
+(circ/p1 "4"    'circ/alias-tab-bar-select-tab-4      "switch to tab 4")
+(circ/p1 "5"    'circ/alias-tab-bar-select-tab-5      "switch to tab 5")
+(circ/p1 "6"    'circ/alias-tab-bar-select-tab-6      "switch to tab 6")
+(circ/p1 "7"    'circ/alias-tab-bar-select-tab-7      "switch to tab 7")
+(circ/p1 "8"    'circ/alias-tab-bar-select-tab-8      "switch to tab 8")
+(circ/p1 "9"    'circ/alias-tab-bar-select-tab-9      "switch to tab 9")
+(circ/p1 "0"    'circ/alias-tab-bar-select-tab-10     "switch to tab 10")
 (circ/p1 "a"    'nil                                  "abbrevs / snippets")
 (circ/p1 "a a"  'circ/add-abbrev                      "add abbrev")
 (circ/p1 "a e"  'circ/snippet-expand                  "snippet expand")
@@ -5403,7 +5465,7 @@ Simply send M-f instead
 (circ/p1 "b x"  'circ/smart-clear-buffer              "clear buffer")
 (circ/p1 "b y"  'circ/buffer-yank                     "yank buffer")
 (circ/p1 "b"    'nil                                  "buffers")
-(circ/p1 "c"    'circ/tab-line-close-tab              "close tab")
+(circ/p1 "c"    'delete-window                        "delete window")
 (circ/p1 "d"    'org-open-at-point                    "open link"                           'org-agenda-mode-map)
 (circ/p1 "d"    'org-open-at-point                    "open link"                           'org-mode-map)
 (circ/p1 "d"    'circ/rcirc-open-url                  "open link"                           'rcirc-mode-map)
@@ -5563,7 +5625,7 @@ Simply send M-f instead
 (circ/p1 "v mp" 'smerge-prev                          "prev merge conflict"                 'smerge-mode-map)
 (circ/p1 "v s"  'magit-status                         "magit status")
 (circ/p1 "v"    'nil                                  "version control")
-(circ/p1 "w c"  'delete-windows                       "close window")
+;(circ/p1 "w c"  'delete-window                        "close window")
 (circ/p1 "w e"  'balance-windows                      "balance windows")
 (circ/p1 "w h"  'circ/split-window-right              "split horizontal")
 (circ/p1 "w o"  'delete-other-windows                 "delete other windows")
@@ -5638,7 +5700,7 @@ Simply send M-f instead
 (circ/p3 "t bl" 'nil                                  "tab bar")
 (circ/p3 "t br" 'tab-bar-rename-tab                   "rename tab")
 (circ/p3 "t l"  'nil                                  "tab line")
-(circ/p3 "t lq" 'circ/tab-line-close-tab              "close tab")
+;(circ/p3 "t lq" 'circ/tab-line-close-tab              "close tab")
 (circ/p3 "q"    'tab-bar-close-tab                    "close tab")
 (circ/p3 "c"    'tab-bar-new-tab                      "new tab")
 (circ/p3 "p"    'tab-bar-switch-to-prev-tab           "prev tab")
